@@ -1,0 +1,54 @@
+/**
+ * Mock R2/S3 utilities for testing
+ */
+
+export function createMockImageFile(filename: string) {
+  // Create a minimal valid image buffer (1x1 PNG)
+  const pngBuffer = Buffer.from([
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, // PNG signature
+    0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
+    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 dimensions
+    0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4,
+    0x89, 0x00, 0x00, 0x00, 0x0a, 0x49, 0x44, 0x41, // IDAT chunk
+    0x54, 0x78, 0x9c, 0x62, 0x00, 0x01, 0x00, 0x00,
+    0x05, 0x00, 0x01, 0x0d, 0x0a, 0x2d, 0xb4, 0x00, // Image data
+    0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, // IEND chunk
+    0x42, 0x60, 0x82,
+  ])
+
+  return {
+    data: pngBuffer,
+    mimetype: 'image/png',
+    name: filename,
+    size: pngBuffer.length,
+  }
+}
+
+export function createMockVideoFile(filename: string) {
+  // Minimal valid MP4 file header
+  const mp4Buffer = Buffer.from([
+    0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70,
+    0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x02, 0x00,
+  ])
+
+  return {
+    data: mp4Buffer,
+    mimetype: 'video/mp4',
+    name: filename,
+    size: mp4Buffer.length,
+  }
+}
+
+export function createMockPDFFile(filename: string) {
+  // Minimal valid PDF
+  const pdfBuffer = Buffer.from(
+    '%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Count 0>>endobj\nxref\n0 3\n0000000000 65535 f\n0000000009 00000 n\n0000000058 00000 n\ntrailer<</Size 3/Root 1 0 R>>\nstartxref\n110\n%%EOF'
+  )
+
+  return {
+    data: pdfBuffer,
+    mimetype: 'application/pdf',
+    name: filename,
+    size: pdfBuffer.length,
+  }
+}
