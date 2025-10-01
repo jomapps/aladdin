@@ -1,6 +1,5 @@
 // storage-adapter-import-placeholder
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
-import { payloadCloudPlugin } from '@payloadcms/payload-cloud'
 import { s3Storage } from '@payloadcms/storage-s3'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
@@ -20,6 +19,29 @@ import { ExportJobs } from './collections/ExportJobs'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+const s3Adapter = s3Storage({
+  config: {
+    endpoint: process.env.R2_ENDPOINT,
+    region: 'auto', // Required for Cloudflare R2
+    credentials: {
+      accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+    },
+    forcePathStyle: true, // Required for R2
+  },
+  bucket: process.env.R2_BUCKET_NAME!,
+  collections: {
+    media: {
+      prefix: 'media', // Optional: organize files in a folder
+      generateFileURL: ({ filename }) => {
+        // Generate the public URL using the custom domain
+        const baseUrl = process.env.R2_PUBLIC_URL || 'https://media.rumbletv.com'
+        return `${baseUrl}/media/${filename}`
+      },
+    },
+  },
+})
+
 export default buildConfig({
   admin: {
     user: Users.slug,
@@ -27,7 +49,16 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Projects, Episodes, Conversations, Workflows, ActivityLogs, ExportJobs],
+  collections: [
+    Users,
+    Media,
+    Projects,
+    Episodes,
+    Conversations,
+    Workflows,
+    ActivityLogs,
+    ExportJobs,
+  ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
@@ -37,27 +68,8 @@ export default buildConfig({
     url: process.env.DATABASE_URI || '',
   }),
   sharp,
-  plugins: [
-    payloadCloudPlugin(),
-    // Cloudflare R2 Storage Configuration
-    ...(process.env.R2_BUCKET && process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY
-      ? [
-          s3Storage({
-            collections: {
-              media: true, // Enable R2 for media collection
-            },
-            bucket: process.env.R2_BUCKET,
-            config: {
-              endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-              region: 'auto', // Cloudflare R2 uses 'auto'
-              credentials: {
-                accessKeyId: process.env.R2_ACCESS_KEY_ID,
-                secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-              },
-              forcePathStyle: true, // Required for R2
-            },
-          }),
-        ]
-      : []),
+    plugins: [
+    s3Adapter,
+    // storage-adapter-placeholder
   ],
 })
