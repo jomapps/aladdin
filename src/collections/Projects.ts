@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { brainSyncHooks } from '@/lib/hooks/brainSync'
 
 export const Projects: CollectionConfig = {
   slug: 'projects',
@@ -11,6 +12,9 @@ export const Projects: CollectionConfig = {
     create: () => true,
     update: () => true,
     delete: () => true,
+  },
+  hooks: {
+    ...brainSyncHooks.project,
   },
   fields: [
     // ========== IDENTITY ==========

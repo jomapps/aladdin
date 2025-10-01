@@ -44,20 +44,21 @@ export const saveCharacterTool = getCustomToolDefinition({
         }]
       }
 
-      // 2. Brain validation (Placeholder for Phase 3)
-      // TODO: Implement Brain service validation
-      const brainValidation = {
-        qualityRating: 0.85,
-        contradictions: [],
-        suggestions: [],
-        embedding: null
-      }
+      // 2. Phase 3: Real Brain validation
+      const { getContentValidator } = await import('@/lib/brain/validator')
+      const validator = getContentValidator()
+
+      const validationResult = await validator.validate({
+        content,
+        type: 'character',
+        projectId: projectSlug,
+      })
 
       // 3. Check quality threshold
-      if (brainValidation.qualityRating < 0.60) {
+      if (!validationResult.valid || validationResult.qualityScore < 0.60) {
         return [{
           type: 'text',
-          value: `Quality rating: ${brainValidation.qualityRating.toFixed(2)}\n\nIssues:\n${brainValidation.contradictions.map((c: any) => `- ${c.explanation}`).join('\n')}\n\nSuggestions:\n${brainValidation.suggestions.join('\n')}`
+          value: `⚠️  Quality rating: ${validationResult.qualityScore.toFixed(2)}/1.00\n\nValid: ${validationResult.valid}\nCoherence: ${validationResult.coherenceScore.toFixed(2)}\nCreativity: ${validationResult.creativityScore.toFixed(2)}\nCompleteness: ${validationResult.completenessScore.toFixed(2)}\n\nContradictions: ${validationResult.contradictions.length}\n${validationResult.contradictions.map(c => `  - [${c.severity}] ${c.description}`).join('\n')}\n\nSuggestions:\n${validationResult.suggestions.map(s => `  - ${s}`).join('\n')}`
         }]
       }
 
@@ -68,27 +69,35 @@ export const saveCharacterTool = getCustomToolDefinition({
         projectId: projectSlug,
         collectionName: 'characters',
         content,
-        qualityRating: brainValidation.qualityRating,
-        brainValidated: true,
+        qualityRating: validationResult.qualityScore,
+        brainValidated: validationResult.valid,
         validatedAt: new Date(),
+        validationResult: {
+          coherence: validationResult.coherenceScore,
+          creativity: validationResult.creativityScore,
+          completeness: validationResult.completenessScore,
+          contradictions: validationResult.contradictions.length,
+        },
         createdBy: 'character-creator',
         createdByType: 'agent',
         createdAt: new Date(),
         updatedAt: new Date()
       })
 
-      // 5. Add to Brain (Placeholder for Phase 3)
-      // TODO: Add node to Brain graph
+      console.log(`✅ Character saved with Brain validation: ${result.insertedId}`)
+
+      // 5. Note: MongoDB change streams will auto-trigger Brain indexing and embedding
 
       // 6. Return success
       return [{
         type: 'text',
-        value: `✓ Character "${name}" saved successfully!\n\nQuality Rating: ${brainValidation.qualityRating.toFixed(2)}/1.00\nBrain Validation: PASSED\n\nReady for next step.`
+        value: `✅ Character "${name}" saved successfully!\n\nQuality Rating: ${validationResult.qualityScore.toFixed(2)}/1.00\nBrain Validation: ${validationResult.valid ? 'PASSED' : 'WARNING'}\nCoherence: ${validationResult.coherenceScore.toFixed(2)}\nCreativity: ${validationResult.creativityScore.toFixed(2)}\nCompleteness: ${validationResult.completenessScore.toFixed(2)}\n\n${validationResult.suggestions.length > 0 ? `Suggestions:\n${validationResult.suggestions.slice(0, 3).map(s => `  - ${s}`).join('\n')}` : ''}\n\nReady for review.`
       }]
     } catch (error) {
+      console.error('Save character error:', error)
       return [{
         type: 'text',
-        value: `Error saving character: ${error instanceof Error ? error.message : 'Unknown error'}`
+        value: `❌ Error saving character: ${error instanceof Error ? error.message : 'Unknown error'}\n\nNote: Ensure Brain service is configured (BRAIN_API_URL, BRAIN_API_KEY, JINA_API_KEY).`
       }]
     }
   }

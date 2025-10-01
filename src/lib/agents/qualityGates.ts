@@ -111,11 +111,11 @@ export function validateOrchestratorQuality(
     score -= 0.1
   }
 
-  // Check brain validation
-  if (!result.brainValidated) {
+  // Phase 3: Check brain validation
+  if (result.brainValidated === false) {
     issues.push('Brain validation failed')
     score -= 0.2
-  } else if (result.brainQualityScore < 0.7) {
+  } else if (result.brainQualityScore && result.brainQualityScore < 0.7) {
     issues.push('Low brain quality score')
     score -= 0.1
   }
