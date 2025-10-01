@@ -266,11 +266,14 @@ export const Projects: CollectionConfig = {
           name: 'role',
           type: 'select',
           options: [
+            { label: 'Owner', value: 'owner' },
+            { label: 'Editor', value: 'editor' },
+            { label: 'Collaborator', value: 'collaborator' },
+            { label: 'Viewer', value: 'viewer' },
+            // Legacy roles
             { label: 'Producer', value: 'producer' },
             { label: 'Director', value: 'director' },
             { label: 'Writer', value: 'writer' },
-            { label: 'Editor', value: 'editor' },
-            { label: 'Viewer', value: 'viewer' },
           ],
           required: true,
         },
@@ -286,10 +289,45 @@ export const Projects: CollectionConfig = {
           ],
         },
         {
+          name: 'addedBy',
+          type: 'relationship',
+          relationTo: 'users',
+          label: 'Added By',
+        },
+        {
           name: 'addedAt',
           type: 'date',
           label: 'Added At',
           defaultValue: () => new Date(),
+        },
+      ],
+    },
+
+    // ========== CLONING ==========
+    {
+      name: 'clonedFrom',
+      type: 'group',
+      label: 'Cloned From',
+      admin: {
+        description: 'Set if this project was cloned from another',
+      },
+      fields: [
+        {
+          name: 'projectId',
+          type: 'relationship',
+          relationTo: 'projects',
+          label: 'Source Project',
+        },
+        {
+          name: 'clonedAt',
+          type: 'date',
+          label: 'Cloned At',
+        },
+        {
+          name: 'clonedBy',
+          type: 'relationship',
+          relationTo: 'users',
+          label: 'Cloned By',
         },
       ],
     },

@@ -14,6 +14,8 @@ import { Projects } from './collections/Projects'
 import { Episodes } from './collections/Episodes'
 import { Conversations } from './collections/Conversations'
 import { Workflows } from './collections/Workflows'
+import { ActivityLogs } from './collections/ActivityLogs'
+import { ExportJobs } from './collections/ExportJobs'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -25,7 +27,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Projects, Episodes, Conversations, Workflows],
+  collections: [Users, Media, Projects, Episodes, Conversations, Workflows, ActivityLogs, ExportJobs],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

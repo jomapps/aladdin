@@ -12,6 +12,11 @@ import type {
   FalErrorResponse,
   FalRateLimitState,
   FalRequestOptions,
+  FalTextToVideoRequest,
+  FalImageToVideoRequest,
+  FalFirstLastFrameRequest,
+  FalCompositeToVideoRequest,
+  FalGenerateVideoResponse,
 } from './types'
 
 export class FalClient {
@@ -203,6 +208,171 @@ export class FalClient {
 
     if (delay > 0) {
       await new Promise((resolve) => setTimeout(resolve, delay))
+    }
+  }
+
+  /**
+   * Phase 6: Generate video from text prompt
+   */
+  async generateTextToVideo(
+    request: FalTextToVideoRequest,
+    options: FalRequestOptions = {}
+  ): Promise<FalGenerateVideoResponse> {
+    try {
+      const model = request.model || 'fal-ai/ltx-video'
+      const endpoint = `/fal-ai/${model.replace('fal-ai/', '')}`
+
+      const payload = {
+        prompt: request.prompt,
+        negative_prompt: request.negativePrompt,
+        duration: Math.min(request.duration || 5, 7), // Max 7 seconds
+        fps: request.fps || 24,
+        resolution: request.resolution || { width: 1024, height: 576 },
+        output_format: request.format || 'mp4',
+        seed: request.seed,
+      }
+
+      const response = await this.axiosInstance.post(endpoint, payload, {
+        headers: options.webhookUrl
+          ? { 'X-Webhook-URL': options.webhookUrl }
+          : {},
+      })
+
+      return response.data
+    } catch (error) {
+      throw this.handleError(error, 'generateTextToVideo')
+    }
+  }
+
+  /**
+   * Phase 6: Generate video from single image with motion
+   */
+  async generateImageToVideo(
+    request: FalImageToVideoRequest,
+    options: FalRequestOptions = {}
+  ): Promise<FalGenerateVideoResponse> {
+    try {
+      const model = request.model || 'fal-ai/ltx-video'
+      const endpoint = `/fal-ai/${model.replace('fal-ai/', '')}/image-to-video`
+
+      const payload = {
+        prompt: request.prompt,
+        negative_prompt: request.negativePrompt,
+        image_url: request.imageUrl,
+        duration: Math.min(request.duration || 5, 7),
+        fps: request.fps || 24,
+        resolution: request.resolution || { width: 1024, height: 576 },
+        output_format: request.format || 'mp4',
+        seed: request.seed,
+        motion_strength: request.motionStrength || 0.7,
+        motion_parameters: request.motionParameters,
+      }
+
+      const response = await this.axiosInstance.post(endpoint, payload, {
+        headers: options.webhookUrl
+          ? { 'X-Webhook-URL': options.webhookUrl }
+          : {},
+      })
+
+      return response.data
+    } catch (error) {
+      throw this.handleError(error, 'generateImageToVideo')
+    }
+  }
+
+  /**
+   * Phase 6: Generate video from first and last keyframes
+   */
+  async generateFirstLastFrameVideo(
+    request: FalFirstLastFrameRequest,
+    options: FalRequestOptions = {}
+  ): Promise<FalGenerateVideoResponse> {
+    try {
+      const model = request.model || 'fal-ai/ltx-video'
+      const endpoint = `/fal-ai/${model.replace('fal-ai/', '')}/interpolate`
+
+      const payload = {
+        prompt: request.prompt,
+        negative_prompt: request.negativePrompt,
+        first_frame_url: request.firstFrameUrl,
+        last_frame_url: request.lastFrameUrl,
+        interpolation_steps: request.interpolationSteps || 16,
+        duration: Math.min(request.duration || 5, 7),
+        fps: request.fps || 24,
+        resolution: request.resolution || { width: 1024, height: 576 },
+        output_format: request.format || 'mp4',
+        seed: request.seed,
+      }
+
+      const response = await this.axiosInstance.post(endpoint, payload, {
+        headers: options.webhookUrl
+          ? { 'X-Webhook-URL': options.webhookUrl }
+          : {},
+      })
+
+      return response.data
+    } catch (error) {
+      throw this.handleError(error, 'generateFirstLastFrameVideo')
+    }
+  }
+
+  /**
+   * Phase 6: Generate video from composite image with references
+   */
+  async generateCompositeToVideo(
+    request: FalCompositeToVideoRequest,
+    options: FalRequestOptions = {}
+  ): Promise<FalGenerateVideoResponse> {
+    try {
+      const model = request.model || 'fal-ai/ltx-video'
+      const endpoint = `/fal-ai/${model.replace('fal-ai/', '')}/composite-to-video`
+
+      const payload = {
+        prompt: request.prompt,
+        negative_prompt: request.negativePrompt,
+        composite_image_url: request.compositeImageUrl,
+        reference_images: request.referenceImages?.map((ref) => ({
+          image_url: ref.url,
+          type: ref.type,
+          weight: ref.weight || 1.0,
+        })),
+        camera_movement: request.cameraMovement,
+        duration: Math.min(request.duration || 5, 7),
+        fps: request.fps || 24,
+        resolution: request.resolution || { width: 1024, height: 576 },
+        output_format: request.format || 'mp4',
+        seed: request.seed,
+        motion_strength: request.motionStrength || 0.7,
+      }
+
+      const response = await this.axiosInstance.post(endpoint, payload, {
+        headers: options.webhookUrl
+          ? { 'X-Webhook-URL': options.webhookUrl }
+          : {},
+      })
+
+      return response.data
+    } catch (error) {
+      throw this.handleError(error, 'generateCompositeToVideo')
+    }
+  }
+
+  /**
+   * Phase 6: Subscribe to webhook for async video generation
+   */
+  async subscribeToWebhook(
+    webhookUrl: string,
+    requestId: string
+  ): Promise<{ subscriptionId: string }> {
+    try {
+      const response = await this.axiosInstance.post('/webhooks/subscribe', {
+        url: webhookUrl,
+        request_id: requestId,
+      })
+
+      return response.data
+    } catch (error) {
+      throw this.handleError(error, 'subscribeToWebhook')
     }
   }
 

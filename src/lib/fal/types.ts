@@ -232,3 +232,212 @@ export interface ConsistencyVerificationResult {
   metadata?: Record<string, any>
   error?: string
 }
+
+/**
+ * Phase 6: Video Generation Types
+ */
+
+export type FalVideoModel =
+  | 'fal-ai/ltx-video'
+  | 'fal-ai/runway-gen3'
+  | 'fal-ai/minimax-video'
+  | 'fal-ai/hunyuan-video'
+  | 'fal-ai/mochi-v1'
+
+export type FalVideoFormat = 'mp4' | 'webm' | 'mov'
+
+export type FalVideoGenerationType = 'text-to-video' | 'image-to-video' | 'first-last-frame' | 'composite-to-video'
+
+export interface FalVideoGenerationRequest {
+  type: FalVideoGenerationType
+  prompt: string
+  model?: FalVideoModel
+  duration?: number // seconds, max 7
+  fps?: number // frames per second
+  resolution?: {
+    width: number
+    height: number
+  }
+  format?: FalVideoFormat
+  seed?: number
+  motionStrength?: number // 0-1
+  negativePrompt?: string
+}
+
+export interface FalTextToVideoRequest extends FalVideoGenerationRequest {
+  type: 'text-to-video'
+}
+
+export interface FalImageToVideoRequest extends FalVideoGenerationRequest {
+  type: 'image-to-video'
+  imageUrl: string
+  motionParameters?: {
+    cameraMovement?: 'pan-left' | 'pan-right' | 'zoom-in' | 'zoom-out' | 'static'
+    characterAction?: string
+    sceneTransition?: boolean
+  }
+}
+
+export interface FalFirstLastFrameRequest extends FalVideoGenerationRequest {
+  type: 'first-last-frame'
+  firstFrameUrl: string
+  lastFrameUrl: string
+  interpolationSteps?: number
+}
+
+export interface FalCompositeToVideoRequest extends FalVideoGenerationRequest {
+  type: 'composite-to-video'
+  compositeImageUrl: string
+  referenceImages?: Array<{
+    url: string
+    type: 'character' | 'location' | 'style'
+    weight?: number
+  }>
+  cameraMovement?: {
+    type: 'pan-left' | 'pan-right' | 'zoom-in' | 'zoom-out' | 'dolly' | 'crane' | 'static'
+    speed?: 'slow' | 'medium' | 'fast'
+    easing?: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out'
+  }
+}
+
+export interface FalVideoResult {
+  url: string
+  thumbnailUrl?: string
+  width: number
+  height: number
+  duration: number
+  fps: number
+  fileSize: number
+  format: FalVideoFormat
+  seed?: number
+}
+
+export interface FalGenerateVideoResponse {
+  video: FalVideoResult
+  seed: number
+  prompt: string
+  model: string
+  timings: {
+    inference: number
+    total: number
+  }
+  metadata?: Record<string, any>
+}
+
+/**
+ * Video Generation Result
+ */
+export interface VideoGenerationResult {
+  success: boolean
+  mediaId?: string
+  url?: string
+  thumbnailUrl?: string
+  width?: number
+  height?: number
+  duration?: number
+  fps?: number
+  fileSize?: number
+  seed?: number
+  qualityScore?: number
+  timings?: {
+    generation: number
+    upload: number
+    qualityCheck: number
+    total: number
+  }
+  metadata?: Record<string, any>
+  error?: string
+}
+
+/**
+ * Video Quality Check Result
+ */
+export interface VideoQualityCheckResult {
+  passed: boolean
+  overallScore: number
+  checks: {
+    duration: {
+      passed: boolean
+      actual: number
+      expected: number
+    }
+    resolution: {
+      passed: boolean
+      width: number
+      height: number
+    }
+    fps: {
+      passed: boolean
+      actual: number
+      minimum: number
+    }
+    consistency: {
+      characterConsistency?: number
+      locationConsistency?: number
+      colorConsistency?: number
+    }
+    technical: {
+      fileSize: number
+      format: string
+      corruption: boolean
+    }
+  }
+  issues: Array<{
+    type: string
+    severity: 'low' | 'medium' | 'high' | 'critical'
+    description: string
+  }>
+  recommendations?: string[]
+}
+
+/**
+ * Scene Assembly Configuration
+ */
+export interface SceneAssemblyConfig {
+  clips: Array<{
+    videoUrl: string
+    startTime?: number
+    endTime?: number
+    duration: number
+  }>
+  transitions?: Array<{
+    type: 'cut' | 'fade' | 'dissolve' | 'wipe'
+    duration?: number
+    position: number // between clip index
+  }>
+  audioTracks?: Array<{
+    url: string
+    type: 'dialogue' | 'music' | 'sfx'
+    startTime: number
+    volume?: number
+    fadeIn?: number
+    fadeOut?: number
+  }>
+  outputFormat?: FalVideoFormat
+  outputResolution?: {
+    width: number
+    height: number
+  }
+}
+
+/**
+ * Scene Assembly Result
+ */
+export interface SceneAssemblyResult {
+  success: boolean
+  mediaId?: string
+  url?: string
+  duration?: number
+  clipCount?: number
+  audioTrackCount?: number
+  timings?: {
+    concatenation: number
+    transitions: number
+    audioSync: number
+    render: number
+    upload: number
+    total: number
+  }
+  metadata?: Record<string, any>
+  error?: string
+}
