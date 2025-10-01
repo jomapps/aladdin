@@ -5,7 +5,7 @@
  * Phase 7: Production Polish
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import QualityMetricCard from './QualityMetricCard'
 
 interface DepartmentMetrics {
@@ -21,72 +21,62 @@ interface QualityDashboardProps {
   projectId: string
 }
 
-const MOCK_METRICS: DepartmentMetrics[] = [
-  {
-    id: 'story',
-    name: 'Story',
-    score: 92,
-    trend: 'up',
-    alerts: 0,
-    lastUpdated: new Date(),
-  },
-  {
-    id: 'character',
-    name: 'Character',
-    score: 88,
-    trend: 'stable',
-    alerts: 1,
-    lastUpdated: new Date(),
-  },
-  {
-    id: 'visual',
-    name: 'Visual',
-    score: 95,
-    trend: 'up',
-    alerts: 0,
-    lastUpdated: new Date(),
-  },
-  {
-    id: 'video',
-    name: 'Video',
-    score: 85,
-    trend: 'down',
-    alerts: 2,
-    lastUpdated: new Date(),
-  },
-  {
-    id: 'audio',
-    name: 'Audio',
-    score: 90,
-    trend: 'stable',
-    alerts: 0,
-    lastUpdated: new Date(),
-  },
-  {
-    id: 'image-quality',
-    name: 'Image Quality',
-    score: 93,
-    trend: 'up',
-    alerts: 0,
-    lastUpdated: new Date(),
-  },
-  {
-    id: 'production',
-    name: 'Production',
-    score: 87,
-    trend: 'stable',
-    alerts: 1,
-    lastUpdated: new Date(),
-  },
+// Default departments with 0 values when no data is available
+const DEFAULT_DEPARTMENTS: Omit<DepartmentMetrics, 'score' | 'alerts' | 'lastUpdated'>[] = [
+  { id: 'story', name: 'Story', trend: 'stable' },
+  { id: 'character', name: 'Character', trend: 'stable' },
+  { id: 'visual', name: 'Visual', trend: 'stable' },
+  { id: 'video', name: 'Video', trend: 'stable' },
+  { id: 'audio', name: 'Audio', trend: 'stable' },
+  { id: 'image-quality', name: 'Image Quality', trend: 'stable' },
+  { id: 'production', name: 'Production', trend: 'stable' },
 ]
 
+async function fetchQualityMetrics(
+  projectId: string,
+  timeRange: string,
+): Promise<DepartmentMetrics[]> {
+  try {
+    const response = await fetch(
+      `/api/v1/projects/${projectId}/quality/metrics?timeRange=${timeRange}`,
+    )
+    if (!response.ok) {
+      throw new Error('Failed to fetch quality metrics')
+    }
+    const data = await response.json()
+    return data.metrics || []
+  } catch (error) {
+    console.warn('Failed to fetch quality metrics, using defaults:', error)
+    // Return default departments with 0 values
+    return DEFAULT_DEPARTMENTS.map((dept) => ({
+      ...dept,
+      score: 0,
+      alerts: 0,
+      lastUpdated: new Date(),
+    }))
+  }
+}
+
 export default function QualityDashboard({ projectId }: QualityDashboardProps) {
-  const [metrics] = useState<DepartmentMetrics[]>(MOCK_METRICS)
+  const [metrics, setMetrics] = useState<DepartmentMetrics[]>([])
+  const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('7d')
 
-  const overallScore = Math.round(
-    metrics.reduce((sum, m) => sum + m.score, 0) / metrics.length,
-  )
+  // Load metrics on component mount and when timeRange changes
+  useEffect(() => {
+    const loadMetrics = async () => {
+      setLoading(true)
+      const data = await fetchQualityMetrics(projectId, timeRange)
+      setMetrics(data)
+      setLoading(false)
+    }
+    loadMetrics()
+  }, [projectId, timeRange])
+
+  const overallScore =
+    metrics.length > 0
+      ? Math.round(metrics.reduce((sum, m) => sum + m.score, 0) / metrics.length)
+      : 0
 
   const totalAlerts = metrics.reduce((sum, m) => sum + m.alerts, 0)
 
@@ -143,9 +133,19 @@ export default function QualityDashboard({ projectId }: QualityDashboardProps) {
 
       {/* Department Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {metrics.map((metric) => (
-          <QualityMetricCard key={metric.id} metric={metric} />
-        ))}
+        {loading
+          ? // Loading skeleton
+            DEFAULT_DEPARTMENTS.map((dept) => (
+              <div
+                key={dept.id}
+                className="bg-white border border-gray-200 rounded-lg p-4 animate-pulse"
+              >
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-full"></div>
+              </div>
+            ))
+          : metrics.map((metric) => <QualityMetricCard key={metric.id} metric={metric} />)}
       </div>
 
       {/* Alerts Section */}

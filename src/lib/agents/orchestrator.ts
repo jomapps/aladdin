@@ -11,7 +11,7 @@ import {
   queryBrainTool,
   getProjectContextTool,
   saveCharacterTool,
-  gradeOutputTool
+  gradeOutputTool,
 } from '@/agents/tools'
 import type { DepartmentReport, OrchestratorResult } from '@/agents/types'
 
@@ -30,7 +30,7 @@ export async function handleUserRequest(config: OrchestratorConfig): Promise<Orc
 
   // Initialize Codebuff client
   const codebuff = new CodebuffClient({
-    apiKey: process.env.CODEBUFF_API_KEY || ''
+    apiKey: process.env.CODEBUFF_API_KEY || '',
   })
 
   try {
@@ -40,11 +40,7 @@ export async function handleUserRequest(config: OrchestratorConfig): Promise<Orc
     const orchestratorRun = await codebuff.run({
       agent: masterOrchestratorAgent.id,
       prompt: userPrompt,
-      customToolDefinitions: [
-        routeToDepartmentTool,
-        queryBrainTool,
-        getProjectContextTool
-      ]
+      customToolDefinitions: [routeToDepartmentTool, queryBrainTool, getProjectContextTool],
     })
 
     // Extract departments needed from orchestrator output
@@ -53,9 +49,14 @@ export async function handleUserRequest(config: OrchestratorConfig): Promise<Orc
 
     // 2. Route to department heads in parallel
     const departmentReports = await Promise.all(
-      departmentsNeeded.map(dept =>
-        runDepartmentHead(codebuff, dept, orchestratorRun.output.instructions?.[dept] || userPrompt, projectSlug)
-      )
+      departmentsNeeded.map((dept) =>
+        runDepartmentHead(
+          codebuff,
+          dept,
+          orchestratorRun.output.instructions?.[dept] || userPrompt,
+          projectSlug,
+        ),
+      ),
     )
 
     // 3. Orchestrator aggregates results
@@ -65,19 +66,17 @@ export async function handleUserRequest(config: OrchestratorConfig): Promise<Orc
       agent: masterOrchestratorAgent.id,
       prompt: `Aggregate these department reports: ${JSON.stringify(departmentReports)}`,
       previousRun: orchestratorRun,
-      customToolDefinitions: [
-        queryBrainTool
-      ]
+      customToolDefinitions: [queryBrainTool],
     })
 
     // 4. Calculate final quality scores
     const overallQuality = calculateOverallQuality(departmentReports)
     const consistency = calculateConsistency(departmentReports)
 
-    // 5. Brain validation (placeholder)
+    // 5. Brain validation (TODO: implement real brain service validation)
     const brainValidation = {
-      validated: true,
-      score: 0.85
+      validated: false, // Default to false until real validation is implemented
+      score: 0,
     }
 
     const result: OrchestratorResult = {
@@ -87,13 +86,12 @@ export async function handleUserRequest(config: OrchestratorConfig): Promise<Orc
       brainValidated: brainValidation.validated,
       brainQualityScore: brainValidation.score,
       overallQuality,
-      recommendation: overallQuality >= 0.75 ? 'ingest' :
-                     overallQuality >= 0.50 ? 'modify' : 'discard'
+      recommendation:
+        overallQuality >= 0.75 ? 'ingest' : overallQuality >= 0.5 ? 'modify' : 'discard',
     }
 
     console.log(`✅ Orchestration complete. Quality: ${overallQuality.toFixed(2)}`)
     return result
-
   } catch (error) {
     console.error('❌ Orchestration error:', error)
     throw error
@@ -107,7 +105,7 @@ async function runDepartmentHead(
   codebuff: CodebuffClient,
   departmentName: string,
   instructions: string,
-  projectSlug: string
+  projectSlug: string,
 ): Promise<DepartmentReport> {
   console.log(`🏢 Running ${departmentName} department head...`)
 
@@ -123,7 +121,7 @@ async function runDepartmentHead(
         outputs: [],
         departmentQuality: 0,
         issues: [`Department ${departmentName} not configured`],
-        suggestions: []
+        suggestions: [],
       }
     }
 
@@ -131,11 +129,7 @@ async function runDepartmentHead(
     const deptHeadRun = await codebuff.run({
       agent: deptHeadConfig.id,
       prompt: instructions,
-      customToolDefinitions: [
-        gradeOutputTool,
-        saveCharacterTool,
-        getProjectContextTool
-      ]
+      customToolDefinitions: [gradeOutputTool, saveCharacterTool, getProjectContextTool],
     })
 
     // Extract relevance from output
@@ -149,7 +143,7 @@ async function runDepartmentHead(
         outputs: [],
         departmentQuality: 0,
         issues: [],
-        suggestions: []
+        suggestions: [],
       }
     }
 
@@ -157,24 +151,25 @@ async function runDepartmentHead(
     const specialistsNeeded = extractSpecialists(deptHeadRun.output)
     console.log(`  👥 Spawning ${specialistsNeeded.length} specialists...`)
 
-    // 3. Spawn specialists (placeholder - would run actual specialist agents)
-    const specialistOutputs = specialistsNeeded.map(specialist => ({
+    // 3. Spawn specialists (TODO: implement real specialist agents)
+    const specialistOutputs = specialistsNeeded.map((specialist) => ({
       specialistAgentId: specialist.id,
-      output: { mockOutput: 'Placeholder for specialist output' },
-      qualityScore: 0.80,
-      relevanceScore: 0.85,
-      consistencyScore: 0.78,
-      overallScore: 0.81,
+      output: {}, // Empty output until real specialists are implemented
+      qualityScore: 0,
+      relevanceScore: 0,
+      consistencyScore: 0,
+      overallScore: 0,
       issues: [],
       suggestions: [],
-      decision: 'accept' as const,
-      reasoning: 'Mock specialist output accepted'
+      decision: 'pending' as const,
+      reasoning: 'Awaiting specialist implementation',
     }))
 
     // 4. Calculate department quality
-    const departmentQuality = specialistOutputs.length > 0
-      ? specialistOutputs.reduce((sum, o) => sum + o.overallScore, 0) / specialistOutputs.length
-      : 0
+    const departmentQuality =
+      specialistOutputs.length > 0
+        ? specialistOutputs.reduce((sum, o) => sum + o.overallScore, 0) / specialistOutputs.length
+        : 0
 
     return {
       department: departmentName,
@@ -183,9 +178,8 @@ async function runDepartmentHead(
       outputs: specialistOutputs,
       departmentQuality,
       issues: [],
-      suggestions: []
+      suggestions: [],
     }
-
   } catch (error) {
     console.error(`❌ Error in ${departmentName} department:`, error)
     return {
@@ -195,7 +189,7 @@ async function runDepartmentHead(
       outputs: [],
       departmentQuality: 0,
       issues: [error instanceof Error ? error.message : 'Unknown error'],
-      suggestions: []
+      suggestions: [],
     }
   }
 }
@@ -217,20 +211,20 @@ function extractRelevance(output: any): number {
   return 0.8 // Default relevance
 }
 
-function extractSpecialists(output: any): Array<{ id: string, instructions: string }> {
+function extractSpecialists(output: any): Array<{ id: string; instructions: string }> {
   if (output.specialists && Array.isArray(output.specialists)) {
     return output.specialists
   }
   // Default specialists for character department
   return [
     { id: 'character-creator', instructions: 'Create character profile' },
-    { id: 'hair-stylist', instructions: 'Design hairstyle' }
+    { id: 'hair-stylist', instructions: 'Design hairstyle' },
   ]
 }
 
 function getDepartmentHeadConfig(department: string) {
   const configs: Record<string, any> = {
-    character: characterDepartmentHead
+    character: characterDepartmentHead,
     // Add other departments as they're implemented
   }
   return configs[department]
@@ -243,14 +237,15 @@ function calculateOverallQuality(reports: DepartmentReport[]): number {
 }
 
 function calculateConsistency(reports: DepartmentReport[]): number {
-  // Placeholder: would check cross-department consistency
-  return 0.85
+  // TODO: implement real cross-department consistency checking
+  // For now, return 0 until real implementation
+  return 0
 }
 
 function calculateCompleteness(reports: DepartmentReport[]): number {
-  const relevantReports = reports.filter(r => r.relevance >= 0.3)
+  const relevantReports = reports.filter((r) => r.relevance >= 0.3)
   if (relevantReports.length === 0) return 0
 
-  const completedReports = relevantReports.filter(r => r.status === 'complete')
+  const completedReports = relevantReports.filter((r) => r.status === 'complete')
   return completedReports.length / relevantReports.length
 }
