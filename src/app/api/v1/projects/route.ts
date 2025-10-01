@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import slugify from 'slugify'
+import { customAlphabet } from 'nanoid'
+
+// Create a nanoid generator with lowercase letters and numbers, 4 characters
+const generateId = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 4)
 
 /**
  * POST /api/v1/projects
@@ -25,30 +30,35 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Project name is required' }, { status: 400 })
     }
 
-    // Create slug from name
-    const slug = name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
+    // Create slug from name using slugify + 4-character unique ID
+    const baseSlug = slugify(name, {
+      lower: true,
+      strict: true, // Remove special characters
+      trim: true,
+    })
+
+    // Ensure slug is not empty (fallback to 'project')
+    const slug = baseSlug || 'project'
+
+    // Make slug unique by appending 4-character ID
+    const uniqueId = generateId()
+    const uniqueSlug = `${slug}-${uniqueId}`
+
+    // Prepare genre array (PayloadCMS expects array of objects with 'genre' field)
+    const genreArray = genre && genre.trim() ? [{ genre: genre.trim() }] : []
 
     // Create project in PayloadCMS
     const project = await payload.create({
       collection: 'projects',
       data: {
         name: name.trim(),
-        slug,
-        description: description?.trim() || '',
+        slug: uniqueSlug,
+        logline: description?.trim() || '',
         type,
-        genre: genre ? [genre] : [],
+        genre: genreArray,
         status,
         phase: 'expansion',
-        owner: user.id,
-        team: [
-          {
-            user: user.id,
-            role: 'owner',
-          },
-        ],
+        owner: user.id, // Set the authenticated user as owner
       },
     })
 
@@ -57,18 +67,19 @@ export async function POST(req: NextRequest) {
         id: project.id,
         name: project.name,
         slug: project.slug,
-        description: project.description,
+        logline: project.logline,
         type: project.type,
         status: project.status,
+        phase: project.phase,
         createdAt: project.createdAt,
       },
-      { status: 201 }
+      { status: 201 },
     )
   } catch (error: any) {
     console.error('Error creating project:', error)
     return NextResponse.json(
       { error: error.message || 'Failed to create project' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -94,15 +105,9 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
 
-    // Fetch projects where user is owner or team member
+    // Fetch all projects (no user filtering - authentication is just for access)
     const projects = await payload.find({
       collection: 'projects',
-      where: {
-        or: [
-          { owner: { equals: user.id } },
-          { 'team.user': { equals: user.id } },
-        ],
-      },
       page,
       limit,
       sort: '-createdAt',
@@ -120,8 +125,7 @@ export async function GET(req: NextRequest) {
     console.error('Error fetching projects:', error)
     return NextResponse.json(
       { error: error.message || 'Failed to fetch projects' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
-

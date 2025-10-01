@@ -60,6 +60,7 @@ export function createDataPrepAfterChange(
     }
 
     try {
+      // Get brain service - will throw error if not configured
       const brainService = getBrainServiceInterceptor()
 
       // Prepare options
@@ -82,9 +83,21 @@ export function createDataPrepAfterChange(
         await brainService.store(doc, options)
         console.log(`[DataPrepHook] Synced ${collectionSlug}:${doc.id}`)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(`[DataPrepHook] Error syncing ${collectionSlug}:${doc.id}:`, error)
-      // Don't fail the save if brain sync fails
+
+      // If Brain service is not configured, fail the operation
+      if (error.message?.includes('Brain API configuration missing')) {
+        throw new Error(
+          `Brain service is required but not configured. Cannot create ${collectionSlug}. ` +
+            `Please set BRAIN_SERVICE_BASE_URL and BRAIN_SERVICE_API_KEY environment variables.`,
+        )
+      }
+
+      // For other errors, also fail to ensure data consistency
+      throw new Error(
+        `Failed to sync ${collectionSlug} to Brain service: ${error.message || 'Unknown error'}`,
+      )
     }
 
     return doc

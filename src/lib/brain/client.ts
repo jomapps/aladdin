@@ -40,7 +40,7 @@ export class BrainClient {
       timeout: this.options.timeout,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`,
+        Authorization: `Bearer ${config.apiKey}`,
       },
     })
 
@@ -52,7 +52,7 @@ export class BrainClient {
    */
   private setupInterceptors() {
     this.axiosInstance.interceptors.response.use(
-      response => response,
+      (response) => response,
       async (error: AxiosError) => {
         const config = error.config as any
 
@@ -68,14 +68,14 @@ export class BrainClient {
 
         // Retry on network errors or 5xx errors
         if (!error.response || (error.response.status >= 500 && error.response.status < 600)) {
-          await new Promise(resolve =>
-            setTimeout(resolve, this.options.retryDelay * config.retry)
+          await new Promise((resolve) =>
+            setTimeout(resolve, this.options.retryDelay * config.retry),
           )
           return this.axiosInstance(config)
         }
 
         return Promise.reject(error)
-      }
+      },
     )
   }
 
@@ -132,7 +132,7 @@ export class BrainClient {
       types?: string[]
       limit?: number
       threshold?: number
-    } = {}
+    } = {},
   ): Promise<SemanticSearchResult[]> {
     try {
       const response = await this.axiosInstance.get(`/api/v1/search/similar/${nodeId}`, {
@@ -193,7 +193,9 @@ export class BrainClient {
   /**
    * Delete a node
    */
-  async deleteNode(request: DeleteNodeRequest): Promise<{ success: boolean; deletedCount: number }> {
+  async deleteNode(
+    request: DeleteNodeRequest,
+  ): Promise<{ success: boolean; deletedCount: number }> {
     try {
       const response = await this.axiosInstance.delete(`/api/v1/nodes/${request.nodeId}`, {
         params: { cascade: request.cascade },
@@ -224,7 +226,7 @@ export class BrainClient {
     options: {
       types?: string[]
       direction?: 'incoming' | 'outgoing' | 'both'
-    } = {}
+    } = {},
   ): Promise<BrainRelationship[]> {
     try {
       const response = await this.axiosInstance.get(`/api/v1/nodes/${nodeId}/relationships`, {
@@ -255,10 +257,7 @@ export class BrainClient {
   /**
    * Execute a custom Cypher query (advanced usage)
    */
-  async executeCypher(
-    query: string,
-    parameters: Record<string, any> = {}
-  ): Promise<any[]> {
+  async executeCypher(query: string, parameters: Record<string, any> = {}): Promise<any[]> {
     try {
       const response = await this.axiosInstance.post('/api/v1/query/cypher', {
         query,
@@ -276,7 +275,7 @@ export class BrainClient {
   async getNodesByType(
     type: string,
     filters: Record<string, any> = {},
-    limit = 100
+    limit = 100,
   ): Promise<BrainNode[]> {
     try {
       const response = await this.axiosInstance.get('/api/v1/nodes', {
@@ -328,9 +327,7 @@ export class BrainClient {
       const status = error.response?.status
       const message = error.response?.data?.error || error.message
 
-      return new Error(
-        `Brain API error in ${method}: [${status || 'NETWORK'}] ${message}`
-      )
+      return new Error(`Brain API error in ${method}: [${status || 'NETWORK'}] ${message}`)
     }
 
     return new Error(`Brain client error in ${method}: ${error.message}`)
@@ -343,13 +340,21 @@ export class BrainClient {
 let brainClientInstance: BrainClient | null = null
 
 export function getBrainClient(config?: BrainConfig): BrainClient {
-  const apiUrl = config?.apiUrl || process.env.BRAIN_API_URL
-  const apiKey = config?.apiKey || process.env.BRAIN_API_KEY
+  // Support both naming conventions for environment variables
+  const apiUrl =
+    config?.apiUrl ||
+    process.env.BRAIN_API_URL ||
+    process.env.BRAIN_SERVICE_URL ||
+    process.env.BRAIN_SERVICE_BASE_URL
+
+  const apiKey = config?.apiKey || process.env.BRAIN_API_KEY || process.env.BRAIN_SERVICE_API_KEY
 
   if (!apiUrl || !apiKey) {
-    throw new Error(
-      'Brain API configuration missing. Set BRAIN_API_URL and BRAIN_API_KEY environment variables.'
-    )
+    const errorMessage =
+      'Brain API configuration missing. Set BRAIN_SERVICE_BASE_URL and BRAIN_SERVICE_API_KEY environment variables. ' +
+      'Brain service is required for all operations.'
+    console.error('[BrainClient] ' + errorMessage)
+    throw new Error(errorMessage)
   }
 
   const fullConfig: BrainConfig = {
