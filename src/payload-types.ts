@@ -424,7 +424,7 @@ export interface Project {
    */
   dynamicCollections?:
     | {
-        collection?: string | null;
+        collectionName?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -951,7 +951,7 @@ export interface ProjectsSelect<T extends boolean = true> {
   dynamicCollections?:
     | T
     | {
-        collection?: T;
+        collectionName?: T;
         id?: T;
       };
   tags?:

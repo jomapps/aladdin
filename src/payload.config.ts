@@ -68,7 +68,7 @@ export default buildConfig({
     url: process.env.DATABASE_URI || '',
   }),
   sharp,
-    plugins: [
+  plugins: [
     s3Adapter,
     // storage-adapter-placeholder
   ],

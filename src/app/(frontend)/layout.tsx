@@ -3,8 +3,13 @@ import '@/app/globals.css'
 import './styles.css'
 
 export const metadata = {
-  description: 'A blank template using Payload in a Next.js app.',
-  title: 'Payload Blank Template',
+  description:
+    'AI-powered video generation platform - Create stunning videos with artificial intelligence',
+  title: 'Aladdin - AI Video Generation',
+  icons: {
+    icon: '/icon',
+    apple: '/apple-icon',
+  },
 }
 
 export default async function RootLayout(props: { children: React.ReactNode }) {

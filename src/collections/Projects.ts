@@ -405,7 +405,7 @@ export const Projects: CollectionConfig = {
       },
       fields: [
         {
-          name: 'collection',
+          name: 'collectionName',
           type: 'text',
         },
       ],
