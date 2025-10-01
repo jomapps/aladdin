@@ -323,8 +323,25 @@ await emitter.emitOrchestrationComplete(executionId, result, metrics)
 
 ### Start Redis
 
+**For Ubuntu Server (Production):**
 ```bash
-docker run -d -p 6379:6379 redis:alpine
+# Install Redis
+sudo apt update
+sudo apt install redis-server
+
+# Start Redis service
+sudo systemctl start redis-server
+sudo systemctl enable redis-server
+
+# Verify Redis is running
+redis-cli ping
+# Should return: PONG
+```
+
+**For Local Development:**
+```bash
+# Use docker-compose from project root
+docker-compose up -d redis
 ```
 
 ### Test WebSocket Connection

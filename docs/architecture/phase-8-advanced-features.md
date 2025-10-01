@@ -2145,8 +2145,34 @@ class ActivityLogger {
 
 #### Horizontal Scaling
 
+**Production (Ubuntu Server with PM2):**
+```bash
+# Use PM2 cluster mode for horizontal scaling
+pm2 start ecosystem.config.js
+pm2 scale aladdin-app +2  # Add 2 more instances
+
+# PM2 ecosystem.config.js
+module.exports = {
+  apps: [{
+    name: 'aladdin-app',
+    script: 'npm',
+    args: 'start',
+    instances: 3,  # Number of instances
+    exec_mode: 'cluster',
+    max_memory_restart: '4G',
+    env: {
+      NODE_ENV: 'production',
+      REDIS_HOST: 'localhost',
+      MONGODB_URI: 'mongodb://localhost:27017/aladdin',
+      NEO4J_URI: 'bolt://localhost:7687'
+    }
+  }]
+}
+```
+
+**Local Development (docker-compose):**
 ```yaml
-# Docker Compose for horizontal scaling
+# docker-compose.yml for local development only
 version: '3.8'
 
 services:

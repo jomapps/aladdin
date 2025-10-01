@@ -31,7 +31,7 @@ Embeddings: Jina AI API (jina-embeddings-v3)
 Vector Dimensions: 1024 (configurable, supports v4 models)
 Database: Neo4j 7687 (Bolt protocol)
 Language: Python 3.11+
-Deployment: Docker (Coolify on Ubuntu)
+Deployment: Ubuntu Server with systemd services
 Production URL: https://brain.ft.tc
 WebSocket: wss://brain.ft.tc/mcp
 ```
@@ -63,9 +63,11 @@ services/brain/
 │   ├── unit/                       # Unit tests
 │   └── performance/                # Performance benchmarks
 ├── .env.example
-├── docker-compose.yml
-└── Dockerfile
+├── docker-compose.yml              # For local development only
+└── Dockerfile                       # For service deployment
 ```
+
+**Note**: The brain service has its own Dockerfile for deployment. The root `docker-compose.yml` is for local development convenience only.
 
 **Key Services:**
 
@@ -1185,9 +1187,13 @@ export async function validateContent({
 }
 ```
 
-**Task 3.3: Docker Compose Orchestration**
+**Task 3.3: Local Development Setup**
+
+For local development, use docker-compose to run all services:
+
 ```yaml
-# docker-compose.yml (root)
+# docker-compose.yml (root - for local development only)
+# Production deployment uses Ubuntu Server with systemd services
 version: '3.8'
 
 services:
@@ -1629,11 +1635,11 @@ async def websocket_endpoint(websocket: WebSocket):
 
 ### 12.2 Neo4j Costs
 
-**Self-Hosted:** Free (Docker container)
+**Self-Hosted:** Free (Ubuntu Server or local Docker)
 **AuraDB Professional:** $65/month
 **AuraDB Enterprise:** $300+/month
 
-**Recommendation:** Start with self-hosted Neo4j
+**Recommendation:** Start with self-hosted Neo4j on Ubuntu Server
 
 ---
 
@@ -1712,7 +1718,7 @@ async def websocket_endpoint(websocket: WebSocket):
 **Week 9-10:**
 1. Verify git submodules (already added)
 2. Create Brain client wrapper
-3. Set up Docker Compose orchestration
+3. Set up local development environment (docker-compose)
 4. Test Brain connectivity
 
 **Week 11-12:**
@@ -1723,7 +1729,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
 **Verification:**
 - [ ] Git submodules initialized
-- [ ] Docker Compose starts all services
+- [ ] Local dev environment running (docker-compose for local dev only)
 - [ ] Brain service accessible via HTTP
 - [ ] Redis accessible
 - [ ] Brain client validates content

@@ -193,14 +193,26 @@ PAYLOAD_SECRET=your-secret-here
 ### Installation Commands:
 
 ```bash
-# Install Neo4j (Docker)
+# Install Neo4j (Ubuntu Server - recommended for production)
+# Follow official Neo4j Ubuntu installation guide
+wget -O - https://debian.neo4j.com/neotechnology.gpg.key | sudo apt-key add -
+echo 'deb https://debian.neo4j.com stable latest' | sudo tee /etc/apt/sources.list.d/neo4j.list
+sudo apt-get update
+sudo apt-get install neo4j
+
+# Or use Docker for local development
 docker run -d \
   --name neo4j \
   -p 7474:7474 -p 7687:7687 \
   -e NEO4J_AUTH=neo4j/your_password \
   neo4j:latest
 
-# Install Redis (Docker)
+# Install Redis (Ubuntu Server - recommended for production)
+sudo apt update
+sudo apt install redis-server
+sudo systemctl enable redis-server
+
+# Or use Docker for local development
 docker run -d \
   --name redis \
   -p 6379:6379 \

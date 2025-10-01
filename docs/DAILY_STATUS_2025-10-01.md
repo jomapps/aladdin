@@ -177,7 +177,7 @@ EMAIL_SERVER_PASSWORD=<your-password>
    - [ ] Email service configured
 
 5. **Deploy Application**
-   - [ ] Choose platform (Vercel/Docker/PM2)
+   - [ ] Choose platform (Ubuntu Server with PM2)
    - [ ] Set environment variables
    - [ ] Deploy
    - [ ] Verify deployment

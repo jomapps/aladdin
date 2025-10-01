@@ -1561,12 +1561,12 @@ describe('Brain Performance', () => {
 
 - [ ] Add Brain service git submodule
 - [ ] Add Celery-Redis git submodule
-- [ ] Create `docker-compose.yml` for local development
+- [ ] Create `docker-compose.yml` for local development (development only)
 - [ ] Configure environment variables
 - [ ] Deploy Brain service (https://brain.ft.tc)
 - [ ] Deploy Celery-Redis (https://tasks.ft.tc)
-- [ ] Setup Neo4j database with constraints
-- [ ] Setup Redis cluster for caching
+- [ ] Setup Neo4j database with constraints (Ubuntu Server)
+- [ ] Setup Redis cluster for caching (Ubuntu Server)
 - [ ] Configure Jina API access
 
 ### Phase 3.2: Integration (Week 10)
