@@ -802,14 +802,16 @@ aladdin/
 │   ├── brain/             # Brain submodule (Neo4j + embeddings)
 │   │   ├── api/
 │   │   ├── models/
-│   │   └── Dockerfile
+│   │   └── (has own Dockerfile for its deployment)
 │   └── task-queue/        # Celery-Redis submodule
 │       ├── tasks/
 │       ├── worker.py
-│       └── Dockerfile
-├── docker-compose.yml
+│       └── (has own Dockerfile for its deployment)
+├── docker-compose.yml     # For local development only
 └── .env
 ```
+
+**Note:** The services/ subdirectories may have their own Dockerfiles for their specific deployments. The main application deploys directly to Ubuntu Server without Docker.
 
 ### 9.2 Brain Service Integration
 
@@ -1354,11 +1356,13 @@ function ClientComponent({ data }) {
 5. Register for FAL.ai
 6. Register for ElevenLabs
 
-**Priority 3: Git Submodules**
-1. Add Brain service as submodule
-2. Add Celery-Redis queue as submodule
-3. Configure docker-compose.yml
+**Priority 3: Local Development Environment**
+1. Add Brain service as git submodule (if needed)
+2. Add Celery-Redis queue as git submodule (if needed)
+3. Use docker-compose.yml for local MongoDB/Redis (development only)
 4. Test local development environment
+
+**Note:** docker-compose.yml in project root is for local development convenience only. Production uses native Ubuntu services.
 
 ### 16.3 Documentation for Architect Agent
 
@@ -1441,9 +1445,9 @@ function ClientComponent({ data }) {
 
 **Infrastructure:**
 - Cloudflare R2 (storage + CDN)
-- Vercel (frontend hosting - recommended)
-- Railway/Fly.io (backend services - recommended)
-- Docker + Docker Compose (local development)
+- Ubuntu Server with PM2 (application hosting)
+- Native systemd services (MongoDB, Redis)
+- docker-compose.yml in root (local development only - not for production)
 
 ---
 

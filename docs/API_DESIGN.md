@@ -39,7 +39,7 @@ Aladdin is built on **Next.js 15** with PayloadCMS v3 and uses a hybrid architec
 - **CMS**: PayloadCMS v3
 - **Database**: MongoDB
 - **Auth**: PayloadCMS authentication
-- **Deployment**: Vercel/Docker
+- **Deployment**: Ubuntu Server with PM2
 
 **API Base URL**: `/api/v1`
 
