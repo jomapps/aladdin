@@ -45,7 +45,8 @@ async function fetchCharacters(projectId?: string): Promise<CharacterListRespons
   if (projectId) {
     params.append('where[project][equals]', projectId)
   }
-  const response = await fetch(`/api/v1/characters?${params}`)
+  // Use PayloadCMS built-in API which returns { docs: [...], totalDocs, ... }
+  const response = await fetch(`/api/characters?${params}`)
   if (!response.ok) {
     throw new Error('Failed to fetch characters')
   }
@@ -53,18 +54,18 @@ async function fetchCharacters(projectId?: string): Promise<CharacterListRespons
 }
 
 async function fetchCharacter(id: string): Promise<Character> {
-  const response = await fetch(`/api/v1/characters/${id}`)
+  // Use PayloadCMS built-in API
+  const response = await fetch(`/api/characters/${id}`)
   if (!response.ok) {
     throw new Error('Failed to fetch character')
   }
-  const data = await response.json()
-  return data.character || data
+  return response.json()
 }
 
 // Hooks
 export function useCharacters(
   projectId?: string,
-  options?: Omit<UseQueryOptions<CharacterListResponse>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<CharacterListResponse>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.characters.list(projectId),
@@ -75,7 +76,7 @@ export function useCharacters(
 
 export function useCharacter(
   id: string,
-  options?: Omit<UseQueryOptions<Character>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Character>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.characters.detail(id),

@@ -5,7 +5,7 @@
 
 import { getCustomToolDefinition } from '@codebuff/sdk'
 import { z } from 'zod'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
+import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 
 export const getProjectContextTool = getCustomToolDefinition({
@@ -13,29 +13,31 @@ export const getProjectContextTool = getCustomToolDefinition({
   description: 'Get project metadata and context from PayloadCMS',
 
   inputSchema: z.object({
-    projectSlug: z.string()
+    projectSlug: z.string(),
   }),
 
   execute: async ({ projectSlug }) => {
     try {
-      const payload = await getPayloadHMR({ config: configPromise })
+      const payload = await getPayload({ config: await configPromise })
 
       // Find project by slug
       const projects = await payload.find({
         collection: 'projects',
         where: {
           slug: {
-            equals: projectSlug
-          }
+            equals: projectSlug,
+          },
         },
-        limit: 1
+        limit: 1,
       })
 
       if (!projects.docs || projects.docs.length === 0) {
-        return [{
-          type: 'text',
-          value: `Project not found: ${projectSlug}`
-        }]
+        return [
+          {
+            type: 'text',
+            value: `Project not found: ${projectSlug}`,
+          },
+        ]
       }
 
       const project = projects.docs[0]
@@ -51,18 +53,22 @@ export const getProjectContextTool = getCustomToolDefinition({
         themes: project.themes || [],
         tone: project.tone || '',
         phase: project.phase || 'expansion',
-        settings: project.settings || {}
+        settings: project.settings || {},
       }
 
-      return [{
-        type: 'text',
-        value: `Project Context:\n\n${JSON.stringify(context, null, 2)}`
-      }]
+      return [
+        {
+          type: 'text',
+          value: `Project Context:\n\n${JSON.stringify(context, null, 2)}`,
+        },
+      ]
     } catch (error) {
-      return [{
-        type: 'text',
-        value: `Error fetching project context: ${error instanceof Error ? error.message : 'Unknown error'}`
-      }]
+      return [
+        {
+          type: 'text',
+          value: `Error fetching project context: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        },
+      ]
     }
-  }
+  },
 })

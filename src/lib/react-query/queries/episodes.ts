@@ -40,7 +40,8 @@ async function fetchEpisodes(projectId?: string): Promise<EpisodeListResponse> {
   if (projectId) {
     params.append('where[project][equals]', projectId)
   }
-  const response = await fetch(`/api/v1/episodes?${params}`)
+  // Use PayloadCMS built-in API which returns { docs: [...], totalDocs, ... }
+  const response = await fetch(`/api/episodes?${params}`)
   if (!response.ok) {
     throw new Error('Failed to fetch episodes')
   }
@@ -48,18 +49,18 @@ async function fetchEpisodes(projectId?: string): Promise<EpisodeListResponse> {
 }
 
 async function fetchEpisode(id: string): Promise<Episode> {
-  const response = await fetch(`/api/v1/episodes/${id}`)
+  // Use PayloadCMS built-in API
+  const response = await fetch(`/api/episodes/${id}`)
   if (!response.ok) {
     throw new Error('Failed to fetch episode')
   }
-  const data = await response.json()
-  return data.episode || data
+  return response.json()
 }
 
 // Hooks
 export function useEpisodes(
   projectId?: string,
-  options?: Omit<UseQueryOptions<EpisodeListResponse>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<EpisodeListResponse>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.episodes.list(projectId),
@@ -70,7 +71,7 @@ export function useEpisodes(
 
 export function useEpisode(
   id: string,
-  options?: Omit<UseQueryOptions<Episode>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Episode>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.episodes.detail(id),

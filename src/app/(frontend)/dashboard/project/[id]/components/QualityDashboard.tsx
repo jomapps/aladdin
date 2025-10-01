@@ -28,7 +28,6 @@ const DEFAULT_DEPARTMENTS: Omit<DepartmentMetrics, 'score' | 'alerts' | 'lastUpd
   { id: 'visual', name: 'Visual', trend: 'stable' },
   { id: 'video', name: 'Video', trend: 'stable' },
   { id: 'audio', name: 'Audio', trend: 'stable' },
-  { id: 'image-quality', name: 'Image Quality', trend: 'stable' },
   { id: 'production', name: 'Production', trend: 'stable' },
 ]
 

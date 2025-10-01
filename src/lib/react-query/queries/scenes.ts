@@ -41,7 +41,8 @@ async function fetchScenes(episodeId?: string): Promise<SceneListResponse> {
   if (episodeId) {
     params.append('where[episode][equals]', episodeId)
   }
-  const response = await fetch(`/api/v1/scenes?${params}`)
+  // Use PayloadCMS built-in API which returns { docs: [...], totalDocs, ... }
+  const response = await fetch(`/api/scenes?${params}`)
   if (!response.ok) {
     throw new Error('Failed to fetch scenes')
   }
@@ -49,18 +50,18 @@ async function fetchScenes(episodeId?: string): Promise<SceneListResponse> {
 }
 
 async function fetchScene(id: string): Promise<Scene> {
-  const response = await fetch(`/api/v1/scenes/${id}`)
+  // Use PayloadCMS built-in API
+  const response = await fetch(`/api/scenes/${id}`)
   if (!response.ok) {
     throw new Error('Failed to fetch scene')
   }
-  const data = await response.json()
-  return data.scene || data
+  return response.json()
 }
 
 // Hooks
 export function useScenes(
   episodeId?: string,
-  options?: Omit<UseQueryOptions<SceneListResponse>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<SceneListResponse>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.scenes.list(episodeId),
@@ -71,7 +72,7 @@ export function useScenes(
 
 export function useScene(
   id: string,
-  options?: Omit<UseQueryOptions<Scene>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Scene>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.scenes.detail(id),

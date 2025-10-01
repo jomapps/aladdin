@@ -92,7 +92,8 @@ async function fetchConversations(projectId?: string): Promise<ConversationListR
     params.append('where[project][equals]', projectId)
   }
   params.append('sort', '-createdAt')
-  const response = await fetch(`/api/v1/chat/conversation?${params}`)
+  // Use PayloadCMS built-in API which returns { docs: [...], totalDocs, ... }
+  const response = await fetch(`/api/conversations?${params}`)
   if (!response.ok) {
     throw new Error('Failed to fetch conversations')
   }
@@ -100,12 +101,12 @@ async function fetchConversations(projectId?: string): Promise<ConversationListR
 }
 
 async function fetchConversation(id: string): Promise<Conversation> {
-  const response = await fetch(`/api/v1/chat/${id}`)
+  // Use PayloadCMS built-in API
+  const response = await fetch(`/api/conversations/${id}`)
   if (!response.ok) {
     throw new Error('Failed to fetch conversation')
   }
-  const data = await response.json()
-  return data.conversation || data
+  return response.json()
 }
 
 async function fetchExecutions(conversationId?: string): Promise<ExecutionListResponse> {
@@ -158,7 +159,7 @@ async function fetchOrchestratorHealth(): Promise<{ status: string; checks: any 
 // Hooks
 export function useConversations(
   projectId?: string,
-  options?: Omit<UseQueryOptions<ConversationListResponse>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<ConversationListResponse>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.conversations.list(projectId),
@@ -169,7 +170,7 @@ export function useConversations(
 
 export function useConversation(
   id: string,
-  options?: Omit<UseQueryOptions<Conversation>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Conversation>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.conversations.detail(id),
@@ -181,7 +182,7 @@ export function useConversation(
 
 export function useExecutions(
   conversationId?: string,
-  options?: Omit<UseQueryOptions<ExecutionListResponse>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<ExecutionListResponse>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.executions.list(conversationId),
@@ -192,7 +193,7 @@ export function useExecutions(
 
 export function useExecution(
   id: string,
-  options?: Omit<UseQueryOptions<AgentExecution>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<AgentExecution>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.executions.detail(id),
@@ -204,7 +205,7 @@ export function useExecution(
 
 export function useExecutionEvents(
   executionId: string,
-  options?: Omit<UseQueryOptions<AgentEvent[]>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<AgentEvent[]>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.executions.events(executionId),
@@ -216,7 +217,7 @@ export function useExecutionEvents(
 }
 
 export function useOrchestratorStatus(
-  options?: Omit<UseQueryOptions<OrchestratorStatus>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<OrchestratorStatus>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.orchestrator.status(),
@@ -227,7 +228,7 @@ export function useOrchestratorStatus(
 }
 
 export function useOrchestratorHealth(
-  options?: Omit<UseQueryOptions<{ status: string; checks: any }>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<{ status: string; checks: any }>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.orchestrator.health(),

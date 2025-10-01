@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
+import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { getBrainClient } from '@/lib/brain/client'
 import { getLLMClient } from '@/lib/llm/client'
@@ -19,14 +19,11 @@ export async function POST(req: NextRequest) {
 
   try {
     // 1. Authenticate user
-    const payload = await getPayloadHMR({ config: configPromise })
+    const payload = await getPayload({ config: await configPromise })
     const { user } = await payload.auth({ req: req as any })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized', code: 'AUTH_REQUIRED' }, { status: 401 })
     }
 
     // 2. Validate request
@@ -40,7 +37,7 @@ export async function POST(req: NextRequest) {
           code: 'VALIDATION_ERROR',
           details: validationResult.error.errors,
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -70,7 +67,7 @@ export async function POST(req: NextRequest) {
     const context = searchResults
       .map(
         (result, idx) =>
-          `[Source ${idx + 1}] (${result.type}, score: ${result.score.toFixed(2)})\n${result.content}`
+          `[Source ${idx + 1}] (${result.type}, score: ${result.score.toFixed(2)})\n${result.content}`,
       )
       .join('\n\n')
 
@@ -185,7 +182,7 @@ Answer:`
         code: 'QUERY_ERROR',
         details: error.stack,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -4,14 +4,14 @@
  */
 
 import { redirect } from 'next/navigation'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
+import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import ChatInterface from './ChatInterface'
 
 export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const payload = await getPayloadHMR({ config: configPromise })
-  const { user } = await payload.auth({ req: undefined as any })
+  const payload = await getPayload({ config: await configPromise })
+  const { user } = await payload.auth({ headers: new Headers() })
 
   if (!user) {
     redirect('/')

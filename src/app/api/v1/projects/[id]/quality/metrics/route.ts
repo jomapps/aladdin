@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
+import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 
 interface DepartmentMetrics {
@@ -15,16 +15,13 @@ interface DepartmentMetrics {
  * GET /api/v1/projects/[id]/quality/metrics
  * Fetch quality metrics for a project
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const { searchParams } = new URL(request.url)
     const timeRange = searchParams.get('timeRange') || '7d'
 
-    const payload = await getPayloadHMR({ config: configPromise })
+    const payload = await getPayload({ config: await configPromise })
 
     // Verify project exists
     const project = await payload.findByID({
@@ -33,23 +30,25 @@ export async function GET(
     })
 
     if (!project) {
-      return NextResponse.json(
-        { error: 'Project not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
-    // For now, return default departments with 0 values
-    // TODO: Implement real quality metrics calculation
-    const defaultDepartments: DepartmentMetrics[] = [
-      { id: 'story', name: 'Story', score: 0, trend: 'stable', alerts: 0, lastUpdated: new Date() },
-      { id: 'character', name: 'Character', score: 0, trend: 'stable', alerts: 0, lastUpdated: new Date() },
-      { id: 'visual', name: 'Visual', score: 0, trend: 'stable', alerts: 0, lastUpdated: new Date() },
-      { id: 'video', name: 'Video', score: 0, trend: 'stable', alerts: 0, lastUpdated: new Date() },
-      { id: 'audio', name: 'Audio', score: 0, trend: 'stable', alerts: 0, lastUpdated: new Date() },
-      { id: 'image-quality', name: 'Image Quality', score: 0, trend: 'stable', alerts: 0, lastUpdated: new Date() },
-      { id: 'production', name: 'Production', score: 0, trend: 'stable', alerts: 0, lastUpdated: new Date() },
-    ]
+    // Fetch all departments from database
+    const departmentsResult = await payload.find({
+      collection: 'departments',
+      limit: 100,
+      sort: 'priority',
+    })
+
+    // Map departments to metrics format
+    const departmentMetrics: DepartmentMetrics[] = departmentsResult.docs.map((dept: any) => ({
+      id: dept.slug,
+      name: dept.name,
+      score: dept.performance?.averageQualityScore || 0,
+      trend: 'stable' as const,
+      alerts: 0,
+      lastUpdated: new Date(dept.updatedAt),
+    }))
 
     // TODO: Calculate real metrics based on:
     // - Episodes completion status
@@ -59,17 +58,13 @@ export async function GET(
     // - Export job success rates
 
     return NextResponse.json({
-      metrics: defaultDepartments,
+      metrics: departmentMetrics,
       timeRange,
       projectId: id,
       lastUpdated: new Date().toISOString(),
     })
-
   } catch (error) {
     console.error('Failed to fetch quality metrics:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

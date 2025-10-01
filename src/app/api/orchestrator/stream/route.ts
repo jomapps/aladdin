@@ -4,7 +4,7 @@
  */
 
 import { NextRequest } from 'next/server'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
+import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 
 export const runtime = 'nodejs'
@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
   try {
     // 1. Authenticate user
-    const payload = await getPayloadHMR({ config: configPromise })
+    const payload = await getPayload({ config: await configPromise })
     const { user } = await payload.auth({ req: req as any })
 
     if (!user) {
@@ -88,7 +88,7 @@ export async function GET(req: NextRequest) {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
       },
     })
   } catch (error: any) {
@@ -105,7 +105,7 @@ async function streamTaskProgress(
   encoder: TextEncoder,
   taskId: string,
   payload: any,
-  isOpenFn: () => boolean
+  isOpenFn: () => boolean,
 ) {
   let lastStatus = ''
   let pollCount = 0
@@ -182,11 +182,7 @@ async function streamTaskProgress(
 /**
  * Send SSE event
  */
-function sendEvent(
-  controller: ReadableStreamDefaultController,
-  encoder: TextEncoder,
-  data: any
-) {
+function sendEvent(controller: ReadableStreamDefaultController, encoder: TextEncoder, data: any) {
   try {
     const json = JSON.stringify(data)
     const message = `data: ${json}\n\n`

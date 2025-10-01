@@ -75,6 +75,10 @@ export interface Config {
     workflows: Workflow;
     'activity-logs': ActivityLog;
     'export-jobs': ExportJob;
+    departments: Department;
+    agents: Agent;
+    'custom-tools': CustomTool;
+    'agent-executions': AgentExecution;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -89,6 +93,10 @@ export interface Config {
     workflows: WorkflowsSelect<false> | WorkflowsSelect<true>;
     'activity-logs': ActivityLogsSelect<false> | ActivityLogsSelect<true>;
     'export-jobs': ExportJobsSelect<false> | ExportJobsSelect<true>;
+    departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
+    agents: AgentsSelect<false> | AgentsSelect<true>;
+    'custom-tools': CustomToolsSelect<false> | CustomToolsSelect<true>;
+    'agent-executions': AgentExecutionsSelect<false> | AgentExecutionsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -694,6 +702,601 @@ export interface ExportJob {
   createdAt: string;
 }
 /**
+ * Movie production departments with AI agent coordination
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "departments".
+ */
+export interface Department {
+  id: string;
+  /**
+   * Unique identifier (e.g., "story", "character", "visual")
+   */
+  slug: string;
+  /**
+   * Display name (e.g., "Story Department")
+   */
+  name: string;
+  /**
+   * Purpose and responsibilities of this department
+   */
+  description: string;
+  /**
+   * Emoji or icon identifier (e.g., "📖", "👤")
+   */
+  icon?: string | null;
+  /**
+   * Hex color for UI (e.g., "#8B5CF6")
+   */
+  color?: string | null;
+  /**
+   * Execution order (1-10, lower = higher priority)
+   */
+  priority: number;
+  /**
+   * Whether this department is active
+   */
+  isActive?: boolean | null;
+  /**
+   * Default model for agents in this department (e.g., "anthropic/claude-3.5-sonnet")
+   */
+  defaultModel?: string | null;
+  /**
+   * Maximum steps for agent execution
+   */
+  maxAgentSteps?: number | null;
+  /**
+   * Settings for department coordination and workflow
+   */
+  coordinationSettings?: {
+    /**
+     * Allow specialists to run in parallel
+     */
+    allowParallelExecution?: boolean | null;
+    /**
+     * All specialist outputs must be reviewed by department head
+     */
+    requiresDepartmentHeadReview?: boolean | null;
+    /**
+     * Minimum quality score (0-100) for approval
+     */
+    minQualityThreshold?: number | null;
+    /**
+     * Maximum retry attempts for failed executions
+     */
+    maxRetries?: number | null;
+  };
+  /**
+   * Auto-tracked performance metrics
+   */
+  performance?: {
+    totalExecutions?: number | null;
+    successfulExecutions?: number | null;
+    averageQualityScore?: number | null;
+    averageExecutionTime?: number | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * AI agents for movie production workflow
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "agents".
+ */
+export interface Agent {
+  id: string;
+  /**
+   * Unique identifier (e.g., "story-head-001", "character-dialogue-specialist")
+   */
+  agentId: string;
+  /**
+   * Display name
+   */
+  name: string;
+  /**
+   * Agent role and capabilities
+   */
+  description: string;
+  /**
+   * Which department this agent belongs to
+   */
+  department: string | Department;
+  /**
+   * Is this the department head? (Only one per department)
+   */
+  isDepartmentHead?: boolean | null;
+  /**
+   * Model to use (e.g., "anthropic/claude-3.5-sonnet", "anthropic/claude-3-opus")
+   */
+  model: string;
+  /**
+   * Core system prompt defining agent behavior and expertise
+   */
+  instructionsPrompt: string;
+  /**
+   * Custom tools this agent can use
+   */
+  toolNames?:
+    | {
+        toolName: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Maximum steps for this agent execution
+   */
+  maxAgentSteps?: number | null;
+  /**
+   * Specific area of expertise (e.g., "dialogue", "plot-structure", "character-arcs")
+   */
+  specialization?: string | null;
+  /**
+   * Specific skills for specialist selection
+   */
+  skills?:
+    | {
+        skill: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Is this agent active and available?
+   */
+  isActive?: boolean | null;
+  /**
+   * Auto-tracked performance data
+   */
+  performanceMetrics?: {
+    successRate?: number | null;
+    averageExecutionTime?: number | null;
+    totalExecutions?: number | null;
+    successfulExecutions?: number | null;
+    failedExecutions?: number | null;
+    averageQualityScore?: number | null;
+    totalTokensUsed?: number | null;
+  };
+  /**
+   * Last execution timestamp
+   */
+  lastExecutedAt?: string | null;
+  /**
+   * Does output need department head review? (Department heads must be false)
+   */
+  requiresReview?: boolean | null;
+  /**
+   * Minimum quality score (0-100) for approval
+   */
+  qualityThreshold?: number | null;
+  executionSettings?: {
+    /**
+     * Maximum execution time in seconds
+     */
+    timeout?: number | null;
+    /**
+     * Maximum retry attempts on failure
+     */
+    maxRetries?: number | null;
+    /**
+     * Model temperature for creativity (0-2)
+     */
+    temperature?: number | null;
+  };
+  tags?:
+    | {
+        tag?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Internal notes for agent configuration
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Reusable custom tools for AI agents
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "custom-tools".
+ */
+export interface CustomTool {
+  id: string;
+  /**
+   * Unique identifier (e.g., "fetch-character-profile", "analyze-plot-structure")
+   */
+  toolName: string;
+  /**
+   * Human-readable name
+   */
+  displayName: string;
+  /**
+   * What this tool does and when to use it
+   */
+  description: string;
+  /**
+   * Zod schema as JSON defining tool inputs
+   */
+  inputSchema:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Example inputs for documentation and testing
+   */
+  exampleInputs?:
+    | {
+        example?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Expected output structure
+   */
+  outputSchema?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * JavaScript/TypeScript function implementation
+   */
+  executeFunction: string;
+  /**
+   * Optional setup code (imports, initialization)
+   */
+  setupCode?: string | null;
+  /**
+   * Available to all agents across all departments
+   */
+  isGlobal?: boolean | null;
+  /**
+   * Departments that can use this tool (if not global)
+   */
+  departments?: (string | Department)[] | null;
+  /**
+   * Is this tool active and available?
+   */
+  isActive?: boolean | null;
+  /**
+   * Semantic version (e.g., 1.0.0)
+   */
+  version?: string | null;
+  /**
+   * Version history
+   */
+  changelog?:
+    | {
+        version: string;
+        changes: string;
+        date?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  dependencies?: {
+    /**
+     * Required NPM packages
+     */
+    npmPackages?:
+      | {
+          package: string;
+          version?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * API keys needed for this tool
+     */
+    apiKeys?:
+      | {
+          keyName: string;
+          description?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Other tools this tool depends on
+     */
+    otherTools?:
+      | {
+          toolName: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Auto-tracked usage metrics
+   */
+  performanceMetrics?: {
+    totalCalls?: number | null;
+    successfulCalls?: number | null;
+    failedCalls?: number | null;
+    averageExecutionTime?: number | null;
+    lastUsedAt?: string | null;
+  };
+  /**
+   * Test cases for validation
+   */
+  testCases?:
+    | {
+        name: string;
+        input:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        expectedOutput?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        shouldFail?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  documentation?: {
+    /**
+     * How to use this tool
+     */
+    usage?: string | null;
+    /**
+     * Usage examples
+     */
+    examples?: string | null;
+    /**
+     * Known limitations
+     */
+    limitations?: string | null;
+  };
+  category?: ('data-retrieval' | 'analysis' | 'generation' | 'validation' | 'integration' | 'utility') | null;
+  tags?:
+    | {
+        tag?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Tool creator
+   */
+  author?: (string | null) | User;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Agent execution tracking and audit trail
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "agent-executions".
+ */
+export interface AgentExecution {
+  id: string;
+  /**
+   * Unique execution identifier (auto-generated)
+   */
+  executionId: string;
+  /**
+   * Agent that executed this task
+   */
+  agent: string | Agent;
+  /**
+   * Department this execution belongs to
+   */
+  department: string | Department;
+  /**
+   * Project this execution is part of
+   */
+  project: string | Project;
+  /**
+   * Episode (if applicable)
+   */
+  episode?: (string | null) | Episode;
+  /**
+   * Link to conversation thread
+   */
+  conversationId?: string | null;
+  /**
+   * Parent execution if this is a sub-task
+   */
+  parentExecutionId?: string | null;
+  /**
+   * User or system prompt
+   */
+  prompt: string;
+  /**
+   * Additional execution parameters
+   */
+  params?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Agent output data
+   */
+  output?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Human-readable output text
+   */
+  outputText?: string | null;
+  /**
+   * Complete RunState from @codebuff/sdk
+   */
+  runState?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * All events during execution
+   */
+  events?:
+    | {
+        event?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled' | 'timeout';
+  /**
+   * Execution start time
+   */
+  startedAt?: string | null;
+  /**
+   * Execution completion time
+   */
+  completedAt?: string | null;
+  /**
+   * Total execution time in milliseconds
+   */
+  executionTime?: number | null;
+  tokenUsage?: {
+    inputTokens?: number | null;
+    outputTokens?: number | null;
+    totalTokens?: number | null;
+    /**
+     * Estimated cost in USD
+     */
+    estimatedCost?: number | null;
+  };
+  /**
+   * Quality score (0-100)
+   */
+  qualityScore?: number | null;
+  qualityBreakdown?: {
+    accuracy?: number | null;
+    completeness?: number | null;
+    coherence?: number | null;
+    creativity?: number | null;
+  };
+  reviewStatus?: ('pending' | 'approved' | 'rejected' | 'revision-needed') | null;
+  /**
+   * Department head or reviewer
+   */
+  reviewedBy?: (string | null) | Agent;
+  /**
+   * Reviewer feedback and notes
+   */
+  reviewNotes?: string | null;
+  /**
+   * Review timestamp
+   */
+  reviewedAt?: string | null;
+  /**
+   * Error information if execution failed
+   */
+  error?: {
+    message?: string | null;
+    code?: string | null;
+    stack?: string | null;
+    details?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  /**
+   * Number of retry attempts
+   */
+  retryCount?: number | null;
+  /**
+   * Maximum retry attempts allowed
+   */
+  maxRetries?: number | null;
+  /**
+   * All tool calls made during execution
+   */
+  toolCalls?:
+    | {
+        toolName: string;
+        input?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        output?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        executionTime?: number | null;
+        success?: boolean | null;
+        error?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  tags?:
+    | {
+        tag?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
@@ -731,6 +1334,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'export-jobs';
         value: string | ExportJob;
+      } | null)
+    | ({
+        relationTo: 'departments';
+        value: string | Department;
+      } | null)
+    | ({
+        relationTo: 'agents';
+        value: string | Agent;
+      } | null)
+    | ({
+        relationTo: 'custom-tools';
+        value: string | CustomTool;
+      } | null)
+    | ({
+        relationTo: 'agent-executions';
+        value: string | AgentExecution;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1071,6 +1690,267 @@ export interface ExportJobsSelect<T extends boolean = true> {
   startedAt?: T;
   completedAt?: T;
   processingTime?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "departments_select".
+ */
+export interface DepartmentsSelect<T extends boolean = true> {
+  slug?: T;
+  name?: T;
+  description?: T;
+  icon?: T;
+  color?: T;
+  priority?: T;
+  isActive?: T;
+  defaultModel?: T;
+  maxAgentSteps?: T;
+  coordinationSettings?:
+    | T
+    | {
+        allowParallelExecution?: T;
+        requiresDepartmentHeadReview?: T;
+        minQualityThreshold?: T;
+        maxRetries?: T;
+      };
+  performance?:
+    | T
+    | {
+        totalExecutions?: T;
+        successfulExecutions?: T;
+        averageQualityScore?: T;
+        averageExecutionTime?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "agents_select".
+ */
+export interface AgentsSelect<T extends boolean = true> {
+  agentId?: T;
+  name?: T;
+  description?: T;
+  department?: T;
+  isDepartmentHead?: T;
+  model?: T;
+  instructionsPrompt?: T;
+  toolNames?:
+    | T
+    | {
+        toolName?: T;
+        id?: T;
+      };
+  maxAgentSteps?: T;
+  specialization?: T;
+  skills?:
+    | T
+    | {
+        skill?: T;
+        id?: T;
+      };
+  isActive?: T;
+  performanceMetrics?:
+    | T
+    | {
+        successRate?: T;
+        averageExecutionTime?: T;
+        totalExecutions?: T;
+        successfulExecutions?: T;
+        failedExecutions?: T;
+        averageQualityScore?: T;
+        totalTokensUsed?: T;
+      };
+  lastExecutedAt?: T;
+  requiresReview?: T;
+  qualityThreshold?: T;
+  executionSettings?:
+    | T
+    | {
+        timeout?: T;
+        maxRetries?: T;
+        temperature?: T;
+      };
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "custom-tools_select".
+ */
+export interface CustomToolsSelect<T extends boolean = true> {
+  toolName?: T;
+  displayName?: T;
+  description?: T;
+  inputSchema?: T;
+  exampleInputs?:
+    | T
+    | {
+        example?: T;
+        id?: T;
+      };
+  outputSchema?: T;
+  executeFunction?: T;
+  setupCode?: T;
+  isGlobal?: T;
+  departments?: T;
+  isActive?: T;
+  version?: T;
+  changelog?:
+    | T
+    | {
+        version?: T;
+        changes?: T;
+        date?: T;
+        id?: T;
+      };
+  dependencies?:
+    | T
+    | {
+        npmPackages?:
+          | T
+          | {
+              package?: T;
+              version?: T;
+              id?: T;
+            };
+        apiKeys?:
+          | T
+          | {
+              keyName?: T;
+              description?: T;
+              id?: T;
+            };
+        otherTools?:
+          | T
+          | {
+              toolName?: T;
+              id?: T;
+            };
+      };
+  performanceMetrics?:
+    | T
+    | {
+        totalCalls?: T;
+        successfulCalls?: T;
+        failedCalls?: T;
+        averageExecutionTime?: T;
+        lastUsedAt?: T;
+      };
+  testCases?:
+    | T
+    | {
+        name?: T;
+        input?: T;
+        expectedOutput?: T;
+        shouldFail?: T;
+        id?: T;
+      };
+  documentation?:
+    | T
+    | {
+        usage?: T;
+        examples?: T;
+        limitations?: T;
+      };
+  category?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  author?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "agent-executions_select".
+ */
+export interface AgentExecutionsSelect<T extends boolean = true> {
+  executionId?: T;
+  agent?: T;
+  department?: T;
+  project?: T;
+  episode?: T;
+  conversationId?: T;
+  parentExecutionId?: T;
+  prompt?: T;
+  params?: T;
+  output?: T;
+  outputText?: T;
+  runState?: T;
+  events?:
+    | T
+    | {
+        event?: T;
+        id?: T;
+      };
+  status?: T;
+  startedAt?: T;
+  completedAt?: T;
+  executionTime?: T;
+  tokenUsage?:
+    | T
+    | {
+        inputTokens?: T;
+        outputTokens?: T;
+        totalTokens?: T;
+        estimatedCost?: T;
+      };
+  qualityScore?: T;
+  qualityBreakdown?:
+    | T
+    | {
+        accuracy?: T;
+        completeness?: T;
+        coherence?: T;
+        creativity?: T;
+      };
+  reviewStatus?: T;
+  reviewedBy?: T;
+  reviewNotes?: T;
+  reviewedAt?: T;
+  error?:
+    | T
+    | {
+        message?: T;
+        code?: T;
+        stack?: T;
+        details?: T;
+      };
+  retryCount?: T;
+  maxRetries?: T;
+  toolCalls?:
+    | T
+    | {
+        toolName?: T;
+        input?: T;
+        output?: T;
+        executionTime?: T;
+        success?: T;
+        error?: T;
+        id?: T;
+      };
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
 }

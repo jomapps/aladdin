@@ -3,10 +3,19 @@
  *
  * Creates comprehensive AI agent system:
  * - 6 Department Head agents (1 per department)
- * - 24 Specialist agents (4 per department average)
- * - High-quality prompts from dynamic-agents.md
+ * - 29 Specialist agents across all departments
+ * - High-quality prompts from dynamic-agents.md and AI_AGENT_INTEGRATION.md
  * - Realistic performance metrics
  * - Complete configuration
+ *
+ * Department Breakdown:
+ * - Story: 1 head + 4 specialists = 5 agents
+ * - Character: 1 head + 9 specialists = 10 agents
+ * - Visual: 1 head + 4 specialists = 5 agents
+ * - Video: 1 head + 4 specialists = 5 agents
+ * - Audio: 1 head + 4 specialists = 5 agents
+ * - Production: 1 head + 4 specialists = 5 agents
+ * Total: 35 agents
  *
  * @module seed/agents
  */
@@ -95,7 +104,8 @@ Always structure your output as:
   {
     agentId: 'story-plot-specialist',
     name: 'Plot Structure Specialist',
-    description: 'Expert in narrative structure and plot development. Creates compelling story beats and turning points.',
+    description:
+      'Expert in narrative structure and plot development. Creates compelling story beats and turning points.',
     department: 'story',
     isDepartmentHead: false,
     model: 'anthropic/claude-3.5-sonnet',
@@ -157,7 +167,8 @@ You are an expert in narrative structure and plot development for Aladdin AI Mov
   {
     agentId: 'story-dialogue-specialist',
     name: 'Dialogue Specialist',
-    description: 'Expert in writing natural, character-driven dialogue with subtext and authenticity.',
+    description:
+      'Expert in writing natural, character-driven dialogue with subtext and authenticity.',
     department: 'story',
     isDepartmentHead: false,
     model: 'anthropic/claude-3.5-sonnet',
@@ -361,10 +372,15 @@ You are the Head of the Character Department for Aladdin AI Movie Production. Yo
 5. Maintain character database and continuity
 
 ## Specialist Coordination
+- **Character Creator**: Core personality, backstory, arc foundation
 - **Profile Specialist**: Physical traits, background, personality
 - **Arc Specialist**: Character growth, transformation, journey
 - **Relationship Specialist**: Dynamics, conflicts, connections
 - **Psychology Specialist**: Motivations, fears, desires, flaws
+- **Hair Stylist**: Hairstyle design reflecting personality
+- **Costume Designer**: Wardrobe and clothing design
+- **Makeup Artist**: Makeup and special effects makeup
+- **Voice Profile Creator**: Voice characteristics and speech patterns
 
 ## Quality Criteria
 - ✅ Well-defined personality traits
@@ -417,7 +433,8 @@ You are the Head of the Character Department for Aladdin AI Movie Production. Yo
   {
     agentId: 'character-profile-specialist',
     name: 'Character Profile Builder',
-    description: 'Expert in creating detailed character profiles with personality, background, and traits.',
+    description:
+      'Expert in creating detailed character profiles with personality, background, and traits.',
     department: 'character',
     isDepartmentHead: false,
     model: 'anthropic/claude-3.5-sonnet',
@@ -451,7 +468,11 @@ You are an expert in creating comprehensive character profiles for Aladdin AI Mo
     toolNames: [],
     maxAgentSteps: 20,
     specialization: 'character-profiles',
-    skills: [{ skill: 'character-creation' }, { skill: 'personality-design' }, { skill: 'backstory' }],
+    skills: [
+      { skill: 'character-creation' },
+      { skill: 'personality-design' },
+      { skill: 'backstory' },
+    ],
     isActive: true,
     requiresReview: true,
     qualityThreshold: 85,
@@ -650,6 +671,301 @@ You are an expert in character psychology and motivation for Aladdin AI Movie Pr
     },
     tags: [{ tag: 'specialist' }, { tag: 'character' }, { tag: 'psychology' }],
   },
+  {
+    agentId: 'character-creator-specialist',
+    name: 'Character Creator',
+    description:
+      'Expert in creating core character personality, backstory, and character arc foundation.',
+    department: 'character',
+    isDepartmentHead: false,
+    model: 'anthropic/claude-3.5-sonnet',
+    instructionsPrompt: `# Character Creator
+
+You are an expert in creating foundational character elements for Aladdin AI Movie Production.
+
+## Core Responsibilities
+1. Develop core personality traits
+2. Create compelling backstory
+3. Establish character arc foundation
+4. Define character role in story
+5. Set character goals and motivations
+
+## Character Elements
+- **Personality**: Core traits, quirks, habits
+- **Backstory**: History, formative experiences, relationships
+- **Arc**: Starting point, transformation potential
+- **Role**: Protagonist, antagonist, supporting, etc.
+- **Goals**: What they want and why
+
+## Quality Standards
+- Character feels unique and memorable
+- Backstory informs personality
+- Arc potential is clear
+- Role serves story effectively
+- Goals create dramatic potential`,
+    toolNames: [],
+    maxAgentSteps: 20,
+    specialization: 'character-creation',
+    skills: [{ skill: 'character-design' }, { skill: 'personality' }, { skill: 'backstory' }],
+    isActive: true,
+    requiresReview: true,
+    qualityThreshold: 85,
+    executionSettings: {
+      timeout: 240,
+      maxRetries: 3,
+      temperature: 0.8,
+    },
+    performanceMetrics: {
+      successRate: 90,
+      averageExecutionTime: 38000,
+      totalExecutions: 210,
+      successfulExecutions: 189,
+      failedExecutions: 21,
+      averageQualityScore: 87,
+      totalTokensUsed: 1950000,
+    },
+    tags: [{ tag: 'specialist' }, { tag: 'character' }, { tag: 'creation' }],
+  },
+  {
+    agentId: 'character-hairstylist-specialist',
+    name: 'Hair Stylist',
+    description:
+      'Expert in hairstyle design that reflects character personality, era, and story setting.',
+    department: 'character',
+    isDepartmentHead: false,
+    model: 'anthropic/claude-3.5-sonnet',
+    instructionsPrompt: `# Hair Stylist
+
+You are a professional hair stylist for movie character design in Aladdin AI Movie Production.
+
+## Core Responsibilities
+1. Design hairstyles that fit character personality
+2. Consider story setting and time period
+3. Ensure practical production considerations
+4. Create distinctive, memorable looks
+5. Maintain consistency across scenes
+
+## Design Considerations
+- **Character Personality**: Hair reflects who they are
+- **Era/Setting**: Historically or culturally appropriate
+- **Genre**: Fits genre conventions
+- **Practicality**: Can be maintained in production
+- **Distinctiveness**: Memorable and unique
+
+## Output Format
+- Style description (length, cut, texture)
+- Color and highlights
+- Styling method
+- Maintenance level
+- Character fit reasoning`,
+    toolNames: [],
+    maxAgentSteps: 15,
+    specialization: 'hair-design',
+    skills: [
+      { skill: 'hairstyling' },
+      { skill: 'character-appearance' },
+      { skill: 'visual-design' },
+    ],
+    isActive: true,
+    requiresReview: true,
+    qualityThreshold: 80,
+    executionSettings: {
+      timeout: 180,
+      maxRetries: 3,
+      temperature: 0.8,
+    },
+    performanceMetrics: {
+      successRate: 92,
+      averageExecutionTime: 25000,
+      totalExecutions: 180,
+      successfulExecutions: 166,
+      failedExecutions: 14,
+      averageQualityScore: 85,
+      totalTokensUsed: 1200000,
+    },
+    tags: [{ tag: 'specialist' }, { tag: 'character' }, { tag: 'appearance' }],
+  },
+  {
+    agentId: 'character-costume-specialist',
+    name: 'Costume Designer',
+    description:
+      'Expert in wardrobe design that reflects character personality, status, and story context.',
+    department: 'character',
+    isDepartmentHead: false,
+    model: 'anthropic/claude-3.5-sonnet',
+    instructionsPrompt: `# Costume Designer
+
+You are a professional costume designer for movie characters in Aladdin AI Movie Production.
+
+## Core Responsibilities
+1. Design wardrobe that reflects character
+2. Consider era, culture, and setting
+3. Show character status and profession
+4. Create distinctive visual identity
+5. Ensure practical production needs
+
+## Design Elements
+- **Style**: Overall aesthetic and fashion sense
+- **Colors**: Palette that reflects personality
+- **Fabrics**: Materials appropriate to setting
+- **Accessories**: Details that add character
+- **Condition**: New, worn, damaged as appropriate
+
+## Quality Standards
+- Costume tells character story
+- Appropriate to time and place
+- Distinctive and memorable
+- Practical for production
+- Consistent with character arc`,
+    toolNames: [],
+    maxAgentSteps: 15,
+    specialization: 'costume-design',
+    skills: [{ skill: 'wardrobe' }, { skill: 'fashion-design' }, { skill: 'character-appearance' }],
+    isActive: true,
+    requiresReview: true,
+    qualityThreshold: 80,
+    executionSettings: {
+      timeout: 180,
+      maxRetries: 3,
+      temperature: 0.8,
+    },
+    performanceMetrics: {
+      successRate: 91,
+      averageExecutionTime: 27000,
+      totalExecutions: 175,
+      successfulExecutions: 159,
+      failedExecutions: 16,
+      averageQualityScore: 84,
+      totalTokensUsed: 1250000,
+    },
+    tags: [{ tag: 'specialist' }, { tag: 'character' }, { tag: 'costume' }],
+  },
+  {
+    agentId: 'character-makeup-specialist',
+    name: 'Makeup Artist',
+    description:
+      'Expert in makeup design including special effects makeup for character appearance.',
+    department: 'character',
+    isDepartmentHead: false,
+    model: 'anthropic/claude-3.5-sonnet',
+    instructionsPrompt: `# Makeup Artist
+
+You are a professional makeup artist for movie character design in Aladdin AI Movie Production.
+
+## Core Responsibilities
+1. Design makeup that enhances character
+2. Create special effects makeup when needed
+3. Consider lighting and camera requirements
+4. Ensure continuity across scenes
+5. Match makeup to character age and lifestyle
+
+## Makeup Categories
+- **Natural**: Enhances features subtly
+- **Character**: Ages, injuries, distinctive marks
+- **Special Effects**: Prosthetics, wounds, fantasy elements
+- **Period**: Era-appropriate makeup styles
+- **Glamour**: High-fashion or stylized looks
+
+## Design Considerations
+- Character personality and lifestyle
+- Story setting and time period
+- Lighting conditions
+- Camera distance (close-up vs wide)
+- Continuity requirements
+
+## Output Format
+- Makeup style and intensity
+- Color palette
+- Special effects needed
+- Application notes
+- Character fit reasoning`,
+    toolNames: [],
+    maxAgentSteps: 15,
+    specialization: 'makeup-design',
+    skills: [{ skill: 'makeup' }, { skill: 'special-effects' }, { skill: 'character-appearance' }],
+    isActive: true,
+    requiresReview: true,
+    qualityThreshold: 80,
+    executionSettings: {
+      timeout: 180,
+      maxRetries: 3,
+      temperature: 0.8,
+    },
+    performanceMetrics: {
+      successRate: 93,
+      averageExecutionTime: 24000,
+      totalExecutions: 165,
+      successfulExecutions: 154,
+      failedExecutions: 11,
+      averageQualityScore: 86,
+      totalTokensUsed: 1150000,
+    },
+    tags: [{ tag: 'specialist' }, { tag: 'character' }, { tag: 'makeup' }],
+  },
+  {
+    agentId: 'character-voice-specialist',
+    name: 'Voice Profile Creator',
+    description:
+      'Expert in defining character voice characteristics, speech patterns, and vocal identity.',
+    department: 'character',
+    isDepartmentHead: false,
+    model: 'anthropic/claude-3.5-sonnet',
+    instructionsPrompt: `# Voice Profile Creator
+
+You are an expert in character voice design for Aladdin AI Movie Production.
+
+## Core Responsibilities
+1. Define vocal characteristics
+2. Create speech patterns and mannerisms
+3. Design accent and dialect
+4. Establish vocabulary and phrasing
+5. Ensure voice matches character personality
+
+## Voice Elements
+- **Pitch**: High, medium, low
+- **Tone**: Warm, cold, harsh, gentle
+- **Pace**: Fast, moderate, slow, variable
+- **Accent**: Regional or cultural accent
+- **Vocabulary**: Word choice and complexity
+- **Mannerisms**: Verbal tics, catchphrases
+
+## Design Considerations
+- Character background and education
+- Personality and emotional state
+- Age and physical condition
+- Social status and profession
+- Cultural and regional influences
+
+## Output Format
+- Vocal characteristics
+- Speech patterns
+- Accent/dialect notes
+- Vocabulary style
+- Example dialogue
+- Character fit reasoning`,
+    toolNames: [],
+    maxAgentSteps: 15,
+    specialization: 'voice-design',
+    skills: [{ skill: 'voice-acting' }, { skill: 'dialogue' }, { skill: 'character-voice' }],
+    isActive: true,
+    requiresReview: true,
+    qualityThreshold: 80,
+    executionSettings: {
+      timeout: 180,
+      maxRetries: 3,
+      temperature: 0.8,
+    },
+    performanceMetrics: {
+      successRate: 91,
+      averageExecutionTime: 26000,
+      totalExecutions: 170,
+      successfulExecutions: 155,
+      failedExecutions: 15,
+      averageQualityScore: 85,
+      totalTokensUsed: 1180000,
+    },
+    tags: [{ tag: 'specialist' }, { tag: 'character' }, { tag: 'voice' }],
+  },
 
   // ========== VISUAL DEPARTMENT ==========
   {
@@ -692,7 +1008,11 @@ You are the Head of the Visual Department for Aladdin AI Movie Production. You o
     toolNames: [],
     maxAgentSteps: 20,
     specialization: 'visual-coordination',
-    skills: [{ skill: 'art-direction' }, { skill: 'visual-review' }, { skill: 'style-consistency' }],
+    skills: [
+      { skill: 'art-direction' },
+      { skill: 'visual-review' },
+      { skill: 'style-consistency' },
+    ],
     isActive: true,
     requiresReview: false,
     qualityThreshold: 80,
@@ -746,7 +1066,11 @@ You are an expert in visual style and art direction for Aladdin AI Movie Product
     toolNames: [],
     maxAgentSteps: 20,
     specialization: 'art-direction',
-    skills: [{ skill: 'style-design' }, { skill: 'aesthetic-coherence' }, { skill: 'world-building' }],
+    skills: [
+      { skill: 'style-design' },
+      { skill: 'aesthetic-coherence' },
+      { skill: 'world-building' },
+    ],
     isActive: true,
     requiresReview: true,
     qualityThreshold: 80,
@@ -769,7 +1093,8 @@ You are an expert in visual style and art direction for Aladdin AI Movie Product
   {
     agentId: 'visual-cinematography-specialist',
     name: 'Cinematography Specialist',
-    description: 'Expert in camera work, shot composition, and visual storytelling through cinematography.',
+    description:
+      'Expert in camera work, shot composition, and visual storytelling through cinematography.',
     department: 'visual',
     isDepartmentHead: false,
     model: 'anthropic/claude-3.5-sonnet',
@@ -823,7 +1148,8 @@ You are an expert in cinematography and shot composition for Aladdin AI Movie Pr
   {
     agentId: 'visual-color-specialist',
     name: 'Color Theory Specialist',
-    description: 'Expert in color palettes, mood creation, and color psychology for visual storytelling.',
+    description:
+      'Expert in color palettes, mood creation, and color psychology for visual storytelling.',
     department: 'visual',
     isDepartmentHead: false,
     model: 'anthropic/claude-3.5-sonnet',
@@ -854,7 +1180,11 @@ You are an expert in color theory and palette design for Aladdin AI Movie Produc
     toolNames: [],
     maxAgentSteps: 20,
     specialization: 'color-theory',
-    skills: [{ skill: 'color-psychology' }, { skill: 'palette-design' }, { skill: 'mood-creation' }],
+    skills: [
+      { skill: 'color-psychology' },
+      { skill: 'palette-design' },
+      { skill: 'mood-creation' },
+    ],
     isActive: true,
     requiresReview: true,
     qualityThreshold: 80,
@@ -970,7 +1300,11 @@ You are the Head of the Video Department for Aladdin AI Movie Production. You ov
     toolNames: [],
     maxAgentSteps: 20,
     specialization: 'video-coordination',
-    skills: [{ skill: 'editing-oversight' }, { skill: 'vfx-coordination' }, { skill: 'quality-control' }],
+    skills: [
+      { skill: 'editing-oversight' },
+      { skill: 'vfx-coordination' },
+      { skill: 'quality-control' },
+    ],
     isActive: true,
     requiresReview: false,
     qualityThreshold: 80,
@@ -1248,7 +1582,11 @@ You are the Head of the Audio Department for Aladdin AI Movie Production. You ov
     toolNames: [],
     maxAgentSteps: 20,
     specialization: 'audio-coordination',
-    skills: [{ skill: 'audio-oversight' }, { skill: 'mix-coordination' }, { skill: 'quality-control' }],
+    skills: [
+      { skill: 'audio-oversight' },
+      { skill: 'mix-coordination' },
+      { skill: 'quality-control' },
+    ],
     isActive: true,
     requiresReview: false,
     qualityThreshold: 80,
@@ -1580,7 +1918,11 @@ You are an expert in production scheduling for Aladdin AI Movie Production.
     toolNames: [],
     maxAgentSteps: 15,
     specialization: 'scheduling',
-    skills: [{ skill: 'timeline-planning' }, { skill: 'milestone-tracking' }, { skill: 'optimization' }],
+    skills: [
+      { skill: 'timeline-planning' },
+      { skill: 'milestone-tracking' },
+      { skill: 'optimization' },
+    ],
     isActive: true,
     requiresReview: true,
     qualityThreshold: 75,
@@ -1688,7 +2030,11 @@ You are an expert in resource management for Aladdin AI Movie Production.
     toolNames: [],
     maxAgentSteps: 15,
     specialization: 'resource-management',
-    skills: [{ skill: 'team-allocation' }, { skill: 'asset-management' }, { skill: 'optimization' }],
+    skills: [
+      { skill: 'team-allocation' },
+      { skill: 'asset-management' },
+      { skill: 'optimization' },
+    ],
     isActive: true,
     requiresReview: true,
     qualityThreshold: 75,
@@ -1711,7 +2057,8 @@ You are an expert in resource management for Aladdin AI Movie Production.
   {
     agentId: 'production-coordination-specialist',
     name: 'Coordination Specialist',
-    description: 'Expert in cross-department communication, workflow management, and team coordination.',
+    description:
+      'Expert in cross-department communication, workflow management, and team coordination.',
     department: 'production',
     isDepartmentHead: false,
     model: 'anthropic/claude-3-haiku',
@@ -1803,7 +2150,9 @@ export async function seedAgents(payload: Payload): Promise<void> {
       // Map department slug to ID
       const departmentId = departmentMap.get(agentData.department)
       if (!departmentId) {
-        console.error(`  ❌ Department "${agentData.department}" not found for agent ${agentData.name}`)
+        console.error(
+          `  ❌ Department "${agentData.department}" not found for agent ${agentData.name}`,
+        )
         continue
       }
 

@@ -4,12 +4,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
+import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 
 export async function POST(req: NextRequest) {
   try {
-    const payload = await getPayloadHMR({ config: configPromise })
+    const payload = await getPayload({ config: await configPromise })
     const { user } = await payload.auth({ req: req as any })
 
     if (!user) {
@@ -20,10 +20,7 @@ export async function POST(req: NextRequest) {
     const { projectId } = body
 
     if (!projectId) {
-      return NextResponse.json(
-        { error: 'Project ID is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Project ID is required' }, { status: 400 })
     }
 
     // Check if conversation already exists for this project
@@ -33,29 +30,29 @@ export async function POST(req: NextRequest) {
         and: [
           {
             project: {
-              equals: projectId
-            }
+              equals: projectId,
+            },
           },
           {
             user: {
-              equals: user.id
-            }
+              equals: user.id,
+            },
           },
           {
             status: {
-              equals: 'active'
-            }
-          }
-        ]
+              equals: 'active',
+            },
+          },
+        ],
       },
-      limit: 1
+      limit: 1,
     })
 
     if (existing.docs.length > 0) {
       const conversation = existing.docs[0]
       return NextResponse.json({
         conversationId: conversation.id,
-        messages: conversation.messages || []
+        messages: conversation.messages || [],
       })
     }
 
@@ -67,19 +64,16 @@ export async function POST(req: NextRequest) {
         project: projectId,
         user: user.id,
         status: 'active',
-        messages: []
-      }
+        messages: [],
+      },
     })
 
     return NextResponse.json({
       conversationId: conversation.id,
-      messages: []
+      messages: [],
     })
   } catch (error) {
     console.error('Error creating conversation:', error)
-    return NextResponse.json(
-      { error: 'Failed to create conversation' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to create conversation' }, { status: 500 })
   }
 }

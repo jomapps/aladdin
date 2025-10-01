@@ -3,8 +3,16 @@
  *
  * Seeds PayloadCMS collections with:
  * - 6 Departments (Story, Character, Visual, Video, Audio, Production)
- * - 30 Agents (6 department heads + 24 specialists)
+ * - 35 Agents (6 department heads + 29 specialists)
  * - 10 Custom Tools (character analysis, plot validation, etc.)
+ *
+ * Agent Distribution:
+ * - Story: 1 head + 4 specialists = 5 agents
+ * - Character: 1 head + 9 specialists = 10 agents (includes Hair Stylist, Costume Designer, etc.)
+ * - Visual: 1 head + 4 specialists = 5 agents
+ * - Video: 1 head + 4 specialists = 5 agents
+ * - Audio: 1 head + 4 specialists = 5 agents
+ * - Production: 1 head + 4 specialists = 5 agents
  *
  * Usage:
  *   npm run seed
@@ -16,6 +24,7 @@
  * @module seed
  */
 
+import 'dotenv/config'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { seedDepartments } from './departments.seed'
@@ -28,7 +37,7 @@ import { seedCustomTools } from './custom-tools.seed'
  */
 async function seed() {
   console.log('🌱 Starting Aladdin seed process...\n')
-  console.log('=' .repeat(60))
+  console.log('='.repeat(60))
 
   try {
     // Initialize PayloadCMS
@@ -43,27 +52,36 @@ async function seed() {
     await seedAgents(payload)
     await seedCustomTools(payload)
 
-    console.log('=' .repeat(60))
+    console.log('='.repeat(60))
     console.log('🎉 Seed process completed successfully!\n')
 
     // Summary
     console.log('📊 Seed Summary:')
     console.log('  - Departments: 6')
-    console.log('  - Agents: 30 (6 heads + 24 specialists)')
+    console.log('  - Agents: 35 (6 heads + 29 specialists)')
+    console.log('    • Story: 5 agents')
+    console.log(
+      '    • Character: 10 agents (includes Hair Stylist, Costume Designer, Makeup Artist, Voice Creator)',
+    )
+    console.log('    • Visual: 5 agents')
+    console.log('    • Video: 5 agents')
+    console.log('    • Audio: 5 agents')
+    console.log('    • Production: 5 agents')
     console.log('  - Custom Tools: 10')
     console.log('\n✨ Your Aladdin AI system is ready to use!\n')
 
     process.exit(0)
   } catch (error) {
     console.error('\n❌ Seed process failed:', error)
-    console.error('\nStack trace:', error instanceof Error ? error.stack : 'No stack trace available')
+    console.error(
+      '\nStack trace:',
+      error instanceof Error ? error.stack : 'No stack trace available',
+    )
     process.exit(1)
   }
 }
 
-// Execute seed if run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  seed()
-}
+// Execute seed
+seed()
 
 export { seed }

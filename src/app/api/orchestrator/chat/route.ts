@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
+import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { getLLMClient } from '@/lib/llm/client'
 import { ChatRequestSchema, type ChatResponse } from '../types'
@@ -15,14 +15,11 @@ export const dynamic = 'force-dynamic'
 export async function POST(req: NextRequest) {
   try {
     // 1. Authenticate user
-    const payload = await getPayloadHMR({ config: configPromise })
+    const payload = await getPayload({ config: await configPromise })
     const { user } = await payload.auth({ req: req as any })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized', code: 'AUTH_REQUIRED' }, { status: 401 })
     }
 
     // 2. Validate request
@@ -36,7 +33,7 @@ export async function POST(req: NextRequest) {
           code: 'VALIDATION_ERROR',
           details: validationResult.error.errors,
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -176,7 +173,7 @@ Provide clear, concise, and helpful responses. Use markdown formatting when appr
         code: 'CHAT_ERROR',
         details: error.stack,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -15,6 +15,10 @@ import { Conversations } from './collections/Conversations'
 import { Workflows } from './collections/Workflows'
 import { ActivityLogs } from './collections/ActivityLogs'
 import { ExportJobs } from './collections/ExportJobs'
+import { Departments } from './collections/Departments'
+import { Agents } from './collections/Agents'
+import { CustomTools } from './collections/CustomTools'
+import { AgentExecutions } from './collections/AgentExecutions'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -58,6 +62,10 @@ export default buildConfig({
     Workflows,
     ActivityLogs,
     ExportJobs,
+    Departments,
+    Agents,
+    CustomTools,
+    AgentExecutions,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

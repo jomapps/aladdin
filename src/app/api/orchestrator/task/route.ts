@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
+import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { getLLMClient } from '@/lib/llm/client'
 import { TaskExecutionRequestSchema, type TaskExecutionResponse } from '../types'
@@ -16,14 +16,11 @@ export const dynamic = 'force-dynamic'
 export async function POST(req: NextRequest) {
   try {
     // 1. Authenticate user
-    const payload = await getPayloadHMR({ config: configPromise })
+    const payload = await getPayload({ config: await configPromise })
     const { user } = await payload.auth({ req: req as any })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized', code: 'AUTH_REQUIRED' }, { status: 401 })
     }
 
     // 2. Validate request
@@ -37,7 +34,7 @@ export async function POST(req: NextRequest) {
           code: 'VALIDATION_ERROR',
           details: validationResult.error.errors,
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -55,7 +52,7 @@ export async function POST(req: NextRequest) {
     if (!project) {
       return NextResponse.json(
         { error: 'Project not found', code: 'PROJECT_NOT_FOUND' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -114,7 +111,7 @@ export async function POST(req: NextRequest) {
         code: 'TASK_ERROR',
         details: error.stack,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -124,14 +121,11 @@ export async function POST(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   try {
-    const payload = await getPayloadHMR({ config: configPromise })
+    const payload = await getPayload({ config: await configPromise })
     const { user } = await payload.auth({ req: req as any })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized', code: 'AUTH_REQUIRED' }, { status: 401 })
     }
 
     const { searchParams } = new URL(req.url)
@@ -140,7 +134,7 @@ export async function GET(req: NextRequest) {
     if (!taskId) {
       return NextResponse.json(
         { error: 'Task ID is required', code: 'MISSING_TASK_ID' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -151,10 +145,7 @@ export async function GET(req: NextRequest) {
     })
 
     if (!task) {
-      return NextResponse.json(
-        { error: 'Task not found', code: 'TASK_NOT_FOUND' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Task not found', code: 'TASK_NOT_FOUND' }, { status: 404 })
     }
 
     // Build response from task record
@@ -186,7 +177,7 @@ export async function GET(req: NextRequest) {
         code: 'STATUS_ERROR',
         details: error.stack,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

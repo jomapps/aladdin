@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
+import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { z } from 'zod'
 
@@ -17,14 +17,11 @@ export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
   try {
     // 1. Authenticate user
-    const payload = await getPayloadHMR({ config: configPromise })
+    const payload = await getPayload({ config: await configPromise })
     const { user } = await payload.auth({ req: req as any })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized', code: 'AUTH_REQUIRED' }, { status: 401 })
     }
 
     // 2. Get parameters
@@ -46,16 +43,13 @@ export async function GET(req: NextRequest) {
       if (!conversation) {
         return NextResponse.json(
           { error: 'Conversation not found', code: 'NOT_FOUND' },
-          { status: 404 }
+          { status: 404 },
         )
       }
 
       // Check ownership
       if (conversation.user !== user.id) {
-        return NextResponse.json(
-          { error: 'Forbidden', code: 'FORBIDDEN' },
-          { status: 403 }
-        )
+        return NextResponse.json({ error: 'Forbidden', code: 'FORBIDDEN' }, { status: 403 })
       }
 
       return NextResponse.json({
@@ -118,7 +112,7 @@ export async function GET(req: NextRequest) {
         error: error.message || 'Internal server error',
         code: 'HISTORY_ERROR',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -141,14 +135,11 @@ const SaveMessageSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     // 1. Authenticate user
-    const payload = await getPayloadHMR({ config: configPromise })
+    const payload = await getPayload({ config: await configPromise })
     const { user } = await payload.auth({ req: req as any })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized', code: 'AUTH_REQUIRED' }, { status: 401 })
     }
 
     // 2. Validate request
@@ -162,7 +153,7 @@ export async function POST(req: NextRequest) {
           code: 'VALIDATION_ERROR',
           details: validationResult.error.errors,
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -181,15 +172,12 @@ export async function POST(req: NextRequest) {
       if (!conversation) {
         return NextResponse.json(
           { error: 'Conversation not found', code: 'NOT_FOUND' },
-          { status: 404 }
+          { status: 404 },
         )
       }
 
       if (conversation.user !== user.id) {
-        return NextResponse.json(
-          { error: 'Forbidden', code: 'FORBIDDEN' },
-          { status: 403 }
-        )
+        return NextResponse.json({ error: 'Forbidden', code: 'FORBIDDEN' }, { status: 403 })
       }
 
       await payload.update({
@@ -246,7 +234,7 @@ export async function POST(req: NextRequest) {
         error: error.message || 'Internal server error',
         code: 'SAVE_ERROR',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -257,14 +245,11 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     // 1. Authenticate user
-    const payload = await getPayloadHMR({ config: configPromise })
+    const payload = await getPayload({ config: await configPromise })
     const { user } = await payload.auth({ req: req as any })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized', code: 'AUTH_REQUIRED' }, { status: 401 })
     }
 
     // 2. Get conversationId
@@ -274,7 +259,7 @@ export async function DELETE(req: NextRequest) {
     if (!conversationId) {
       return NextResponse.json(
         { error: 'Conversation ID required', code: 'MISSING_ID' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -289,15 +274,12 @@ export async function DELETE(req: NextRequest) {
     if (!conversation) {
       return NextResponse.json(
         { error: 'Conversation not found', code: 'NOT_FOUND' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     if (conversation.user !== user.id) {
-      return NextResponse.json(
-        { error: 'Forbidden', code: 'FORBIDDEN' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Forbidden', code: 'FORBIDDEN' }, { status: 403 })
     }
 
     // 4. Soft delete (set status to archived)
@@ -322,7 +304,7 @@ export async function DELETE(req: NextRequest) {
         error: error.message || 'Internal server error',
         code: 'DELETE_ERROR',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

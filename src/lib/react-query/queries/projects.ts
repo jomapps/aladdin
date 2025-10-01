@@ -67,7 +67,19 @@ async function fetchProjects(filters?: Record<string, any>): Promise<ProjectList
   if (!response.ok) {
     throw new Error('Failed to fetch projects')
   }
-  return response.json()
+  const data = await response.json()
+
+  // Transform API response to match ProjectListResponse interface
+  // API returns { projects: [...] } but we expect { docs: [...] }
+  return {
+    docs: data.projects || [],
+    totalDocs: data.totalDocs || 0,
+    limit: data.limit || 10,
+    page: data.page || 1,
+    totalPages: data.totalPages || 0,
+    hasNextPage: data.hasNextPage || false,
+    hasPrevPage: data.hasPrevPage || false,
+  }
 }
 
 async function fetchProject(id: string): Promise<Project> {
@@ -79,10 +91,7 @@ async function fetchProject(id: string): Promise<Project> {
   return data.project || data
 }
 
-async function fetchProjectActivity(
-  projectId: string,
-  limit = 50
-): Promise<ProjectActivity[]> {
+async function fetchProjectActivity(projectId: string, limit = 50): Promise<ProjectActivity[]> {
   const response = await fetch(`/api/v1/projects/${projectId}/activity?limit=${limit}`)
   if (!response.ok) {
     throw new Error('Failed to fetch project activity')
@@ -103,7 +112,7 @@ async function fetchProjectTeam(projectId: string): Promise<any[]> {
 // Hooks
 export function useProjects(
   filters?: Record<string, any>,
-  options?: Omit<UseQueryOptions<ProjectListResponse>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<ProjectListResponse>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.projects.list(filters),
@@ -114,7 +123,7 @@ export function useProjects(
 
 export function useProject(
   id: string,
-  options?: Omit<UseQueryOptions<Project>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Project>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.projects.detail(id),
@@ -127,7 +136,7 @@ export function useProject(
 export function useProjectActivity(
   projectId: string,
   limit = 50,
-  options?: Omit<UseQueryOptions<ProjectActivity[]>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<ProjectActivity[]>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.projects.activity(projectId),
@@ -139,7 +148,7 @@ export function useProjectActivity(
 
 export function useProjectTeam(
   projectId: string,
-  options?: Omit<UseQueryOptions<any[]>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<any[]>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
     queryKey: queryKeys.projects.team(projectId),

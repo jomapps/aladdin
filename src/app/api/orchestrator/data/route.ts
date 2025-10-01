@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
+import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { getBrainClient } from '@/lib/brain/client'
 import { getLLMClient } from '@/lib/llm/client'
@@ -17,14 +17,11 @@ export const dynamic = 'force-dynamic'
 export async function POST(req: NextRequest) {
   try {
     // 1. Authenticate user
-    const payload = await getPayloadHMR({ config: configPromise })
+    const payload = await getPayload({ config: await configPromise })
     const { user } = await payload.auth({ req: req as any })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized', code: 'AUTH_REQUIRED' }, { status: 401 })
     }
 
     // 2. Validate request
@@ -38,7 +35,7 @@ export async function POST(req: NextRequest) {
           code: 'VALIDATION_ERROR',
           details: validationResult.error.errors,
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -96,12 +93,7 @@ Return format:
     })
 
     // 5. Check for duplicates in Brain service
-    const duplicates = await checkDuplicates(
-      brainClient,
-      llmResult.parsed,
-      entityType,
-      projectId
-    )
+    const duplicates = await checkDuplicates(brainClient, llmResult.parsed, entityType, projectId)
 
     console.log('[Data Ingestion] Found duplicates:', duplicates.length)
 
@@ -130,7 +122,7 @@ Return format:
         payload,
         llmResult.parsed,
         llmResult.category,
-        brainDocument.metadata
+        brainDocument.metadata,
       )
     }
 
@@ -138,15 +130,12 @@ Return format:
     const requiredFields = buildRequiredFields(
       llmResult.category,
       llmResult.parsed,
-      brainDocument.metadata
+      brainDocument.metadata,
     )
 
     // 9. Determine if confirmation is needed
     const confirmationRequired =
-      !autoConfirm ||
-      duplicates.length > 0 ||
-      !validation.valid ||
-      llmResult.confidence < 0.8
+      !autoConfirm || duplicates.length > 0 || !validation.valid || llmResult.confidence < 0.8
 
     // 10. If auto-confirm and no issues, ingest to brain
     let brainDocumentId: string | undefined
@@ -219,7 +208,7 @@ Return format:
         code: 'INGESTION_ERROR',
         details: error.stack,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -231,7 +220,7 @@ async function checkDuplicates(
   brainClient: any,
   parsedData: any,
   entityType: string,
-  projectId: string
+  projectId: string,
 ): Promise<any[]> {
   try {
     // Search for similar content
@@ -268,7 +257,7 @@ async function validateEntityData(
   payload: any,
   parsedData: any,
   category: string,
-  metadata: any
+  metadata: any,
 ): Promise<any> {
   const errors: string[] = []
   const warnings: string[] = []

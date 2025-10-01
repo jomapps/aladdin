@@ -37,7 +37,7 @@ Complete movie production departments with configuration:
   - Scheduling, budget, resource management, coordination
   - Quality threshold: 75%
 
-### 2. Agents (30 total)
+### 2. Agents (35 total)
 
 #### Department Heads (6)
 One per department, coordinates specialists:
@@ -51,11 +51,11 @@ One per department, coordinates specialists:
 **Key Features:**
 - `isDepartmentHead: true`
 - `requiresReview: false`
-- High-quality prompts from dynamic-agents.md
+- High-quality prompts from dynamic-agents.md and AI_AGENT_INTEGRATION.md
 - Realistic performance metrics (88-93% success rate)
 - Claude 3.5 Sonnet model (except Production uses Claude 3 Haiku)
 
-#### Specialists (24 total)
+#### Specialists (29 total)
 
 **Story Department (4 specialists):**
 - Plot Structure Specialist
@@ -63,11 +63,16 @@ One per department, coordinates specialists:
 - Theme Specialist
 - Pacing Specialist
 
-**Character Department (4 specialists):**
-- Character Profile Builder
-- Character Arc Developer
-- Relationship Designer
-- Psychology Analyst
+**Character Department (9 specialists):**
+- Character Creator (core personality, backstory, arc foundation)
+- Character Profile Builder (physical traits, background)
+- Character Arc Developer (character growth, transformation)
+- Relationship Designer (dynamics, conflicts)
+- Psychology Analyst (motivations, fears)
+- Hair Stylist (hairstyle design)
+- Costume Designer (wardrobe, clothing)
+- Makeup Artist (makeup, special effects)
+- Voice Profile Creator (voice characteristics)
 
 **Visual Department (4 specialists):**
 - Art Direction Specialist
@@ -174,7 +179,7 @@ Each step checks for existing data and skips duplicates.
 🤖 Seeding agents...
   ✅ Created agent: Story Department Head
   ✅ Created agent: Plot Structure Specialist
-  ... (30 total)
+  ... (35 total: 6 heads + 29 specialists)
 ✅ Agents seeded successfully
 
 🛠️  Seeding custom tools...
@@ -188,7 +193,7 @@ Each step checks for existing data and skips duplicates.
 
 📊 Seed Summary:
   - Departments: 6
-  - Agents: 30 (6 heads + 24 specialists)
+  - Agents: 35 (6 heads + 29 specialists)
   - Custom Tools: 10
 
 ✨ Your Aladdin AI system is ready to use!

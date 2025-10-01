@@ -4,7 +4,7 @@
  */
 
 import { redirect } from 'next/navigation'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
+import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { Suspense } from 'react'
 import DashboardClient from './DashboardClient'
@@ -23,7 +23,7 @@ export default async function ProjectDashboardPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const payload = await getPayloadHMR({ config: configPromise })
+  const payload = await getPayload({ config: await configPromise })
 
   // Skip auth check for now to avoid TypeScript issues
   // TODO: Fix auth implementation

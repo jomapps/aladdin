@@ -106,21 +106,21 @@ export default buildConfig({
 
 ### Pattern 1: Server Components (Next.js App Router)
 
-**Recommended**: Use `getPayloadHMR` for Hot Module Reloading support
+**CORRECT (PayloadCMS v3)**: Use `getPayload` from 'payload'
 
 ```typescript
 // app/dashboard/projects/page.tsx
-import { getPayloadHMR } from '@payloadcms/next/utilities'
+import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 
 export default async function ProjectsPage() {
-  const payload = await getPayloadHMR({ config: configPromise })
-  
+  const payload = await getPayload({ config: await configPromise })
+
   const projects = await payload.find({
     collection: 'projects',
     limit: 20,
   })
-  
+
   return <div>{/* Render projects */}</div>
 }
 ```
@@ -129,19 +129,31 @@ export default async function ProjectsPage() {
 
 ```typescript
 // app/api/v1/projects/route.ts
-import { getPayloadHMR } from '@payloadcms/next/utilities'
+import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest) {
-  const payload = await getPayloadHMR({ config: configPromise })
-  
+  const payload = await getPayload({ config: await configPromise })
+
   const projects = await payload.find({
     collection: 'projects',
   })
-  
+
   return NextResponse.json(projects)
 }
+```
+
+### ⚠️ DEPRECATED: Do NOT use `getPayloadHMR`
+
+```typescript
+// ❌ WRONG - This is deprecated in PayloadCMS v3
+import { getPayloadHMR } from '@payloadcms/next/utilities'
+const payload = await getPayloadHMR({ config: configPromise })
+
+// ✅ CORRECT - Use this instead
+import { getPayload } from 'payload'
+const payload = await getPayload({ config: await configPromise })
 ```
 
 ### Pattern 3: Using `onInit` Hook
