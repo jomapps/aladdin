@@ -25,7 +25,11 @@ function SuggestionChip({ text, onClick }: SuggestionChipProps) {
   )
 }
 
-function Welcome() {
+interface WelcomeProps {
+  onSuggestionClick?: (text: string) => void
+}
+
+function Welcome({ onSuggestionClick }: WelcomeProps) {
   return (
     <div className="max-w-md mx-auto space-y-6 py-8">
       {/* Icon */}
@@ -39,15 +43,14 @@ function Welcome() {
       <div className="text-center space-y-2">
         <h3 className="text-xl font-semibold text-gray-900">Query Mode</h3>
         <p className="text-sm text-gray-600">
-          Ask questions about your project. I can search through characters, scenes, locations, and more.
+          Ask questions about your project. I can search through characters, scenes, locations, and
+          more.
         </p>
       </div>
 
       {/* Entity types */}
       <div className="space-y-3">
-        <p className="text-xs font-medium text-gray-500 uppercase text-center">
-          Search across
-        </p>
+        <p className="text-xs font-medium text-gray-500 uppercase text-center">Search across</p>
 
         <div className="grid grid-cols-2 gap-2">
           {[
@@ -65,9 +68,7 @@ function Welcome() {
                 <div className={cn('p-1.5 rounded', item.color)}>
                   <Icon className="w-4 h-4" />
                 </div>
-                <span className="text-sm font-medium text-gray-700">
-                  {item.label}
-                </span>
+                <span className="text-sm font-medium text-gray-700">{item.label}</span>
               </div>
             )
           })}
@@ -76,15 +77,25 @@ function Welcome() {
 
       {/* Suggestions */}
       <div className="space-y-3">
-        <p className="text-xs font-medium text-gray-500 uppercase text-center">
-          Try asking
-        </p>
+        <p className="text-xs font-medium text-gray-500 uppercase text-center">Try asking</p>
 
         <div className="flex flex-wrap gap-2 justify-center">
-          <SuggestionChip text="Show all scenes with Aladdin" />
-          <SuggestionChip text="What's Jasmine's character arc?" />
-          <SuggestionChip text="Find plot holes in Act 2" />
-          <SuggestionChip text="List all Agrabah locations" />
+          <SuggestionChip
+            text="Show all scenes with Aladdin"
+            onClick={() => onSuggestionClick?.('Show all scenes with Aladdin')}
+          />
+          <SuggestionChip
+            text="What's Jasmine's character arc?"
+            onClick={() => onSuggestionClick?.("What's Jasmine's character arc?")}
+          />
+          <SuggestionChip
+            text="Find plot holes in Act 2"
+            onClick={() => onSuggestionClick?.('Find plot holes in Act 2')}
+          />
+          <SuggestionChip
+            text="List all Agrabah locations"
+            onClick={() => onSuggestionClick?.('List all Agrabah locations')}
+          />
         </div>
       </div>
     </div>

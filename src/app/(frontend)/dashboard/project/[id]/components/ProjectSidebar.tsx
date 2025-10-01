@@ -8,6 +8,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useProjectRecentActivity } from '@/lib/react-query'
+import { formatDistanceToNow } from 'date-fns'
+import { Loader2 } from 'lucide-react'
 
 interface Department {
   id: string
@@ -48,10 +51,10 @@ export default function ProjectSidebar({
 }: ProjectSidebarProps) {
   const pathname = usePathname()
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['departments']))
-  const [recentActivity] = useState<ContentItem[]>([
-    { id: '1', type: 'scene', name: 'Opening Scene', timestamp: new Date() },
-    { id: '2', type: 'character', name: 'Main Character', timestamp: new Date() },
-  ])
+  const { data: recentActivity, isLoading: isLoadingActivity } = useProjectRecentActivity(
+    projectId,
+    { limit: 5 },
+  )
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => {
@@ -70,12 +73,7 @@ export default function ProjectSidebar({
   return (
     <>
       {/* Overlay for mobile */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={onToggle}
-        />
-      )}
+      {isOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onToggle} />}
 
       {/* Sidebar */}
       <aside
@@ -92,17 +90,11 @@ export default function ProjectSidebar({
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-gray-900 truncate">{projectName}</h2>
-            <button
-              onClick={onToggle}
-              className="lg:hidden p-1 hover:bg-gray-100 rounded"
-            >
+            <button onClick={onToggle} className="lg:hidden p-1 hover:bg-gray-100 rounded">
               ✕
             </button>
           </div>
-          <Link
-            href={basePath}
-            className="text-sm text-blue-600 hover:text-blue-700 mt-1 block"
-          >
+          <Link href={basePath} className="text-sm text-blue-600 hover:text-blue-700 mt-1 block">
             ← Back to Overview
           </Link>
         </div>
@@ -154,9 +146,7 @@ export default function ProjectSidebar({
               className="w-full flex items-center justify-between p-2 hover:bg-gray-50 rounded text-left"
             >
               <span className="font-medium text-gray-900">Content</span>
-              <span className="text-gray-500">
-                {expandedSections.has('content') ? '▼' : '▶'}
-              </span>
+              <span className="text-gray-500">{expandedSections.has('content') ? '▼' : '▶'}</span>
             </button>
             {expandedSections.has('content') && (
               <div className="mt-1 space-y-1 pl-2">
@@ -192,13 +182,15 @@ export default function ProjectSidebar({
               className="w-full flex items-center justify-between p-2 hover:bg-gray-50 rounded text-left"
             >
               <span className="font-medium text-gray-900">Recent</span>
-              <span className="text-gray-500">
-                {expandedSections.has('recent') ? '▼' : '▶'}
-              </span>
+              <span className="text-gray-500">{expandedSections.has('recent') ? '▼' : '▶'}</span>
             </button>
             {expandedSections.has('recent') && (
               <div className="mt-1 space-y-1 pl-2">
-                {recentActivity.length === 0 ? (
+                {isLoadingActivity ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                  </div>
+                ) : !recentActivity || recentActivity.length === 0 ? (
                   <p className="px-3 py-2 text-sm text-gray-500">No recent activity</p>
                 ) : (
                   recentActivity.map((item) => (
@@ -206,8 +198,11 @@ export default function ProjectSidebar({
                       key={item.id}
                       className="px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      <div className="font-medium">{item.name}</div>
-                      <div className="text-xs text-gray-500">{item.type}</div>
+                      <div className="font-medium">{item.entityName}</div>
+                      <div className="text-xs text-gray-500">
+                        {item.action} •{' '}
+                        {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
+                      </div>
                     </div>
                   ))
                 )}

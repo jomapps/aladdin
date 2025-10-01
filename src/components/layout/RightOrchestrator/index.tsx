@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useLayoutStore } from '@/stores/layoutStore'
@@ -21,12 +21,8 @@ import MessageInput from './MessageInput'
 const PROJECT_ID = 'demo-project'
 
 export default function RightOrchestrator() {
-  const {
-    isRightOrchestratorOpen,
-    isMobileRightOverlay,
-    orchestratorMode,
-    setMobileRightOverlay,
-  } = useLayoutStore()
+  const { isRightOrchestratorOpen, isMobileRightOverlay, orchestratorMode, setMobileRightOverlay } =
+    useLayoutStore()
 
   const { conversationId, setPanelOpen } = useOrchestratorStore()
 
@@ -43,18 +39,34 @@ export default function RightOrchestrator() {
     setPanelOpen(isRightOrchestratorOpen || isMobileRightOverlay)
   }, [isRightOrchestratorOpen, isMobileRightOverlay, setPanelOpen])
 
+  // Ref to access MessageInput component
+  const messageInputRef = useRef<{ setMessage: (text: string) => void }>(null)
+
+  // Handle suggestion click - fill input with suggestion text
+  const handleSuggestionClick = (text: string) => {
+    // Find the textarea and set its value
+    const textarea = document.querySelector('textarea[placeholder*="Ask"]') as HTMLTextAreaElement
+    if (textarea) {
+      textarea.value = text
+      textarea.focus()
+      // Trigger input event to update state
+      const event = new Event('input', { bubbles: true })
+      textarea.dispatchEvent(event)
+    }
+  }
+
   return (
     <>
       {/* Desktop Orchestrator */}
       <aside
         className={cn(
           'hidden lg:flex flex-col border-l bg-background transition-all duration-300',
-          isRightOrchestratorOpen ? 'w-96' : 'w-0 overflow-hidden'
+          isRightOrchestratorOpen ? 'w-96' : 'w-0 overflow-hidden',
         )}
       >
         <div className="flex flex-col h-full">
           <ModeSelector />
-          <ChatArea mode={orchestratorMode} />
+          <ChatArea mode={orchestratorMode} onSuggestionClick={handleSuggestionClick} />
           <MessageInput onSend={sendMessage} isLoading={isLoading} />
         </div>
       </aside>
@@ -69,17 +81,13 @@ export default function RightOrchestrator() {
           <aside className="fixed right-0 top-0 bottom-0 z-50 w-full sm:w-96 bg-background border-l lg:hidden">
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="font-semibold">AI Orchestrator</h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setMobileRightOverlay(false)}
-              >
+              <Button variant="ghost" size="icon" onClick={() => setMobileRightOverlay(false)}>
                 <X className="h-5 w-5" />
               </Button>
             </div>
             <div className="flex flex-col h-[calc(100%-57px)]">
               <ModeSelector />
-              <ChatArea mode={orchestratorMode} />
+              <ChatArea mode={orchestratorMode} onSuggestionClick={handleSuggestionClick} />
               <MessageInput onSend={sendMessage} isLoading={isLoading} />
             </div>
           </aside>

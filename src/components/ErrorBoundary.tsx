@@ -54,7 +54,30 @@ export class ErrorBoundary extends Component<Props, State> {
       this.props.onError(error, errorInfo)
     }
 
-    // TODO: Log to error tracking service (e.g., Sentry)
+    // Log to error tracking service
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+      // Send error to logging endpoint
+      fetch('/api/v1/errors/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          error: {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+          },
+          errorInfo: {
+            componentStack: errorInfo.componentStack,
+          },
+          url: window.location.href,
+          userAgent: navigator.userAgent,
+          timestamp: new Date().toISOString(),
+        }),
+      }).catch((err) => {
+        // Silently fail - don't break on logging errors
+        console.error('Failed to log error:', err)
+      })
+    }
   }
 
   handleReset = () => {
@@ -91,9 +114,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 </div>
                 <div>
                   <CardTitle>Something went wrong</CardTitle>
-                  <CardDescription>
-                    An unexpected error occurred. Please try again.
-                  </CardDescription>
+                  <CardDescription>An unexpected error occurred. Please try again.</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -145,4 +166,3 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children
   }
 }
-

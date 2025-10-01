@@ -12,6 +12,7 @@ export * from './queries/episodes'
 export * from './queries/characters'
 export * from './queries/scenes'
 export * from './queries/orchestrator'
+export * from './queries/activity'
 
 // Mutations
 export * from './mutations/orchestrator'

@@ -27,7 +27,7 @@ const defaultConfig: PayloadHookConfig = {
  * Create afterChange hook for automatic brain sync
  */
 export function createDataPrepAfterChange(
-  config: PayloadHookConfig = {}
+  config: PayloadHookConfig = {},
 ): CollectionAfterChangeHook {
   const mergedConfig = { ...defaultConfig, ...config }
 
@@ -95,7 +95,7 @@ export function createDataPrepAfterChange(
  * Create afterDelete hook for brain cleanup
  */
 export function createDataPrepAfterDelete(
-  config: PayloadHookConfig = {}
+  config: PayloadHookConfig = {},
 ): CollectionAfterDeleteHook {
   const mergedConfig = { ...defaultConfig, ...config }
 
@@ -114,10 +114,27 @@ export function createDataPrepAfterDelete(
     }
 
     try {
-      // TODO: Implement brain service delete
+      // Delete from brain service
+      const brainUrl = process.env.BRAIN_SERVICE_URL || 'http://localhost:8000'
+      const response = await fetch(`${brainUrl}/api/entities/${doc.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`Brain service delete failed: ${response.statusText}`)
+      }
+
+      // Clear cache
+      const cacheManager = (await import('./cache-manager')).default
+      await cacheManager.clearPattern(`brain:${collectionSlug}:${doc.id}`)
+
       console.log(`[DataPrepHook] Deleted ${collectionSlug}:${doc.id} from brain`)
     } catch (error) {
       console.error(`[DataPrepHook] Error deleting ${collectionSlug}:${doc.id}:`, error)
+      // Don't throw - allow deletion to continue even if brain service fails
     }
 
     return doc
@@ -175,4 +192,3 @@ export const dataPrepHooks = {
     afterDelete: [createDataPrepAfterDelete(config)],
   }),
 }
-
