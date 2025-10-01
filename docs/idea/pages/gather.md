@@ -22,7 +22,8 @@ it will also show the summary of the content as tagline as subheading.
 the card will have a button to expand and show the content.
 One should be able to edit the card and save it.
 The card will also have a button to delete it.
-if the content has image or document, it will be shown as well. in split 2 col inside the card
+When the card is expanded, and there is image or document, it will have a delete button to delete the image or document.
+if the content has text with image or document, it will be shown as well. in split 2 col inside the card
 
 
 ## how it works
@@ -63,7 +64,7 @@ when the user clicks "add all to gather",
 - all the cards in chat are added to the gather collection.
 
 ai will do this:
-1) send the content to llm and ask it to evaluate if followup questions need to be asked. if yes ask and iterate upto 3 iterations.
+1) send the content to llm and ask it to evaluate if followup questions need to be asked. if yes ask and iterate upto 3 iterations. llm can also query the brain to get more information about the project. However we do not save this data to the brain as it is unqualified.
 2) Definitely ask the user what is the purpose of this content from the project and user point of view. This is not required.
 2) generate the summary and context.
 3) add the content to the gather collection.
@@ -92,3 +93,6 @@ if a document is provided:
 ## Important considerations
 - This gather process is UNQUALIFIED Data. It is not to be used for any other purpose other than gathering and managing information.
 - It has no connection to payload cms.
+- put limits of content being dropped in like pdf to max 10mb and images to 20mb
+- all cloudflare files need to thave the project id and the word gather in the name.
+- This data will not be passed on to the brain service.
