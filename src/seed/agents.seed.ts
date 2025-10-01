@@ -73,7 +73,11 @@ Always structure your output as:
 - **Detailed Content**: Full narrative content
 - **Quality Assessment**: Scores and justification
 - **Recommendations**: Suggestions for improvement`,
-    toolNames: [],
+    toolNames: [
+      { toolName: 'validate-plot-structure' },
+      { toolName: 'track-theme-consistency' },
+      { toolName: 'assess-content-quality' },
+    ],
     maxAgentSteps: 25,
     specialization: 'narrative-coordination',
     skills: [
@@ -141,7 +145,7 @@ You are an expert in narrative structure and plot development for Aladdin AI Mov
 - Tension builds logically to climax
 - Conflicts are meaningful and well-motivated
 - Resolution is satisfying and earned`,
-    toolNames: [],
+    toolNames: [{ toolName: 'validate-plot-structure' }, { toolName: 'calculate-scene-pacing' }],
     maxAgentSteps: 20,
     specialization: 'plot-structure',
     skills: [{ skill: 'story-beats' }, { skill: 'act-structure' }, { skill: 'pacing' }],
@@ -205,7 +209,10 @@ You are an expert in writing natural, character-driven dialogue for Aladdin AI M
 - Conflict creates interesting exchanges
 - Silence and pauses are powerful tools
 - Listen to how real people speak`,
-    toolNames: [],
+    toolNames: [
+      { toolName: 'analyze-dialogue-authenticity' },
+      { toolName: 'fetch-character-profile' },
+    ],
     maxAgentSteps: 20,
     specialization: 'dialogue-writing',
     skills: [{ skill: 'character-voice' }, { skill: 'subtext' }, { skill: 'conversation-flow' }],
@@ -266,7 +273,7 @@ You are an expert in thematic development and symbolic storytelling for Aladdin 
 - Visual and verbal motifs aligned
 - Character arcs reflect thematic journey
 - Resolution addresses thematic questions`,
-    toolNames: [],
+    toolNames: [{ toolName: 'track-theme-consistency' }],
     maxAgentSteps: 20,
     specialization: 'theme-development',
     skills: [{ skill: 'symbolism' }, { skill: 'motif-tracking' }, { skill: 'thematic-analysis' }],
@@ -327,7 +334,7 @@ You are an expert in narrative pacing and rhythm for Aladdin AI Movie Production
 - Provide release after high tension
 - Balance plot with character development
 - Consider genre expectations`,
-    toolNames: [],
+    toolNames: [{ toolName: 'calculate-scene-pacing' }],
     maxAgentSteps: 20,
     specialization: 'pacing-optimization',
     skills: [{ skill: 'rhythm-analysis' }, { skill: 'tension-management' }, { skill: 'timing' }],
@@ -403,7 +410,12 @@ You are the Head of the Character Department for Aladdin AI Movie Production. Yo
 - **Key Relationships**: Dynamics with other characters
 - **Quality Metrics**: Consistency and depth scores
 - **Continuity Notes**: Important traits to maintain`,
-    toolNames: [],
+    toolNames: [
+      { toolName: 'fetch-character-profile' },
+      { toolName: 'check-character-consistency' },
+      { toolName: 'map-character-relationships' },
+      { toolName: 'assess-content-quality' },
+    ],
     maxAgentSteps: 25,
     specialization: 'character-coordination',
     skills: [
@@ -465,7 +477,10 @@ You are an expert in creating comprehensive character profiles for Aladdin AI Mo
 - Background influences personality
 - Contradictions are intentional and interesting
 - Character has depth beyond surface traits`,
-    toolNames: [],
+    toolNames: [
+      { toolName: 'fetch-character-profile' },
+      { toolName: 'check-character-consistency' },
+    ],
     maxAgentSteps: 20,
     specialization: 'character-profiles',
     skills: [
@@ -530,7 +545,10 @@ You are an expert in character transformation and growth arcs for Aladdin AI Mov
 - Internal change reflected externally
 - Arc serves story theme
 - Character choices drive change`,
-    toolNames: [],
+    toolNames: [
+      { toolName: 'fetch-character-profile' },
+      { toolName: 'check-character-consistency' },
+    ],
     maxAgentSteps: 20,
     specialization: 'character-arcs',
     skills: [{ skill: 'transformation' }, { skill: 'character-growth' }, { skill: 'arc-design' }],
@@ -592,7 +610,10 @@ You are an expert in character relationships and dynamics for Aladdin AI Movie P
 - Evolution feels natural
 - Interactions reveal character
 - Relationships serve story`,
-    toolNames: [],
+    toolNames: [
+      { toolName: 'map-character-relationships' },
+      { toolName: 'fetch-character-profile' },
+    ],
     maxAgentSteps: 20,
     specialization: 'relationships',
     skills: [{ skill: 'dynamics' }, { skill: 'interpersonal-conflict' }, { skill: 'chemistry' }],
@@ -648,7 +669,10 @@ You are an expert in character psychology and motivation for Aladdin AI Movie Pr
 - Flaws create meaningful obstacles
 - Internal conflicts drive external action
 - Psychological depth serves character arc`,
-    toolNames: [],
+    toolNames: [
+      { toolName: 'fetch-character-profile' },
+      { toolName: 'check-character-consistency' },
+    ],
     maxAgentSteps: 20,
     specialization: 'psychology',
     skills: [{ skill: 'motivation-analysis' }, { skill: 'internal-conflict' }, { skill: 'depth' }],
@@ -703,7 +727,10 @@ You are an expert in creating foundational character elements for Aladdin AI Mov
 - Arc potential is clear
 - Role serves story effectively
 - Goals create dramatic potential`,
-    toolNames: [],
+    toolNames: [
+      { toolName: 'fetch-character-profile' },
+      { toolName: 'check-character-consistency' },
+    ],
     maxAgentSteps: 20,
     specialization: 'character-creation',
     skills: [{ skill: 'character-design' }, { skill: 'personality' }, { skill: 'backstory' }],
@@ -758,7 +785,7 @@ You are a professional hair stylist for movie character design in Aladdin AI Mov
 - Styling method
 - Maintenance level
 - Character fit reasoning`,
-    toolNames: [],
+    toolNames: [{ toolName: 'fetch-character-profile' }],
     maxAgentSteps: 15,
     specialization: 'hair-design',
     skills: [
@@ -817,7 +844,7 @@ You are a professional costume designer for movie characters in Aladdin AI Movie
 - Distinctive and memorable
 - Practical for production
 - Consistent with character arc`,
-    toolNames: [],
+    toolNames: [{ toolName: 'fetch-character-profile' }],
     maxAgentSteps: 15,
     specialization: 'costume-design',
     skills: [{ skill: 'wardrobe' }, { skill: 'fashion-design' }, { skill: 'character-appearance' }],
@@ -879,7 +906,7 @@ You are a professional makeup artist for movie character design in Aladdin AI Mo
 - Special effects needed
 - Application notes
 - Character fit reasoning`,
-    toolNames: [],
+    toolNames: [{ toolName: 'fetch-character-profile' }],
     maxAgentSteps: 15,
     specialization: 'makeup-design',
     skills: [{ skill: 'makeup' }, { skill: 'special-effects' }, { skill: 'character-appearance' }],
@@ -943,7 +970,7 @@ You are an expert in character voice design for Aladdin AI Movie Production.
 - Vocabulary style
 - Example dialogue
 - Character fit reasoning`,
-    toolNames: [],
+    toolNames: [{ toolName: 'fetch-character-profile' }],
     maxAgentSteps: 15,
     specialization: 'voice-design',
     skills: [{ skill: 'voice-acting' }, { skill: 'dialogue' }, { skill: 'character-voice' }],
@@ -1005,7 +1032,10 @@ You are the Head of the Visual Department for Aladdin AI Movie Production. You o
 - **Shot Descriptions**: Detailed visual specifications
 - **Color Palettes**: Mood-based color schemes
 - **Quality Assessment**: Visual coherence scores`,
-    toolNames: [],
+    toolNames: [
+      { toolName: 'generate-visual-style-guide' },
+      { toolName: 'assess-content-quality' },
+    ],
     maxAgentSteps: 20,
     specialization: 'visual-coordination',
     skills: [
@@ -1063,7 +1093,7 @@ You are an expert in visual style and art direction for Aladdin AI Movie Product
 - Design choices are purposeful
 - Aesthetic is distinctive
 - References are period-appropriate`,
-    toolNames: [],
+    toolNames: [{ toolName: 'generate-visual-style-guide' }],
     maxAgentSteps: 20,
     specialization: 'art-direction',
     skills: [
@@ -1122,7 +1152,7 @@ You are an expert in cinematography and shot composition for Aladdin AI Movie Pr
 - Camera movement is motivated
 - Visual flow guides viewer
 - Technical specifications are clear`,
-    toolNames: [],
+    toolNames: [{ toolName: 'generate-visual-style-guide' }],
     maxAgentSteps: 20,
     specialization: 'cinematography',
     skills: [{ skill: 'camera-work' }, { skill: 'composition' }, { skill: 'visual-flow' }],
@@ -1177,7 +1207,7 @@ You are an expert in color theory and palette design for Aladdin AI Movie Produc
 - Color choices are purposeful
 - Symbolism is clear
 - Technical specs are precise`,
-    toolNames: [],
+    toolNames: [{ toolName: 'generate-visual-style-guide' }],
     maxAgentSteps: 20,
     specialization: 'color-theory',
     skills: [
@@ -1235,7 +1265,7 @@ You are an expert in visual composition and framing for Aladdin AI Movie Product
 - Depth creates interest
 - Framing serves story
 - Technical execution is precise`,
-    toolNames: [],
+    toolNames: [{ toolName: 'generate-visual-style-guide' }],
     maxAgentSteps: 20,
     specialization: 'composition',
     skills: [{ skill: 'framing' }, { skill: 'visual-balance' }, { skill: 'depth-creation' }],
@@ -1297,7 +1327,7 @@ You are the Head of the Video Department for Aladdin AI Movie Production. You ov
 - **VFX Requirements**: Effects specifications
 - **Technical Specs**: Quality parameters
 - **Quality Assessment**: Technical scores`,
-    toolNames: [],
+    toolNames: [{ toolName: 'calculate-scene-pacing' }, { toolName: 'assess-content-quality' }],
     maxAgentSteps: 20,
     specialization: 'video-coordination',
     skills: [
@@ -1355,7 +1385,7 @@ You are an expert in video editing for Aladdin AI Movie Production.
 - Rhythm supports emotion
 - Visual flow is smooth
 - Technical execution is clean`,
-    toolNames: [],
+    toolNames: [{ toolName: 'calculate-scene-pacing' }],
     maxAgentSteps: 20,
     specialization: 'editing',
     skills: [{ skill: 'cut-timing' }, { skill: 'continuity' }, { skill: 'pacing' }],
@@ -1579,7 +1609,7 @@ You are the Head of the Audio Department for Aladdin AI Movie Production. You ov
 - **Technical Specs**: Quality parameters
 - **Mix Guidelines**: Balance and levels
 - **Quality Assessment**: Audio scores`,
-    toolNames: [],
+    toolNames: [{ toolName: 'assess-content-quality' }],
     maxAgentSteps: 20,
     specialization: 'audio-coordination',
     skills: [
@@ -1861,7 +1891,7 @@ You are the Head of the Production Department for Aladdin AI Movie Production. Y
 - **Budget Report**: Cost tracking and forecasts
 - **Resource Allocation**: Team assignments
 - **Status Reports**: Progress updates`,
-    toolNames: [],
+    toolNames: [{ toolName: 'assess-content-quality' }],
     maxAgentSteps: 15,
     specialization: 'production-coordination',
     skills: [{ skill: 'project-management' }, { skill: 'coordination' }, { skill: 'oversight' }],

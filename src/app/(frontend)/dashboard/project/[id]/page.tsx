@@ -6,7 +6,6 @@
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
-import { Suspense } from 'react'
 import DashboardClient from './DashboardClient'
 
 interface Scene {
@@ -44,6 +43,7 @@ export default async function ProjectDashboardPage({
 
   // Fetch real scenes data or return empty array
   let scenes: Scene[] = []
+  let totalDuration = 0
   try {
     // Try to fetch scenes from Episodes collection
     const episodes = await payload.find({
@@ -70,11 +70,33 @@ export default async function ProjectDashboardPage({
             ? ('processing' as const)
             : ('draft' as const),
     }))
+
+    // Calculate total duration
+    totalDuration = scenes.reduce((sum, scene) => sum + scene.duration, 0)
   } catch (error) {
     console.warn('Failed to fetch scenes, using empty array:', error)
     // Return empty array - dashboard will show 0 values
     scenes = []
   }
 
-  return <DashboardClient projectId={id} projectName={project.name as string} scenes={scenes} />
+  // Fetch characters count from Open MongoDB
+  let charactersCount = 0
+  try {
+    // TODO: Implement character count from Open MongoDB
+    // For now, return 0 until we implement the Open MongoDB connection
+    charactersCount = 0
+  } catch (error) {
+    console.warn('Failed to fetch characters count:', error)
+    charactersCount = 0
+  }
+
+  return (
+    <DashboardClient
+      projectId={id}
+      projectName={project.name as string}
+      scenes={scenes}
+      charactersCount={charactersCount}
+      totalDuration={totalDuration}
+    />
+  )
 }

@@ -22,15 +22,14 @@ function Welcome() {
       <div className="text-center space-y-2">
         <h3 className="text-xl font-semibold text-gray-900">Task Execution Mode</h3>
         <p className="text-sm text-gray-600">
-          Execute complex tasks with multi-agent orchestration. I'll coordinate departments to complete your request.
+          Execute complex tasks with multi-agent orchestration. I&apos;ll coordinate departments to
+          complete your request.
         </p>
       </div>
 
       {/* Features */}
       <div className="space-y-3">
-        <p className="text-xs font-medium text-gray-500 uppercase text-center">
-          Features
-        </p>
+        <p className="text-xs font-medium text-gray-500 uppercase text-center">Features</p>
 
         <div className="space-y-2">
           {[
@@ -64,12 +63,8 @@ function Welcome() {
                 </div>
 
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900">
-                    {feature.title}
-                  </div>
-                  <div className="text-xs text-gray-600 mt-0.5">
-                    {feature.description}
-                  </div>
+                  <div className="text-sm font-medium text-gray-900">{feature.title}</div>
+                  <div className="text-xs text-gray-600 mt-0.5">{feature.description}</div>
                 </div>
               </div>
             )
@@ -79,9 +74,7 @@ function Welcome() {
 
       {/* Example tasks */}
       <div className="space-y-3">
-        <p className="text-xs font-medium text-gray-500 uppercase text-center">
-          Example tasks
-        </p>
+        <p className="text-xs font-medium text-gray-500 uppercase text-center">Example tasks</p>
 
         <div className="space-y-2">
           {[

@@ -10,6 +10,7 @@ import ProjectSidebar from './components/ProjectSidebar'
 import MobileNav from './components/MobileNav'
 import QualityDashboard from './components/QualityDashboard'
 import Timeline from './components/Timeline'
+import RightOrchestrator from '@/components/layout/RightOrchestrator'
 
 interface Scene {
   id: string
@@ -23,24 +24,25 @@ interface DashboardClientProps {
   projectId: string
   projectName: string
   scenes: Scene[]
+  charactersCount: number
+  totalDuration: number
 }
 
 export default function DashboardClient({
   projectId,
   projectName,
   scenes,
+  charactersCount,
+  totalDuration,
 }: DashboardClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile Navigation */}
-      <MobileNav
-        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-        projectName={projectName}
-      />
+      <MobileNav onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} projectName={projectName} />
 
-      <div className="flex">
+      <div className="flex h-screen">
         {/* Sidebar */}
         <ProjectSidebar
           projectId={projectId}
@@ -76,19 +78,26 @@ export default function DashboardClient({
 
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Characters</h3>
-                  <div className="text-3xl font-bold text-blue-600">5</div>
+                  <div className="text-3xl font-bold text-blue-600">{charactersCount}</div>
                   <p className="text-sm text-gray-600 mt-1">Active characters</p>
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Duration</h3>
-                  <div className="text-3xl font-bold text-blue-600">19s</div>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {totalDuration > 0
+                      ? `${Math.floor(totalDuration / 60)}m ${totalDuration % 60}s`
+                      : '0s'}
+                  </div>
                   <p className="text-sm text-gray-600 mt-1">Total video length</p>
                 </div>
               </div>
             </div>
           </div>
         </main>
+
+        {/* Right Orchestrator - AI Chat Sidebar */}
+        <RightOrchestrator />
       </div>
     </div>
   )

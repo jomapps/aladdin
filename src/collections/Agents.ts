@@ -43,7 +43,7 @@ export const Agents: CollectionConfig = {
 
           if (existingHead.docs.length > 0) {
             throw new Error(
-              `Department already has a head agent: ${existingHead.docs[0].name}. Only one department head per department is allowed.`
+              `Department already has a head agent: ${existingHead.docs[0].name}. Only one department head per department is allowed.`,
             )
           }
         }
@@ -127,7 +127,8 @@ export const Agents: CollectionConfig = {
       label: 'AI Model',
       defaultValue: 'anthropic/claude-3.5-sonnet',
       admin: {
-        description: 'Model to use (e.g., "anthropic/claude-3.5-sonnet", "anthropic/claude-3-opus")',
+        description:
+          'Model to use (e.g., "anthropic/claude-3.5-sonnet", "anthropic/claude-3-opus")',
       },
     },
     {
@@ -173,7 +174,8 @@ export const Agents: CollectionConfig = {
       type: 'text',
       label: 'Specialization',
       admin: {
-        description: 'Specific area of expertise (e.g., "dialogue", "plot-structure", "character-arcs")',
+        description:
+          'Specific area of expertise (e.g., "dialogue", "plot-structure", "character-arcs")',
       },
     },
     {

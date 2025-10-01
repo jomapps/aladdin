@@ -28,16 +28,14 @@ function Welcome() {
 
       {/* Capabilities */}
       <div className="space-y-3">
-        <p className="text-xs font-medium text-gray-500 uppercase text-center">
-          I can help with
-        </p>
+        <p className="text-xs font-medium text-gray-500 uppercase text-center">I can help with</p>
 
         <div className="space-y-2">
           {[
             {
               icon: Sparkles,
               title: 'Creative Writing',
-              description: 'Brainstorm ideas and overcome writer's block',
+              description: "Brainstorm ideas and overcome writer's block",
               color: 'bg-yellow-100 text-yellow-600',
             },
             {
@@ -64,12 +62,8 @@ function Welcome() {
                 </div>
 
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900">
-                    {capability.title}
-                  </div>
-                  <div className="text-xs text-gray-600 mt-0.5">
-                    {capability.description}
-                  </div>
+                  <div className="text-sm font-medium text-gray-900">{capability.title}</div>
+                  <div className="text-xs text-gray-600 mt-0.5">{capability.description}</div>
                 </div>
               </div>
             )
@@ -85,7 +79,7 @@ function Welcome() {
 
         <div className="space-y-2">
           {[
-            'Explain the hero's journey structure',
+            "Explain the hero's journey structure",
             'How do I create compelling dialogue?',
             'What makes a good plot twist?',
             'Give me tips for character development',

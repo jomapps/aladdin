@@ -22,15 +22,14 @@ function Welcome() {
       <div className="text-center space-y-2">
         <h3 className="text-xl font-semibold text-gray-900">Data Ingestion Mode</h3>
         <p className="text-sm text-gray-600">
-          Add or update project data. I'll validate and structure the information before ingesting it.
+          Add or update project data. I&apos;ll validate and structure the information before
+          ingesting it.
         </p>
       </div>
 
       {/* Process steps */}
       <div className="space-y-3">
-        <p className="text-xs font-medium text-gray-500 uppercase text-center">
-          How it works
-        </p>
+        <p className="text-xs font-medium text-gray-500 uppercase text-center">How it works</p>
 
         <div className="space-y-2">
           {[
@@ -43,7 +42,7 @@ function Welcome() {
             {
               icon: FileCheck,
               title: 'Review validation',
-              description: 'I'll structure and validate it',
+              description: "I'll structure and validate it",
               color: 'bg-purple-100 text-purple-600',
             },
             {
@@ -64,12 +63,8 @@ function Welcome() {
                 </div>
 
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900">
-                    {step.title}
-                  </div>
-                  <div className="text-xs text-gray-600 mt-0.5">
-                    {step.description}
-                  </div>
+                  <div className="text-sm font-medium text-gray-900">{step.title}</div>
+                  <div className="text-xs text-gray-600 mt-0.5">{step.description}</div>
                 </div>
 
                 <div className="flex items-center justify-center w-6 h-6 rounded-full bg-white border-2 border-gray-300 text-xs text-gray-500 font-medium">
@@ -89,10 +84,7 @@ function Welcome() {
 
         <div className="flex flex-wrap gap-2 justify-center">
           {['Characters', 'Scenes', 'Locations', 'Props', 'Dialogues', 'Notes'].map((type) => (
-            <div
-              key={type}
-              className="px-3 py-1.5 rounded-full bg-gray-100 text-gray-700 text-sm"
-            >
+            <div key={type} className="px-3 py-1.5 rounded-full bg-gray-100 text-gray-700 text-sm">
               {type}
             </div>
           ))}
@@ -103,7 +95,8 @@ function Welcome() {
       <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
         <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
         <p className="text-xs text-blue-700">
-          All data is validated and structured before being added to your project. You'll have a chance to review and approve.
+          All data is validated and structured before being added to your project. You&apos;ll have
+          a chance to review and approve.
         </p>
       </div>
     </div>
