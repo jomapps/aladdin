@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { brainSyncHooks } from '@/lib/hooks/brainSync'
+import { dataPrepHooks } from '@/lib/agents/data-preparation/payload-hooks'
 
 export const Projects: CollectionConfig = {
   slug: 'projects',
@@ -14,7 +14,7 @@ export const Projects: CollectionConfig = {
     delete: () => true,
   },
   hooks: {
-    ...brainSyncHooks.project,
+    ...dataPrepHooks.project(),
   },
   fields: [
     // ========== IDENTITY ==========

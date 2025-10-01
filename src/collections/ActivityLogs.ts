@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { dataPrepHooks } from '@/lib/agents/data-preparation/payload-hooks'
 
 export const ActivityLogs: CollectionConfig = {
   slug: 'activity-logs',
@@ -11,6 +12,9 @@ export const ActivityLogs: CollectionConfig = {
     create: () => true,
     update: () => false,
     delete: () => true,
+  },
+  hooks: {
+    ...dataPrepHooks.projectBased(),
   },
   fields: [
     {

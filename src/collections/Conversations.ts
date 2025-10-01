@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { dataPrepHooks } from '@/lib/agents/data-preparation/payload-hooks'
 
 export const Conversations: CollectionConfig = {
   slug: 'conversations',
@@ -11,6 +12,9 @@ export const Conversations: CollectionConfig = {
     create: () => true,
     update: () => true,
     delete: () => true,
+  },
+  hooks: {
+    ...dataPrepHooks.projectBased(),
   },
   fields: [
     // ========== IDENTITY ==========

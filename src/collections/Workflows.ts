@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { dataPrepHooks } from '@/lib/agents/data-preparation/payload-hooks'
 
 export const Workflows: CollectionConfig = {
   slug: 'workflows',
@@ -11,6 +12,9 @@ export const Workflows: CollectionConfig = {
     create: () => true,
     update: () => true,
     delete: () => true,
+  },
+  hooks: {
+    ...dataPrepHooks.projectBased(),
   },
   fields: [
     // ========== IDENTITY ==========
