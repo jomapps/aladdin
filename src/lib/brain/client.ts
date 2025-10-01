@@ -19,6 +19,8 @@ import type {
   BrainClientOptions,
   GraphTraversalQuery,
   GraphTraversalResult,
+  SearchSimilarQuery,
+  SearchSimilarResult,
 } from './types'
 
 export class BrainClient {
@@ -141,6 +143,35 @@ export class BrainClient {
       return response.data.results
     } catch (error) {
       throw this.handleError(error, 'findSimilar')
+    }
+  }
+
+  /**
+   * Search for similar content using query text
+   * This method uses the brain service's /search endpoint for hybrid search
+   */
+  async searchSimilar(query: SearchSimilarQuery): Promise<SearchSimilarResult[]> {
+    try {
+      const response = await this.axiosInstance.post('/search', {
+        query: query.query,
+        project_id: query.projectId,
+        type: query.type,
+        top_k: query.limit || 10,
+        threshold: query.threshold,
+      })
+
+      // Transform brain service response to SearchSimilarResult format
+      const results = response.data.results || []
+      return results.map((item: any) => ({
+        id: item.id,
+        type: item.type || item.metadata?.type || 'unknown',
+        content: item.text || item.content || '',
+        similarity: item.score || item.similarity || 0,
+        properties: item.metadata || {},
+        relationships: item.relationships,
+      }))
+    } catch (error) {
+      throw this.handleError(error, 'searchSimilar')
     }
   }
 

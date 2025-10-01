@@ -3,7 +3,7 @@
  * Gathers context from PayloadCMS, Brain Service, Open MongoDB, and Project data
  */
 
-import { getPayload } from 'payload'
+import { getPayloadClient } from '@/lib/payload'
 import { BrainClient, getBrainClient } from '@/lib/brain/client'
 import { getOpenDatabase } from '@/lib/db/openDatabase'
 import { CacheManager } from './cache-manager'
@@ -69,7 +69,7 @@ export class ContextGatherer {
     }
 
     try {
-      const payload = await getPayload()
+      const payload = await getPayloadClient()
       const project = await payload.findByID({
         collection: 'projects',
         id: projectId,
@@ -110,7 +110,7 @@ export class ContextGatherer {
     console.log('[ContextGatherer] Gathering PayloadCMS context')
 
     try {
-      const payload = await getPayload()
+      const payload = await getPayloadClient()
 
       // Query for related entities in parallel
       const [characters, scenes, locations, episodes, concepts] = await Promise.all([
@@ -147,7 +147,7 @@ export class ContextGatherer {
     payload: any,
     collection: string,
     projectId: string,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<any[]> {
     try {
       const result = await payload.find({
@@ -213,13 +213,13 @@ export class ContextGatherer {
 
       // Get list of collections
       const collections = await db.listCollections().toArray()
-      const collectionNames = collections.map(c => c.name)
+      const collectionNames = collections.map((c) => c.name)
 
       // Get stats for each collection
       const stats: Record<string, { count: number }> = {}
 
       await Promise.all(
-        collectionNames.map(async name => {
+        collectionNames.map(async (name) => {
           try {
             const count = await db.collection(name).countDocuments({ projectId })
             stats[name] = { count }
@@ -227,7 +227,7 @@ export class ContextGatherer {
             console.error(`[ContextGatherer] Failed to get stats for ${name}:`, error)
             stats[name] = { count: 0 }
           }
-        })
+        }),
       )
 
       return {
@@ -249,7 +249,7 @@ export class ContextGatherer {
   private async getRelatedEntities(
     data: any,
     projectId: string,
-    context: Partial<Context>
+    context: Partial<Context>,
   ): Promise<RelatedEntities> {
     console.log('[ContextGatherer] Identifying related entities')
 
@@ -306,4 +306,3 @@ export class ContextGatherer {
     return parts.filter(Boolean).join(' ').slice(0, 500) // Limit query length
   }
 }
-

@@ -84,11 +84,11 @@ export interface BrainValidationRequest {
 }
 
 export interface QualityScoring {
-  coherence: number       // 0-1: Internal consistency
-  creativity: number      // 0-1: Originality and uniqueness
-  completeness: number    // 0-1: All required fields present
-  consistency: number     // 0-1: Matches existing content
-  overall: number         // Weighted average
+  coherence: number // 0-1: Internal consistency
+  creativity: number // 0-1: Originality and uniqueness
+  completeness: number // 0-1: All required fields present
+  consistency: number // 0-1: Matches existing content
+  overall: number // Weighted average
 }
 
 export interface BrainSyncTask {
@@ -175,4 +175,31 @@ export interface GraphTraversalResult {
     length: number
   }>
   totalPaths: number
+}
+
+/**
+ * Search Similar Query - for finding similar content by query text
+ */
+export interface SearchSimilarQuery {
+  projectId: string
+  query: string
+  type?: string
+  limit?: number
+  threshold?: number
+}
+
+/**
+ * Search Similar Result - returned from similarity search
+ */
+export interface SearchSimilarResult {
+  id: string
+  type: string
+  content: string
+  similarity: number
+  properties: Record<string, any>
+  relationships?: Array<{
+    type: string
+    targetId: string
+    strength?: number
+  }>
 }
