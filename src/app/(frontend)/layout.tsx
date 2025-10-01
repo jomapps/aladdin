@@ -1,6 +1,7 @@
 import React from 'react'
 import '@/app/globals.css'
 import './styles.css'
+import { Toaster } from '@/components/ui/sonner'
 
 export const metadata = {
   description:
@@ -19,6 +20,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
     <html lang="en">
       <body>
         <main>{children}</main>
+        <Toaster />
       </body>
     </html>
   )

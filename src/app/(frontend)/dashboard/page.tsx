@@ -1,83 +1,24 @@
-import { headers as getHeaders } from 'next/headers.js'
-import { getPayload } from 'payload'
+'use client'
+
 import React from 'react'
-
-import config from '@/payload.config'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Film, Plus, Users, BarChart3 } from 'lucide-react'
+import { Film, BarChart3 } from 'lucide-react'
+import { QuickActions } from '@/components/dashboard/QuickActions'
 
-export default async function DashboardPage() {
-  const headers = await getHeaders()
-  const payloadConfig = await config
-  const payload = await getPayload({ config: payloadConfig })
-  const { user } = await payload.auth({ headers })
-
-  // Get user's name for welcome message
-  const displayName = user?.name || user?.email || 'User'
+export default function DashboardPage() {
+  // TODO: Get user from session/auth
+  const displayName = 'User'
 
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
       <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Welcome back, {displayName}!
-        </h1>
-        <p className="text-gray-600">
-          Ready to create amazing movies with AI? Let's get started.
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, {displayName}!</h1>
+        <p className="text-gray-600">Ready to create amazing movies with AI? Let's get started.</p>
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
-          <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New Project</CardTitle>
-            <Plus className="h-4 w-4 ml-auto text-indigo-600" />
-          </CardHeader>
-          <CardContent>
-            <CardDescription className="mb-4">
-              Start a new movie production project
-            </CardDescription>
-            <Button className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Project
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
-          <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">My Projects</CardTitle>
-            <Film className="h-4 w-4 ml-auto text-indigo-600" />
-          </CardHeader>
-          <CardContent>
-            <CardDescription className="mb-4">
-              View and manage your existing projects
-            </CardDescription>
-            <Button variant="outline" className="w-full">
-              <Film className="h-4 w-4 mr-2" />
-              View Projects
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
-          <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Team</CardTitle>
-            <Users className="h-4 w-4 ml-auto text-indigo-600" />
-          </CardHeader>
-          <CardContent>
-            <CardDescription className="mb-4">
-              Collaborate with your team members
-            </CardDescription>
-            <Button variant="outline" className="w-full">
-              <Users className="h-4 w-4 mr-2" />
-              Manage Team
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <QuickActions />
 
       {/* Recent Activity */}
       <Card>
@@ -86,9 +27,7 @@ export default async function DashboardPage() {
             <BarChart3 className="h-5 w-5 mr-2 text-indigo-600" />
             Recent Activity
           </CardTitle>
-          <CardDescription>
-            Your latest project updates and activities
-          </CardDescription>
+          <CardDescription>Your latest project updates and activities</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-gray-500">
@@ -124,7 +63,9 @@ export default async function DashboardPage() {
               </div>
               <div>
                 <h4 className="font-medium text-indigo-900">Define Your Story</h4>
-                <p className="text-sm text-indigo-700">Use AI to develop your script and characters</p>
+                <p className="text-sm text-indigo-700">
+                  Use AI to develop your script and characters
+                </p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
