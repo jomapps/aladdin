@@ -4,6 +4,7 @@
  */
 
 import { LLMClient } from '@/lib/llm/client'
+import type { ConfigManager } from './config'
 import type {
   AgentConfig,
   Context,
@@ -16,14 +17,16 @@ import type {
 export class MetadataGenerator {
   private llm: LLMClient
   private config: AgentConfig
+  private configManager: ConfigManager | null
 
-  constructor(llm: LLMClient, config: AgentConfig) {
+  constructor(llm: LLMClient, config: AgentConfig, configManager?: ConfigManager) {
     this.llm = llm
     this.config = config
+    this.configManager = configManager || null
   }
 
   /**
-   * Generate metadata using multi-sequence LLM prompts
+   * Generate metadata using multi-sequence LLM prompts with entity-specific configuration
    */
   async generate(
     data: any,
@@ -32,18 +35,30 @@ export class MetadataGenerator {
   ): Promise<GeneratedMetadata> {
     console.log('[MetadataGenerator] Generating metadata for:', options.entityType)
 
+    // Check if we have entity-specific configuration
+    const hasEntityConfig = this.configManager?.hasEntityConfig(options.entityType)
+    const entityConfig = hasEntityConfig
+      ? this.configManager!.getEntityConfig(options.entityType)
+      : null
+
+    if (hasEntityConfig && entityConfig) {
+      console.log('[MetadataGenerator] Using entity-specific prompts and configuration')
+    } else {
+      console.log('[MetadataGenerator] Using default metadata generation')
+    }
+
     try {
       // Sequence 1: Analyze entity and determine metadata schema
-      const schema = await this.analyzeEntity(data, context, options)
+      const schema = await this.analyzeEntity(data, context, options, entityConfig)
 
       // Sequence 2: Extract metadata values
-      const metadata = await this.extractMetadata(data, context, schema)
+      const metadata = await this.extractMetadata(data, context, schema, entityConfig)
 
       // Sequence 3: Generate context summary
-      const summary = await this.generateSummary(data, context, metadata)
+      const summary = await this.generateSummary(data, context, metadata, entityConfig)
 
       // Sequence 4: Identify key relationships
-      const relationshipSuggestions = await this.identifyRelationships(data, context)
+      const relationshipSuggestions = await this.identifyRelationships(data, context, entityConfig)
 
       return {
         ...metadata,
@@ -69,8 +84,36 @@ export class MetadataGenerator {
   private async analyzeEntity(
     data: any,
     context: Context,
-    options: PrepareOptions
+    options: PrepareOptions,
+    entityConfig: any = null
   ): Promise<MetadataSchema> {
+    // Use entity-specific prompt if available
+    if (entityConfig?.llmPromptConfig?.metadataPromptTemplate) {
+      const customPrompt = this.substitutePromptVariables(
+        entityConfig.llmPromptConfig.metadataPromptTemplate,
+        {
+          projectType: context.project.type || 'movie',
+          projectName: context.project.name,
+          projectGenre: context.project.genre?.join(', ') || 'unknown',
+          projectThemes: context.project.themes?.join(', ') || 'unknown',
+          projectTone: context.project.tone || 'unknown',
+          data: JSON.stringify(data, null, 2),
+        }
+      )
+
+      try {
+        // Get LLM settings from entity config
+        const llmSettings = entityConfig.enrichmentStrategy?.metadataGeneration || {}
+        return await this.llm.completeJSON<MetadataSchema>(customPrompt, {
+          temperature: llmSettings.temperature ?? 0.3,
+          maxTokens: llmSettings.maxTokens ?? 1000,
+        })
+      } catch (error) {
+        console.warn('[MetadataGenerator] Custom prompt failed, falling back to default')
+      }
+    }
+
+    // Default prompt
     const prompt = `You are analyzing a ${options.entityType} entity for a movie production project.
 
 PROJECT CONTEXT:
@@ -136,7 +179,8 @@ Return ONLY the JSON object, no explanations.`
   private async extractMetadata(
     data: any,
     context: Context,
-    schema: MetadataSchema
+    schema: MetadataSchema,
+    entityConfig: any = null
   ): Promise<Record<string, any>> {
     const prompt = `Based on the metadata schema, extract values from the entity data and context.
 
@@ -178,7 +222,8 @@ Return ONLY the JSON object, no explanations.`
   private async generateSummary(
     data: any,
     context: Context,
-    metadata: Record<string, any>
+    metadata: Record<string, any>,
+    entityConfig: any = null
   ): Promise<string> {
     const prompt = `Generate a comprehensive context summary for this entity that will be used for semantic search.
 
@@ -227,8 +272,33 @@ Return ONLY the summary text, no JSON, no markdown, no explanations.`
    */
   private async identifyRelationships(
     data: any,
-    context: Context
+    context: Context,
+    entityConfig: any = null
   ): Promise<RelationshipSuggestion[]> {
+    // Use entity-specific relationship prompt if available
+    if (entityConfig?.llmPromptConfig?.relationshipPromptTemplate) {
+      const customPrompt = this.substitutePromptVariables(
+        entityConfig.llmPromptConfig.relationshipPromptTemplate,
+        {
+          data: JSON.stringify(data, null, 2),
+          context: JSON.stringify(context, null, 2),
+          availableCharacters: context.payload.characters?.map((c: any) => c.name).join(', ') || 'none',
+          availableScenes: context.payload.scenes?.map((s: any) => s.name || `Scene ${s.sceneNumber}`).join(', ') || 'none',
+          availableLocations: context.payload.locations?.map((l: any) => l.name).join(', ') || 'none',
+          existingRelationships: JSON.stringify(context.brain.relatedNodes, null, 2),
+        }
+      )
+
+      try {
+        const llmSettings = entityConfig.enrichmentStrategy?.metadataGeneration || {}
+        return await this.llm.completeJSON<RelationshipSuggestion[]>(customPrompt, {
+          temperature: llmSettings.temperature ?? 0.3,
+          maxTokens: llmSettings.maxTokens ?? 1000,
+        })
+      } catch (error) {
+        console.warn('[MetadataGenerator] Custom relationship prompt failed, using default')
+      }
+    }
     const prompt = `Identify relationships between this entity and others in the project.
 
 ENTITY:
@@ -287,6 +357,23 @@ Return ONLY the JSON array, no explanations.`
     if (data.description) parts.push(data.description)
 
     return parts.join(' ') || 'Entity in the project'
+  }
+
+  /**
+   * Substitute variables in prompt template
+   */
+  private substitutePromptVariables(template: string, variables: Record<string, any>): string {
+    let result = template
+
+    for (const [key, value] of Object.entries(variables)) {
+      const placeholder = new RegExp(`\\{${key}\\}`, 'g')
+      const stringValue = typeof value === 'object'
+        ? JSON.stringify(value, null, 2)
+        : String(value)
+      result = result.replace(placeholder, stringValue)
+    }
+
+    return result
   }
 }
 

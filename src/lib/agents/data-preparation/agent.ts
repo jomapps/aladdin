@@ -11,6 +11,7 @@ import { RelationshipDiscoverer } from './relationship-discoverer'
 import { BrainDocumentValidator } from './validator'
 import { CacheManager } from './cache-manager'
 import { QueueManager } from './queue-manager'
+import { getConfigManager, ConfigManager } from './config'
 import type {
   AgentConfig,
   PrepareOptions,
@@ -29,17 +30,21 @@ export class DataPreparationAgent {
   private cache: CacheManager
   private queue: QueueManager
   private config: AgentConfig
+  private configManager: ConfigManager
 
   constructor(config: AgentConfig) {
     this.config = config
+    this.configManager = getConfigManager()
     this.llm = getLLMClient(config.llm)
     this.contextGatherer = new ContextGatherer(config)
-    this.metadataGenerator = new MetadataGenerator(this.llm, config)
+    this.metadataGenerator = new MetadataGenerator(this.llm, config, this.configManager)
     this.dataEnricher = new DataEnricher(config)
     this.relationshipDiscoverer = new RelationshipDiscoverer(this.llm, config)
-    this.validator = new BrainDocumentValidator(config)
+    this.validator = new BrainDocumentValidator(config, this.configManager)
     this.cache = new CacheManager(config.redis, config.cache)
     this.queue = new QueueManager(config.redis, config.queue)
+
+    console.log('[DataPrepAgent] Initialized with ConfigManager:', this.configManager.getStats())
   }
 
   /**
@@ -56,6 +61,14 @@ export class DataPreparationAgent {
       // 1. Validate input
       this.validateInput(data, options)
       console.log(`[DataPrepAgent] Preparing ${options.entityType} for project ${options.projectId}`)
+
+      // Check if entity type has configuration
+      const hasEntityConfig = this.configManager.hasEntityConfig(options.entityType)
+      if (hasEntityConfig) {
+        console.log(`[DataPrepAgent] Using entity-specific configuration for ${options.entityType}`)
+      } else {
+        console.warn(`[DataPrepAgent] No entity-specific configuration found for ${options.entityType}, using defaults`)
+      }
 
       // 2. Check cache if enabled
       if (this.config.features.enableCaching && !options.skipCache) {
@@ -80,32 +93,59 @@ export class DataPreparationAgent {
         brainEntities: context.brain.totalCount,
       })
 
-      // 4. Generate metadata using LLM
+      // 4. Generate metadata using LLM with entity-specific prompts
       console.log('[DataPrepAgent] Generating metadata with LLM...')
       const metadata = await this.metadataGenerator.generate(data, context, options)
       metrics.metadataFields = Object.keys(metadata).length
       console.log('[DataPrepAgent] Metadata generated:', Object.keys(metadata).length, 'fields')
 
+      // Validate metadata completeness against entity config
+      if (hasEntityConfig) {
+        const entityConfig = this.configManager.getEntityConfig(options.entityType)
+        const metadataFields = entityConfig?.metadataFields || []
+        const requiredFieldsMet = metadataFields.filter(f => f.required).every(f => metadata[f.name])
+        if (!requiredFieldsMet) {
+          console.warn('[DataPrepAgent] Some required metadata fields are missing')
+        }
+      }
+
       // 5. Enrich data with related information
       console.log('[DataPrepAgent] Enriching data...')
       const enriched = await this.dataEnricher.enrich(data, context, metadata)
 
-      // 6. Discover and create relationships
-      if (this.config.features.enableRelationshipDiscovery) {
+      // 6. Discover and create relationships (using entity-specific rules)
+      const shouldDiscoverRelationships = hasEntityConfig
+        ? this.configManager.getEntityConfig(options.entityType)?.enrichmentStrategy.relationshipDiscovery.enabled
+        : this.config.features.enableRelationshipDiscovery
+
+      if (shouldDiscoverRelationships) {
         console.log('[DataPrepAgent] Discovering relationships...')
         const relationships = await this.relationshipDiscoverer.discover(
           enriched,
           context,
           metadata
         )
-        metrics.relationships = relationships.length
-        console.log('[DataPrepAgent] Relationships discovered:', relationships.length)
+
+        // Filter relationships based on entity-specific relationship types
+        const allowedRelationshipTypes = hasEntityConfig
+          ? this.configManager.getRelationshipTypes(options.entityType).map(r => r.type)
+          : null
+
+        const filteredRelationships = allowedRelationshipTypes
+          ? relationships.filter(r => allowedRelationshipTypes.includes(r.type))
+          : relationships
+
+        metrics.relationships = filteredRelationships.length
+        console.log('[DataPrepAgent] Relationships discovered:', filteredRelationships.length)
+        if (filteredRelationships.length < relationships.length) {
+          console.log(`[DataPrepAgent] Filtered ${relationships.length - filteredRelationships.length} relationships based on entity config`)
+        }
 
         // 7. Build final brain document
         const brainDocument = this.buildBrainDocument(
           enriched,
           metadata,
-          relationships,
+          filteredRelationships,
           options
         )
 
