@@ -9,7 +9,7 @@ import configPromise from '@payload-config'
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { conversationId: string } }
+  { params }: { params: Promise<{ conversationId: string }> },
 ) {
   const payload = await getPayloadHMR({ config: configPromise })
   const { user } = await payload.auth({ req: req as any })
@@ -18,12 +18,12 @@ export async function GET(
     return new Response('Unauthorized', { status: 401 })
   }
 
-  const { conversationId } = params
+  const { conversationId } = await params
 
   // Verify conversation exists and user has access
   const conversation = await payload.findByID({
     collection: 'conversations',
-    id: conversationId
+    id: conversationId,
   })
 
   if (!conversation) {
@@ -37,9 +37,7 @@ export async function GET(
 
       // Send initial connection event
       controller.enqueue(
-        encoder.encode(
-          `data: ${JSON.stringify({ type: 'connected', conversationId })}\n\n`
-        )
+        encoder.encode(`data: ${JSON.stringify({ type: 'connected', conversationId })}\n\n`),
       )
 
       // Heartbeat to keep connection alive
@@ -56,14 +54,14 @@ export async function GET(
         clearInterval(heartbeat)
         controller.close()
       })
-    }
+    },
   })
 
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
-      Connection: 'keep-alive'
-    }
+      Connection: 'keep-alive',
+    },
   })
 }

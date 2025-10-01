@@ -6,36 +6,23 @@ import type { CompositeShotConfig } from '@/lib/fal/types'
  * POST /api/v1/projects/[id]/images/generate/composite
  * Generate composite shot using multiple reference images
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const projectId = params.id
+    const { id: projectId } = await params
     const body = await request.json()
 
-    const {
-      description,
-      references,
-      sceneDescription,
-      lighting,
-      cameraAngle,
-      resolution,
-      model,
-    } = body
+    const { description, references, sceneDescription, lighting, cameraAngle, resolution, model } =
+      body
 
     // Validation
     if (!description) {
-      return NextResponse.json(
-        { error: 'Missing required field: description' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Missing required field: description' }, { status: 400 })
     }
 
     if (!references || Object.keys(references).length === 0) {
       return NextResponse.json(
         { error: 'Missing required field: references (must include at least one reference)' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -57,7 +44,7 @@ export async function POST(
     if (!result.success) {
       return NextResponse.json(
         { error: 'Composite shot generation failed', details: result.error },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -78,7 +65,7 @@ export async function POST(
         error: 'Composite shot generation failed',
         details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

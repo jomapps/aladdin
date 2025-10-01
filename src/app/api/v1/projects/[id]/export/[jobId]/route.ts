@@ -3,78 +3,64 @@
  * GET /api/v1/projects/[id]/export/[jobId]
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { videoExporter } from '@/lib/export/videoExporter';
-import { hasPermission, Permission } from '@/lib/collaboration/accessControl';
+import { NextRequest, NextResponse } from 'next/server'
+import { videoExporter } from '@/lib/export/videoExporter'
+import { hasPermission, Permission } from '@/lib/collaboration/accessControl'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; jobId: string } }
+  { params }: { params: Promise<{ id: string; jobId: string }> },
 ) {
   try {
-    const projectId = params.id;
-    const jobId = params.jobId;
+    const { id: projectId, jobId } = await params
 
-    const userId = request.headers.get('x-user-id') || 'system';
+    const userId = request.headers.get('x-user-id') || 'system'
 
     // Check read permission
     const canRead = await hasPermission({
       userId,
       projectId,
       permission: Permission.PROJECT_READ,
-    });
+    })
 
     if (!canRead) {
-      return NextResponse.json(
-        { error: 'Insufficient permissions' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
     // Get job status
-    const status = await videoExporter.getJobStatus(jobId);
+    const status = await videoExporter.getJobStatus(jobId)
 
-    return NextResponse.json(status);
+    return NextResponse.json(status)
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || 'Job not found' },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: error.message || 'Job not found' }, { status: 404 })
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; jobId: string } }
+  { params }: { params: Promise<{ id: string; jobId: string }> },
 ) {
   try {
-    const projectId = params.id;
-    const jobId = params.jobId;
+    const { id: projectId, jobId } = await params
 
-    const userId = request.headers.get('x-user-id') || 'system';
+    const userId = request.headers.get('x-user-id') || 'system'
 
     // Check export permission
     const canExport = await hasPermission({
       userId,
       projectId,
       permission: Permission.EXPORT_CREATE,
-    });
+    })
 
     if (!canExport) {
-      return NextResponse.json(
-        { error: 'Insufficient permissions' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
     // Cancel job
-    await videoExporter.cancelJob(jobId);
+    await videoExporter.cancelJob(jobId)
 
-    return NextResponse.json({ message: 'Job cancelled' });
+    return NextResponse.json({ message: 'Job cancelled' })
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }

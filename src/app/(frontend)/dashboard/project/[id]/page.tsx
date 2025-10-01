@@ -12,8 +12,9 @@ import DashboardClient from './DashboardClient'
 export default async function ProjectDashboardPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
   const payload = await getPayloadHMR({ config: configPromise })
   const { user } = await payload.auth({ req: undefined as any })
 
@@ -24,7 +25,7 @@ export default async function ProjectDashboardPage({
   // Fetch project
   const project = await payload.findByID({
     collection: 'projects',
-    id: params.id,
+    id,
   })
 
   if (!project) {
@@ -56,11 +57,5 @@ export default async function ProjectDashboardPage({
     },
   ]
 
-  return (
-    <DashboardClient
-      projectId={params.id}
-      projectName={project.name as string}
-      scenes={mockScenes}
-    />
-  )
+  return <DashboardClient projectId={id} projectName={project.name as string} scenes={mockScenes} />
 }

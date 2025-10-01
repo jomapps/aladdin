@@ -6,12 +6,9 @@ import type { ConsistencyVerificationConfig } from '@/lib/fal/types'
  * POST /api/v1/projects/[id]/images/verify/consistency
  * Verify image consistency against reference set
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const projectId = params.id
+    const { id: projectId } = await params
     const body = await request.json()
 
     const { newImageId, referenceSetId, thresholds } = body
@@ -20,7 +17,7 @@ export async function POST(
     if (!newImageId || !referenceSetId) {
       return NextResponse.json(
         { error: 'Missing required fields: newImageId, referenceSetId' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -38,7 +35,7 @@ export async function POST(
     if (!result.success) {
       return NextResponse.json(
         { error: 'Consistency verification failed', details: result.error },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -60,7 +57,7 @@ export async function POST(
         error: 'Consistency verification failed',
         details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

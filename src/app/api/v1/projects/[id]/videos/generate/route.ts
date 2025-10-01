@@ -7,11 +7,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { generateVideo } from '@/lib/video/generateVideo'
 import type { FalVideoGenerationType } from '@/lib/fal/types'
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const body = await request.json()
     const {
       type,
@@ -32,10 +30,7 @@ export async function POST(
 
     // Validate required fields
     if (!type || !prompt) {
-      return NextResponse.json(
-        { error: 'Missing required fields: type, prompt' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Missing required fields: type, prompt' }, { status: 400 })
     }
 
     // Validate video generation type
@@ -49,7 +44,7 @@ export async function POST(
     if (!validTypes.includes(type)) {
       return NextResponse.json(
         { error: `Invalid type. Must be one of: ${validTypes.join(', ')}` },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -66,17 +61,14 @@ export async function POST(
 
     if (type === 'image-to-video') {
       if (!imageUrl) {
-        return NextResponse.json(
-          { error: 'imageUrl required for image-to-video' },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: 'imageUrl required for image-to-video' }, { status: 400 })
       }
       videoRequest.imageUrl = imageUrl
     } else if (type === 'first-last-frame') {
       if (!firstFrameUrl || !lastFrameUrl) {
         return NextResponse.json(
           { error: 'firstFrameUrl and lastFrameUrl required for first-last-frame' },
-          { status: 400 }
+          { status: 400 },
         )
       }
       videoRequest.firstFrameUrl = firstFrameUrl
@@ -85,7 +77,7 @@ export async function POST(
       if (!compositeImageUrl) {
         return NextResponse.json(
           { error: 'compositeImageUrl required for composite-to-video' },
-          { status: 400 }
+          { status: 400 },
         )
       }
       videoRequest.compositeImageUrl = compositeImageUrl
@@ -96,16 +88,13 @@ export async function POST(
     const result = await generateVideo({
       type,
       request: videoRequest,
-      projectId: params.id,
+      projectId: id,
       sceneId,
       webhookUrl,
     })
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: result.error }, { status: 500 })
     }
 
     return NextResponse.json({
@@ -127,7 +116,7 @@ export async function POST(
     console.error('Video generation error:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -6,12 +6,9 @@ import type { Profile360Config } from '@/lib/fal/types'
  * POST /api/v1/projects/[id]/images/generate/profile360
  * Generate 360° profile turnaround (12 images at 30° intervals)
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const projectId = params.id
+    const { id: projectId } = await params
     const body = await request.json()
 
     const { masterReferenceId, subjectId, angles, resolution, model, parallelBatches } = body
@@ -20,7 +17,7 @@ export async function POST(
     if (!masterReferenceId || !subjectId) {
       return NextResponse.json(
         { error: 'Missing required fields: masterReferenceId, subjectId' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -41,7 +38,7 @@ export async function POST(
     if (!result.success) {
       return NextResponse.json(
         { error: '360° profile generation failed', details: result.error },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -62,7 +59,7 @@ export async function POST(
         error: '360° profile generation failed',
         details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

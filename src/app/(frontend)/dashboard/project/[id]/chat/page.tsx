@@ -8,7 +8,8 @@ import { getPayloadHMR } from '@payloadcms/next/utilities'
 import configPromise from '@payload-config'
 import ChatInterface from './ChatInterface'
 
-export default async function ChatPage({ params }: { params: { id: string } }) {
+export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const payload = await getPayloadHMR({ config: configPromise })
   const { user } = await payload.auth({ req: undefined as any })
 
@@ -19,7 +20,7 @@ export default async function ChatPage({ params }: { params: { id: string } }) {
   // Fetch project
   const project = await payload.findByID({
     collection: 'projects',
-    id: params.id
+    id,
   })
 
   if (!project) {
@@ -36,11 +37,7 @@ export default async function ChatPage({ params }: { params: { id: string } }) {
       </header>
 
       <main className="flex-1 overflow-hidden">
-        <ChatInterface
-          projectId={params.id}
-          projectSlug={project.slug}
-          userId={user.id}
-        />
+        <ChatInterface projectId={id} projectSlug={project.slug} userId={user.id} />
       </main>
     </div>
   )

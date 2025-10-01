@@ -6,28 +6,26 @@ import type { MasterReferenceConfig } from '@/lib/fal/types'
  * POST /api/v1/projects/[id]/images/generate/master
  * Generate master reference image for a character or location
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const projectId = params.id
+    const { id: projectId } = await params
     const body = await request.json()
 
-    const { subjectType, subjectId, description, styleGuide, resolution, model, qualityThreshold } = body
+    const { subjectType, subjectId, description, styleGuide, resolution, model, qualityThreshold } =
+      body
 
     // Validation
     if (!subjectType || !subjectId || !description) {
       return NextResponse.json(
         { error: 'Missing required fields: subjectType, subjectId, description' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     if (!['character', 'location', 'object'].includes(subjectType)) {
       return NextResponse.json(
         { error: 'Invalid subjectType. Must be: character, location, or object' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -49,7 +47,7 @@ export async function POST(
     if (!result.success) {
       return NextResponse.json(
         { error: 'Generation failed', details: result.error },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -72,7 +70,7 @@ export async function POST(
         error: 'Master reference generation failed',
         details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
