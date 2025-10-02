@@ -730,23 +730,23 @@ export interface Department {
    */
   color?: string | null;
   /**
-   * Execution order (1-10, lower = higher priority)
+   * Process flow step number (0=not in flow, 1=Story, 2=Character, 3=Visual, 4=Image Quality, 5=Video, 6=Audio, 7=Production)
    */
-  priority: number;
+  codeDepNumber: number;
   /**
    * Whether this department is active
    */
   isActive?: boolean | null;
   /**
-   * Core departments cannot be deleted (Story, Character, Visual, Video, Audio, Production)
+   * Core departments cannot be deleted (Story, Character, Visual, Video, Audio, Production, Image Quality)
    */
   coreDepartment?: boolean | null;
   /**
-   * Enable gather check for this department
+   * Enable gather check for this department (true for all core departments)
    */
   gatherCheck?: boolean | null;
   /**
-   * Default model for agents in this department (e.g., "anthropic/claude-3.5-sonnet")
+   * OpenRouter model for agents in this department (e.g., "anthropic/claude-sonnet-4.5", "qwen/qwen3-vl-235b-a22b-thinking")
    */
   defaultModel?: string | null;
   /**
@@ -815,7 +815,7 @@ export interface Agent {
    */
   isDepartmentHead?: boolean | null;
   /**
-   * Model to use (e.g., "anthropic/claude-3.5-sonnet", "anthropic/claude-3-opus")
+   * OpenRouter model name in format "provider/model-name" (e.g., "anthropic/claude-sonnet-4.5", "qwen/qwen3-vl-235b-a22b-thinking", "google/gemini-2.5-flash")
    */
   model: string;
   /**
@@ -873,9 +873,9 @@ export interface Agent {
    */
   requiresReview?: boolean | null;
   /**
-   * Minimum quality score (0-100) for approval
+   * Minimum score (0-100) for output to pass. If missing/0, everything passes.
    */
-  qualityThreshold?: number | null;
+  passingThreshold?: number | null;
   executionSettings?: {
     /**
      * Maximum execution time in seconds
@@ -1711,7 +1711,7 @@ export interface DepartmentsSelect<T extends boolean = true> {
   description?: T;
   icon?: T;
   color?: T;
-  priority?: T;
+  codeDepNumber?: T;
   isActive?: T;
   coreDepartment?: T;
   gatherCheck?: T;
@@ -1776,7 +1776,7 @@ export interface AgentsSelect<T extends boolean = true> {
       };
   lastExecutedAt?: T;
   requiresReview?: T;
-  qualityThreshold?: T;
+  passingThreshold?: T;
   executionSettings?:
     | T
     | {

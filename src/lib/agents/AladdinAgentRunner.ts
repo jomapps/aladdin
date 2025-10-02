@@ -70,16 +70,29 @@ export class AladdinAgentRunner {
   /**
    * Create a new AladdinAgentRunner
    *
-   * @param apiKey - Codebuff API key
+   * @param apiKey - Codebuff API key (or OpenRouter API key if using OpenRouter)
    * @param payload - PayloadCMS instance
    * @param cwd - Current working directory for file operations
    */
   constructor(apiKey: string, payload: Payload, cwd?: string) {
+    // Use OpenRouter if OPENROUTER_BASE_URL is configured
+    const useOpenRouter = !!process.env.OPENROUTER_BASE_URL
+    const finalApiKey = useOpenRouter
+      ? process.env.OPENROUTER_API_KEY || apiKey
+      : apiKey
+
     this.client = new CodebuffClient({
-      apiKey,
+      apiKey: finalApiKey,
+      baseURL: useOpenRouter ? process.env.OPENROUTER_BASE_URL : undefined,
       cwd: cwd || process.cwd(),
     })
     this.payload = payload
+
+    console.log(
+      useOpenRouter
+        ? `🌐 Using OpenRouter API at ${process.env.OPENROUTER_BASE_URL}`
+        : '🤖 Using direct Anthropic API'
+    )
   }
 
   /**

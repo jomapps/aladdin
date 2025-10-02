@@ -1,13 +1,17 @@
 /**
  * Departments Seed Data
  *
- * Creates 6 core movie production departments with complete configuration:
- * - Story Department: Narrative development and plot structure
- * - Character Department: Character creation and development
- * - Visual Department: Art direction and cinematography
- * - Video Department: Video editing and post-production
- * - Audio Department: Sound design and music
- * - Production Department: Project management and coordination
+ * Creates 7 core movie production departments with complete configuration:
+ * - Story Department (Step 1): Narrative development and plot structure
+ * - Character Department (Step 2): Character creation and development
+ * - Visual Department (Step 3): Art direction and cinematography
+ * - Image Quality Department (Step 4): Image consistency and quality control
+ * - Video Department (Step 5): Video editing and post-production
+ * - Audio Department (Step 6): Sound design and music
+ * - Production Department (Step 7): Project management and coordination
+ *
+ * Process Flow Order (codeDepNumber):
+ * 1. Story → 2. Character → 3. Visual → 4. Image Quality → 5. Video → 6. Audio → 7. Production
  *
  * @module seed/departments
  */
@@ -25,11 +29,11 @@ export const departmentsSeedData = [
       'Develops narrative structure, plot, themes, and story arcs. Coordinates plot specialists, dialogue writers, theme analysts, and pacing experts to create compelling narratives.',
     icon: '📖',
     color: '#8B5CF6',
-    priority: 1,
+    codeDepNumber: 1,
     isActive: true,
     coreDepartment: true,
     gatherCheck: true,
-    defaultModel: 'anthropic/claude-3.5-sonnet',
+    defaultModel: 'anthropic/claude-sonnet-4.5',
     maxAgentSteps: 25,
     coordinationSettings: {
       allowParallelExecution: true,
@@ -51,11 +55,11 @@ export const departmentsSeedData = [
       'Creates character profiles, development arcs, and relationships. Manages character consistency, psychology, and growth throughout the narrative.',
     icon: '👤',
     color: '#EC4899',
-    priority: 2,
+    codeDepNumber: 2,
     isActive: true,
     coreDepartment: true,
     gatherCheck: true,
-    defaultModel: 'anthropic/claude-3.5-sonnet',
+    defaultModel: 'anthropic/claude-sonnet-4.5',
     maxAgentSteps: 25,
     coordinationSettings: {
       allowParallelExecution: true,
@@ -77,16 +81,42 @@ export const departmentsSeedData = [
       'Handles art direction, cinematography, color grading, and composition. Creates visual style guides and shot descriptions.',
     icon: '🎨',
     color: '#F59E0B',
-    priority: 3,
+    codeDepNumber: 3,
     isActive: true,
     coreDepartment: true,
     gatherCheck: true,
-    defaultModel: 'anthropic/claude-3.5-sonnet',
+    defaultModel: 'anthropic/claude-sonnet-4.5',
     maxAgentSteps: 20,
     coordinationSettings: {
       allowParallelExecution: true,
       requiresDepartmentHeadReview: true,
       minQualityThreshold: 80,
+      maxRetries: 3,
+    },
+    performance: {
+      totalExecutions: 0,
+      successfulExecutions: 0,
+      averageQualityScore: 0,
+      averageExecutionTime: 0,
+    },
+  },
+  {
+    slug: 'image-quality',
+    name: 'Image Quality Department',
+    description:
+      'Ensures visual consistency and quality across all generated images. Manages master references, character profiles, and image verification.',
+    icon: '🖼️',
+    color: '#A855F7',
+    codeDepNumber: 4,
+    isActive: true,
+    coreDepartment: true,
+    gatherCheck: true,
+    defaultModel: 'anthropic/claude-sonnet-4.5',
+    maxAgentSteps: 20,
+    coordinationSettings: {
+      allowParallelExecution: true,
+      requiresDepartmentHeadReview: true,
+      minQualityThreshold: 90,
       maxRetries: 3,
     },
     performance: {
@@ -103,11 +133,11 @@ export const departmentsSeedData = [
       'Manages video editing, VFX, transitions, and post-production. Coordinates timing, pacing, and visual effects integration.',
     icon: '🎬',
     color: '#10B981',
-    priority: 4,
+    codeDepNumber: 5,
     isActive: true,
     coreDepartment: true,
-    gatherCheck: false,
-    defaultModel: 'anthropic/claude-3.5-sonnet',
+    gatherCheck: true,
+    defaultModel: 'anthropic/claude-sonnet-4.5',
     maxAgentSteps: 20,
     coordinationSettings: {
       allowParallelExecution: true,
@@ -129,11 +159,11 @@ export const departmentsSeedData = [
       'Handles sound design, music composition, dialogue mixing, and foley. Creates immersive audio experiences and emotional soundscapes.',
     icon: '🎵',
     color: '#3B82F6',
-    priority: 5,
+    codeDepNumber: 6,
     isActive: true,
     coreDepartment: true,
-    gatherCheck: false,
-    defaultModel: 'anthropic/claude-3.5-sonnet',
+    gatherCheck: true,
+    defaultModel: 'anthropic/claude-sonnet-4.5',
     maxAgentSteps: 20,
     coordinationSettings: {
       allowParallelExecution: true,
@@ -155,11 +185,11 @@ export const departmentsSeedData = [
       'Manages project scheduling, resource allocation, budget tracking, and cross-department coordination. Ensures smooth workflow and timely delivery.',
     icon: '📋',
     color: '#6366F1',
-    priority: 6,
+    codeDepNumber: 7,
     isActive: true,
     coreDepartment: true,
-    gatherCheck: false,
-    defaultModel: 'anthropic/claude-3-haiku',
+    gatherCheck: true,
+    defaultModel: 'qwen/qwen3-vl-235b-a22b-thinking',
     maxAgentSteps: 15,
     coordinationSettings: {
       allowParallelExecution: false,

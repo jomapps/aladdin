@@ -12,12 +12,30 @@ export class AgentPool {
   private agentConfigs: Map<string, AladdinAgentDefinition> = new Map()
 
   constructor() {
-    const apiKey = process.env.CODEBUFF_API_KEY
+    // Use OpenRouter if configured, otherwise use direct Anthropic
+    const useOpenRouter = !!process.env.OPENROUTER_BASE_URL
+    const apiKey = useOpenRouter
+      ? process.env.OPENROUTER_API_KEY
+      : process.env.CODEBUFF_API_KEY
+
     if (!apiKey) {
-      throw new Error('CODEBUFF_API_KEY environment variable is required')
+      throw new Error(
+        useOpenRouter
+          ? 'OPENROUTER_API_KEY is required when OPENROUTER_BASE_URL is set'
+          : 'CODEBUFF_API_KEY environment variable is required'
+      )
     }
 
-    this.client = new CodebuffClient({ apiKey })
+    this.client = new CodebuffClient({
+      apiKey,
+      baseURL: useOpenRouter ? process.env.OPENROUTER_BASE_URL : undefined,
+    })
+
+    console.log(
+      useOpenRouter
+        ? `🌐 AgentPool using OpenRouter at ${process.env.OPENROUTER_BASE_URL}`
+        : '🤖 AgentPool using direct Anthropic API'
+    )
 
     // Register all agents from the agent registry
     console.log('🚀 Registering all Aladdin agents...')

@@ -220,7 +220,7 @@ const prompt = renderPrompt(template, {
 
 // 3. Send to LLM
 const response = await llm.generateText({
-  model: 'claude-3-5-sonnet-20241022',
+  model: 'anthropic/claude-sonnet-4.5',
   prompt
 })
 
@@ -309,12 +309,12 @@ if (!cachedPrompt) {
 
 ### Recommended Settings
 
-**Model:** Claude 3.5 Sonnet (`claude-3-5-sonnet-20241022`)
+**Model:** Claude 3.5 Sonnet (`anthropic/claude-sonnet-4.5`)
 
 **Parameters:**
 ```typescript
 {
-  model: 'claude-3-5-sonnet-20241022',
+  model: 'anthropic/claude-sonnet-4.5',
   temperature: 0.3,  // Low for consistent extraction
   max_tokens: 4096,  // Sufficient for detailed metadata
   top_p: 0.95

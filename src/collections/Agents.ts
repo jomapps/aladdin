@@ -125,10 +125,17 @@ export const Agents: CollectionConfig = {
       type: 'text',
       required: true,
       label: 'AI Model',
-      defaultValue: 'anthropic/claude-3.5-sonnet',
+      defaultValue: 'anthropic/claude-sonnet-4.5',
       admin: {
         description:
-          'Model to use (e.g., "anthropic/claude-3.5-sonnet", "anthropic/claude-3-opus")',
+          'OpenRouter model name in format "provider/model-name" (e.g., "anthropic/claude-sonnet-4.5", "qwen/qwen3-vl-235b-a22b-thinking", "google/gemini-2.5-flash")',
+      },
+      validate: (value: unknown) => {
+        // Validate OpenRouter model format: provider/model-name
+        if (typeof value === 'string' && value && !value.includes('/')) {
+          return 'Model must be in OpenRouter format: "provider/model-name" (e.g., "anthropic/claude-sonnet-4.5")'
+        }
+        return true
       },
     },
     {

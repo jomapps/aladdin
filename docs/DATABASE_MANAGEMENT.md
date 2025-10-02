@@ -156,7 +156,7 @@ seeds/
     "color": "#8B5CF6",
     "priority": 1,
     "isActive": true,
-    "defaultModel": "anthropic/claude-3.5-sonnet",
+    "defaultModel": "anthropic/claude-sonnet-4.5",
     "maxAgentSteps": 25
   },
   {
@@ -167,7 +167,7 @@ seeds/
     "color": "#EC4899",
     "priority": 2,
     "isActive": true,
-    "defaultModel": "anthropic/claude-3.5-sonnet",
+    "defaultModel": "anthropic/claude-sonnet-4.5",
     "maxAgentSteps": 25
   }
 ]

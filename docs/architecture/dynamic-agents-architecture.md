@@ -429,7 +429,7 @@ All events stored in:
   isActive: boolean (default: true)           // Enable/disable
 
   // @codebuff/sdk Integration
-  defaultModel: string                        // "anthropic/claude-3.5-sonnet"
+  defaultModel: string                        // "anthropic/claude-sonnet-4.5"
   maxAgentSteps: number (default: 20)         // Max steps per execution
 
   // Performance
@@ -461,7 +461,7 @@ Indexes:
   isDepartmentHead: boolean (default: false)  // One per department
 
   // @codebuff/sdk Configuration
-  model: string                               // "anthropic/claude-3.5-sonnet"
+  model: string                               // "anthropic/claude-sonnet-4.5"
   instructionsPrompt: text (large)            // Core system prompt
   toolNames: array<string>                    // Custom tools
   maxAgentSteps: number (default: 20)         // Execution limit

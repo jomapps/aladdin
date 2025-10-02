@@ -28,10 +28,22 @@ export interface OrchestratorConfig {
 export async function handleUserRequest(config: OrchestratorConfig): Promise<OrchestratorResult> {
   const { projectSlug, userPrompt, conversationId } = config
 
-  // Initialize Codebuff client
+  // Initialize Codebuff client with OpenRouter support
+  const useOpenRouter = !!process.env.OPENROUTER_BASE_URL
+  const apiKey = useOpenRouter
+    ? process.env.OPENROUTER_API_KEY
+    : process.env.CODEBUFF_API_KEY
+
   const codebuff = new CodebuffClient({
-    apiKey: process.env.CODEBUFF_API_KEY || '',
+    apiKey: apiKey || '',
+    baseURL: useOpenRouter ? process.env.OPENROUTER_BASE_URL : undefined,
   })
+
+  console.log(
+    useOpenRouter
+      ? `🌐 Orchestrator using OpenRouter at ${process.env.OPENROUTER_BASE_URL}`
+      : '🤖 Orchestrator using direct Anthropic API'
+  )
 
   try {
     // 1. Master Orchestrator analyzes request

@@ -60,7 +60,7 @@ export const Departments: CollectionConfig = {
   slug: 'departments',
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'slug', 'priority', 'isActive'],
+    defaultColumns: ['name', 'slug', 'codeDepNumber', 'isActive'],
     description: 'Organizational departments for AI agent coordination',
   },
   access: {
@@ -155,9 +155,9 @@ export const Departments: CollectionConfig = {
       name: 'defaultModel',
       type: 'select',
       required: true,
-      defaultValue: 'anthropic/claude-3.5-sonnet',
+      defaultValue: 'anthropic/claude-sonnet-4.5',
       options: [
-        { label: 'Claude 3.5 Sonnet', value: 'anthropic/claude-3.5-sonnet' },
+        { label: 'Claude 3.5 Sonnet', value: 'anthropic/claude-sonnet-4.5' },
         { label: 'Claude 3 Opus', value: 'anthropic/claude-3-opus' },
         { label: 'Claude 3 Haiku', value: 'anthropic/claude-3-haiku' },
         { label: 'GPT-4', value: 'openai/gpt-4' },
@@ -230,7 +230,7 @@ export const Departments: CollectionConfig = {
     "icon": "📖",
     "color": "#8B5CF6",
     "priority": 1,
-    "defaultModel": "anthropic/claude-3.5-sonnet",
+    "defaultModel": "anthropic/claude-sonnet-4.5",
     "isActive": true
   },
   {
@@ -240,7 +240,7 @@ export const Departments: CollectionConfig = {
     "icon": "👤",
     "color": "#EC4899",
     "priority": 2,
-    "defaultModel": "anthropic/claude-3.5-sonnet",
+    "defaultModel": "anthropic/claude-sonnet-4.5",
     "isActive": true
   },
   {
@@ -250,7 +250,7 @@ export const Departments: CollectionConfig = {
     "icon": "🎨",
     "color": "#F59E0B",
     "priority": 3,
-    "defaultModel": "anthropic/claude-3.5-sonnet",
+    "defaultModel": "anthropic/claude-sonnet-4.5",
     "isActive": true
   },
   {
@@ -260,7 +260,7 @@ export const Departments: CollectionConfig = {
     "icon": "🎬",
     "color": "#10B981",
     "priority": 4,
-    "defaultModel": "anthropic/claude-3.5-sonnet",
+    "defaultModel": "anthropic/claude-sonnet-4.5",
     "isActive": true
   },
   {
@@ -270,7 +270,7 @@ export const Departments: CollectionConfig = {
     "icon": "🔊",
     "color": "#3B82F6",
     "priority": 5,
-    "defaultModel": "anthropic/claude-3.5-sonnet",
+    "defaultModel": "anthropic/claude-sonnet-4.5",
     "isActive": true
   },
   {
@@ -280,7 +280,7 @@ export const Departments: CollectionConfig = {
     "icon": "🎯",
     "color": "#EF4444",
     "priority": 6,
-    "defaultModel": "anthropic/claude-3.5-sonnet",
+    "defaultModel": "anthropic/claude-sonnet-4.5",
     "isActive": true
   }
 ]
@@ -361,9 +361,9 @@ export const Agents: CollectionConfig = {
       name: 'model',
       type: 'select',
       required: true,
-      defaultValue: 'anthropic/claude-3.5-sonnet',
+      defaultValue: 'anthropic/claude-sonnet-4.5',
       options: [
-        { label: 'Claude 3.5 Sonnet', value: 'anthropic/claude-3.5-sonnet' },
+        { label: 'Claude 3.5 Sonnet', value: 'anthropic/claude-sonnet-4.5' },
         { label: 'Claude 3 Opus', value: 'anthropic/claude-3-opus' },
         { label: 'Claude 3 Haiku', value: 'anthropic/claude-3-haiku' },
         { label: 'GPT-4', value: 'openai/gpt-4' },
@@ -1881,7 +1881,7 @@ export class ResponseCache {
 // Use cheaper models for simple tasks
 const modelTiers = {
   simple: 'anthropic/claude-3-haiku',        // Fast, cheap
-  standard: 'anthropic/claude-3.5-sonnet',   // Balanced
+  standard: 'anthropic/claude-sonnet-4.5',   // Balanced
   complex: 'anthropic/claude-3-opus',        // Best quality
 }
 

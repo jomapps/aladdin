@@ -12,7 +12,7 @@ export const Departments: CollectionConfig = {
   slug: 'departments',
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'slug', 'priority', 'isActive'],
+    defaultColumns: ['name', 'slug', 'codeDepNumber', 'isActive'],
     description: 'Movie production departments with AI agent coordination',
   },
   access: {
@@ -88,17 +88,18 @@ export const Departments: CollectionConfig = {
       },
     },
 
-    // ========== EXECUTION PRIORITY ==========
+    // ========== PROCESS FLOW ORDER ==========
     {
-      name: 'priority',
+      name: 'codeDepNumber',
       type: 'number',
       required: true,
-      label: 'Execution Priority',
-      defaultValue: 5,
-      min: 1,
-      max: 10,
+      label: 'Process Flow Order',
+      defaultValue: 0,
+      min: 0,
+      max: 100,
       admin: {
-        description: 'Execution order (1-10, lower = higher priority)',
+        description:
+          'Process flow step number (0=not in flow, 1=Story, 2=Character, 3=Visual, 4=Image Quality, 5=Video, 6=Audio, 7=Production)',
       },
     },
     {
@@ -117,7 +118,7 @@ export const Departments: CollectionConfig = {
       defaultValue: false,
       admin: {
         description:
-          'Core departments cannot be deleted (Story, Character, Visual, Video, Audio, Production)',
+          'Core departments cannot be deleted (Story, Character, Visual, Video, Audio, Production, Image Quality)',
         readOnly: true,
       },
     },
@@ -127,7 +128,7 @@ export const Departments: CollectionConfig = {
       label: 'Gather Check',
       defaultValue: false,
       admin: {
-        description: 'Enable gather check for this department',
+        description: 'Enable gather check for this department (true for all core departments)',
       },
     },
 
@@ -136,10 +137,17 @@ export const Departments: CollectionConfig = {
       name: 'defaultModel',
       type: 'text',
       label: 'Default AI Model',
-      defaultValue: 'anthropic/claude-3.5-sonnet',
+      defaultValue: 'anthropic/claude-sonnet-4.5',
       admin: {
         description:
-          'Default model for agents in this department (e.g., "anthropic/claude-3.5-sonnet")',
+          'OpenRouter model for agents in this department (e.g., "anthropic/claude-sonnet-4.5", "qwen/qwen3-vl-235b-a22b-thinking")',
+      },
+      validate: (value: unknown) => {
+        // Validate OpenRouter model format: provider/model-name
+        if (typeof value === 'string' && value && !value.includes('/')) {
+          return 'Model must be in OpenRouter format: "provider/model-name" (e.g., "anthropic/claude-sonnet-4.5")'
+        }
+        return true
       },
     },
     {

@@ -2,7 +2,53 @@
 
 ## Recent Updates
 
-### ✅ Added `gatherCheck` Field (Latest)
+### ✅ Updated AI Models to Claude Sonnet 4.5 & Qwen (Latest)
+
+**Date:** 2025-01-02
+
+**Changes:**
+- Updated all agent and department models to use OpenRouter configuration
+- Replaced `anthropic/claude-3.5-sonnet` → `anthropic/claude-sonnet-4.5` (27 agents, 5 departments)
+- Replaced `anthropic/claude-3-haiku` → `qwen/qwen3-vl-235b-a22b-thinking` (8 agents, 1 department)
+- Updated all documentation to reflect new model names
+
+**Purpose:**
+- Align with current OpenRouter API model availability
+- Use latest Claude Sonnet 4.5 for improved quality and performance
+- Implement Qwen backup model for cost-effective operations
+- Future-proof model configuration
+
+**Files Modified:**
+- `src/seed/departments.seed.ts` - Updated defaultModel for all departments
+- `src/seed/agents.seed.ts` - Updated model for all 35 agents
+- `docs/**/*.md` - Updated all documentation references
+
+**Model Distribution:**
+- **Primary Model**: `anthropic/claude-sonnet-4.5`
+  - All department heads (6)
+  - Most specialist agents (21)
+  - Story, Character, Visual, Video, Audio departments
+
+- **Backup Model**: `qwen/qwen3-vl-235b-a22b-thinking`
+  - Production department (coordination tasks)
+  - Post-production specialists (8 agents)
+  - Lower-priority, cost-effective operations
+
+**Environment Variables:**
+```bash
+OPENROUTER_DEFAULT_MODEL=anthropic/claude-sonnet-4.5
+OPENROUTER_BACKUP_MODEL=qwen/qwen3-vl-235b-a22b-thinking
+OPENROUTER_VISION_MODE=google/gemini-2.5-flash
+```
+
+**Migration Steps:**
+1. Run `npm run seed` to update existing agents/departments
+2. Verify model configuration in PayloadCMS admin
+3. Test agent execution with new models
+
+---
+
+### ✅ Added `gatherCheck` Field
 
 **Date:** 2025-01-XX
 

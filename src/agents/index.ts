@@ -1,15 +1,15 @@
 /**
  * Aladdin AI Agents - Complete Agent Registry
- * 
+ *
  * This file exports all AI agents for the Aladdin movie production platform.
  * Agents are organized hierarchically:
  * - Level 1: Master Orchestrator (1 agent)
  * - Level 2: Department Heads (7 agents)
  * - Level 3: Specialist Agents (40+ agents)
- * 
+ *
  * Architecture: @codebuff/sdk
  * All agents use @codebuff/sdk for execution and coordination.
- * 
+ *
  * Services:
  * - brain.ft.tc - Knowledge graph validation (Neo4j + Jina AI)
  * - tasks.ft.tc - Task queue management (BullMQ + Redis)
@@ -42,13 +42,22 @@ export { episodePlannerAgent } from './specialists/story/episodePlanner'
 export { dialogueWriterAgent } from './specialists/story/dialogueWriter'
 export { worldBuilderAgent } from './specialists/story/worldBuilder'
 export { themeAnalyzerAgent } from './specialists/story/themeAnalyzer'
+export { plotStructureSpecialistAgent } from './specialists/story/plotStructureSpecialist'
+export { pacingSpecialistAgent } from './specialists/story/pacingSpecialist'
 
 // ============================================================================
 // LEVEL 3: CHARACTER DEPARTMENT SPECIALISTS
 // ============================================================================
 
 export { hairStylistAgent } from './departments/characterHead'
-// Additional character specialists to be added
+export { characterCreatorAgent } from './specialists/character/characterCreator'
+export { characterArcDeveloperAgent } from './specialists/character/characterArcDeveloper'
+export { relationshipDesignerAgent } from './specialists/character/relationshipDesigner'
+export { psychologyAnalystAgent } from './specialists/character/psychologyAnalyst'
+export { characterProfileBuilderAgent } from './specialists/character/characterProfileBuilder'
+export { costumeDesignerAgent } from './specialists/character/costumeDesigner'
+export { makeupArtistAgent } from './specialists/character/makeupArtist'
+export { voiceProfileCreatorAgent } from './specialists/character/voiceProfileCreator'
 
 // ============================================================================
 // LEVEL 3: VISUAL DEPARTMENT SPECIALISTS
@@ -117,8 +126,18 @@ import { episodePlannerAgent } from './specialists/story/episodePlanner'
 import { dialogueWriterAgent } from './specialists/story/dialogueWriter'
 import { worldBuilderAgent } from './specialists/story/worldBuilder'
 import { themeAnalyzerAgent } from './specialists/story/themeAnalyzer'
+import { plotStructureSpecialistAgent } from './specialists/story/plotStructureSpecialist'
+import { pacingSpecialistAgent } from './specialists/story/pacingSpecialist'
 
 import { hairStylistAgent } from './departments/characterHead'
+import { characterCreatorAgent } from './specialists/character/characterCreator'
+import { characterArcDeveloperAgent } from './specialists/character/characterArcDeveloper'
+import { relationshipDesignerAgent } from './specialists/character/relationshipDesigner'
+import { psychologyAnalystAgent } from './specialists/character/psychologyAnalyst'
+import { characterProfileBuilderAgent } from './specialists/character/characterProfileBuilder'
+import { costumeDesignerAgent } from './specialists/character/costumeDesigner'
+import { makeupArtistAgent } from './specialists/character/makeupArtist'
+import { voiceProfileCreatorAgent } from './specialists/character/voiceProfileCreator'
 
 import { conceptArtistAgent } from './specialists/visual/conceptArtist'
 import { storyboardArtistAgent } from './specialists/visual/storyboardArtist'
@@ -171,10 +190,19 @@ export const specialists = {
     dialogueWriterAgent,
     worldBuilderAgent,
     themeAnalyzerAgent,
+    plotStructureSpecialistAgent,
+    pacingSpecialistAgent,
   ],
   character: [
     hairStylistAgent,
-    // More to be added
+    characterCreatorAgent,
+    characterArcDeveloperAgent,
+    relationshipDesignerAgent,
+    psychologyAnalystAgent,
+    characterProfileBuilderAgent,
+    costumeDesignerAgent,
+    makeupArtistAgent,
+    voiceProfileCreatorAgent,
   ],
   visual: [
     conceptArtistAgent,
@@ -183,12 +211,7 @@ export const specialists = {
     lightingDesignerAgent,
     cameraOperatorAgent,
   ],
-  video: [
-    videoGeneratorAgent,
-    sceneAssemblerAgent,
-    audioIntegratorAgent,
-    qualityVerifierAgent,
-  ],
+  video: [videoGeneratorAgent, sceneAssemblerAgent, audioIntegratorAgent, qualityVerifierAgent],
   audio: [
     voiceCreatorAgent,
     musicComposerAgent,
@@ -263,13 +286,12 @@ export const agentStats = {
   departmentHeads: departmentHeads.length,
   specialists: allAgents.length - departmentHeads.length - 1,
   byDepartment: {
-    story: specialists.story.length,
-    character: specialists.character.length,
-    visual: specialists.visual.length,
-    video: specialists.video.length,
-    audio: specialists.audio.length,
-    production: specialists.production.length,
-    imageQuality: specialists.imageQuality.length,
+    story: specialists.story.length, // 7 agents
+    character: specialists.character.length, // 9 agents
+    visual: specialists.visual.length, // 5 agents
+    video: specialists.video.length, // 4 agents
+    audio: specialists.audio.length, // 5 agents
+    production: specialists.production.length, // 4 agents
+    imageQuality: specialists.imageQuality.length, // 5 agents
   },
 }
-

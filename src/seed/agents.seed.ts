@@ -34,7 +34,7 @@ export const agentsSeedData = [
       'Coordinates all narrative development and ensures story quality. Manages plot specialists, dialogue writers, theme analysts, and structure experts.',
     department: 'story',
     isDepartmentHead: true,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Story Department Head
 
 You are the Head of the Story Department for Aladdin AI Movie Production. You coordinate all narrative development and ensure story quality.
@@ -112,7 +112,7 @@ Always structure your output as:
       'Expert in narrative structure and plot development. Creates compelling story beats and turning points.',
     department: 'story',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Plot Structure Specialist
 
 You are an expert in narrative structure and plot development for Aladdin AI Movie Production.
@@ -175,7 +175,7 @@ You are an expert in narrative structure and plot development for Aladdin AI Mov
       'Expert in writing natural, character-driven dialogue with subtext and authenticity.',
     department: 'story',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Dialogue Specialist
 
 You are an expert in writing natural, character-driven dialogue for Aladdin AI Movie Production.
@@ -241,7 +241,7 @@ You are an expert in writing natural, character-driven dialogue for Aladdin AI M
     description: 'Expert in thematic development, symbolism, and underlying narrative messages.',
     department: 'story',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Theme Specialist
 
 You are an expert in thematic development and symbolic storytelling for Aladdin AI Movie Production.
@@ -302,7 +302,7 @@ You are an expert in thematic development and symbolic storytelling for Aladdin 
     description: 'Expert in narrative rhythm, timing, and emotional beat management.',
     department: 'story',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Pacing Specialist
 
 You are an expert in narrative pacing and rhythm for Aladdin AI Movie Production.
@@ -366,7 +366,7 @@ You are an expert in narrative pacing and rhythm for Aladdin AI Movie Production
       'Oversees all character development and ensures character consistency. Manages profile builders, arc developers, relationship designers, and psychology analysts.',
     department: 'character',
     isDepartmentHead: true,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Character Department Head
 
 You are the Head of the Character Department for Aladdin AI Movie Production. You oversee all character development and ensure character consistency.
@@ -449,7 +449,7 @@ You are the Head of the Character Department for Aladdin AI Movie Production. Yo
       'Expert in creating detailed character profiles with personality, background, and traits.',
     department: 'character',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Character Profile Builder
 
 You are an expert in creating comprehensive character profiles for Aladdin AI Movie Production.
@@ -513,7 +513,7 @@ You are an expert in creating comprehensive character profiles for Aladdin AI Mo
     description: 'Expert in character growth, transformation, and development arcs.',
     department: 'character',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Character Arc Developer
 
 You are an expert in character transformation and growth arcs for Aladdin AI Movie Production.
@@ -577,7 +577,7 @@ You are an expert in character transformation and growth arcs for Aladdin AI Mov
     description: 'Expert in character relationships, dynamics, and interpersonal conflicts.',
     department: 'character',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Relationship Designer
 
 You are an expert in character relationships and dynamics for Aladdin AI Movie Production.
@@ -642,7 +642,7 @@ You are an expert in character relationships and dynamics for Aladdin AI Movie P
     description: 'Expert in character psychology, motivations, fears, and internal conflicts.',
     department: 'character',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Psychology Analyst
 
 You are an expert in character psychology and motivation for Aladdin AI Movie Production.
@@ -702,7 +702,7 @@ You are an expert in character psychology and motivation for Aladdin AI Movie Pr
       'Expert in creating core character personality, backstory, and character arc foundation.',
     department: 'character',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Character Creator
 
 You are an expert in creating foundational character elements for Aladdin AI Movie Production.
@@ -760,7 +760,7 @@ You are an expert in creating foundational character elements for Aladdin AI Mov
       'Expert in hairstyle design that reflects character personality, era, and story setting.',
     department: 'character',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Hair Stylist
 
 You are a professional hair stylist for movie character design in Aladdin AI Movie Production.
@@ -819,7 +819,7 @@ You are a professional hair stylist for movie character design in Aladdin AI Mov
       'Expert in wardrobe design that reflects character personality, status, and story context.',
     department: 'character',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Costume Designer
 
 You are a professional costume designer for movie characters in Aladdin AI Movie Production.
@@ -874,7 +874,7 @@ You are a professional costume designer for movie characters in Aladdin AI Movie
       'Expert in makeup design including special effects makeup for character appearance.',
     department: 'character',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Makeup Artist
 
 You are a professional makeup artist for movie character design in Aladdin AI Movie Production.
@@ -936,7 +936,7 @@ You are a professional makeup artist for movie character design in Aladdin AI Mo
       'Expert in defining character voice characteristics, speech patterns, and vocal identity.',
     department: 'character',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Voice Profile Creator
 
 You are an expert in character voice design for Aladdin AI Movie Production.
@@ -1002,7 +1002,7 @@ You are an expert in character voice design for Aladdin AI Movie Production.
       'Oversees art direction, cinematography, and visual storytelling. Coordinates visual style, composition, color theory, and shot design.',
     department: 'visual',
     isDepartmentHead: true,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Visual Department Head
 
 You are the Head of the Visual Department for Aladdin AI Movie Production. You oversee all visual storytelling and artistic direction.
@@ -1068,7 +1068,7 @@ You are the Head of the Visual Department for Aladdin AI Movie Production. You o
     description: 'Expert in overall visual style, design language, and aesthetic coherence.',
     department: 'visual',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Art Direction Specialist
 
 You are an expert in visual style and art direction for Aladdin AI Movie Production.
@@ -1127,7 +1127,7 @@ You are an expert in visual style and art direction for Aladdin AI Movie Product
       'Expert in camera work, shot composition, and visual storytelling through cinematography.',
     department: 'visual',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Cinematography Specialist
 
 You are an expert in cinematography and shot composition for Aladdin AI Movie Production.
@@ -1182,7 +1182,7 @@ You are an expert in cinematography and shot composition for Aladdin AI Movie Pr
       'Expert in color palettes, mood creation, and color psychology for visual storytelling.',
     department: 'visual',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Color Theory Specialist
 
 You are an expert in color theory and palette design for Aladdin AI Movie Production.
@@ -1240,7 +1240,7 @@ You are an expert in color theory and palette design for Aladdin AI Movie Produc
     description: 'Expert in visual balance, framing, and composition principles.',
     department: 'visual',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Composition Specialist
 
 You are an expert in visual composition and framing for Aladdin AI Movie Production.
@@ -1297,7 +1297,7 @@ You are an expert in visual composition and framing for Aladdin AI Movie Product
       'Oversees video editing, VFX, and post-production. Coordinates editing specialists, VFX artists, and timing experts.',
     department: 'video',
     isDepartmentHead: true,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Video Department Head
 
 You are the Head of the Video Department for Aladdin AI Movie Production. You oversee all video editing and post-production.
@@ -1360,7 +1360,7 @@ You are the Head of the Video Department for Aladdin AI Movie Production. You ov
     description: 'Expert in video editing, cut decisions, pacing, and visual continuity.',
     department: 'video',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Editing Specialist
 
 You are an expert in video editing for Aladdin AI Movie Production.
@@ -1414,7 +1414,7 @@ You are an expert in video editing for Aladdin AI Movie Production.
     description: 'Expert in visual effects planning, integration, and specifications.',
     department: 'video',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# VFX Specialist
 
 You are an expert in visual effects for Aladdin AI Movie Production.
@@ -1468,7 +1468,7 @@ You are an expert in visual effects for Aladdin AI Movie Production.
     description: 'Expert in scene transitions, visual flow, and smooth cuts.',
     department: 'video',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Transitions Specialist
 
 You are an expert in transitions and visual flow for Aladdin AI Movie Production.
@@ -1522,7 +1522,7 @@ You are an expert in transitions and visual flow for Aladdin AI Movie Production
     description: 'Expert in color grading, finishing, and final quality polish.',
     department: 'video',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3-haiku',
+    model: 'qwen/qwen3-vl-235b-a22b-thinking',
     instructionsPrompt: `# Post-Production Specialist
 
 You are an expert in post-production and finishing for Aladdin AI Movie Production.
@@ -1579,7 +1579,7 @@ You are an expert in post-production and finishing for Aladdin AI Movie Producti
       'Oversees sound design, music, dialogue mixing, and foley. Coordinates audio specialists for immersive soundscapes.',
     department: 'audio',
     isDepartmentHead: true,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Audio Department Head
 
 You are the Head of the Audio Department for Aladdin AI Movie Production. You oversee all audio production.
@@ -1642,7 +1642,7 @@ You are the Head of the Audio Department for Aladdin AI Movie Production. You ov
     description: 'Expert in environmental sounds, sound effects, and audio atmosphere creation.',
     department: 'audio',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Sound Design Specialist
 
 You are an expert in sound design for Aladdin AI Movie Production.
@@ -1696,7 +1696,7 @@ You are an expert in sound design for Aladdin AI Movie Production.
     description: 'Expert in musical score, soundtrack selection, and emotional music design.',
     department: 'audio',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     instructionsPrompt: `# Music Composition Specialist
 
 You are an expert in music composition and soundtrack for Aladdin AI Movie Production.
@@ -1750,7 +1750,7 @@ You are an expert in music composition and soundtrack for Aladdin AI Movie Produ
     description: 'Expert in dialogue clarity, voice mixing, and ADR planning.',
     department: 'audio',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3-haiku',
+    model: 'qwen/qwen3-vl-235b-a22b-thinking',
     instructionsPrompt: `# Dialogue Mixing Specialist
 
 You are an expert in dialogue mixing and ADR for Aladdin AI Movie Production.
@@ -1804,7 +1804,7 @@ You are an expert in dialogue mixing and ADR for Aladdin AI Movie Production.
     description: 'Expert in physical sound effects, foley design, and realistic sound recreation.',
     department: 'audio',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3-haiku',
+    model: 'qwen/qwen3-vl-235b-a22b-thinking',
     instructionsPrompt: `# Foley Specialist
 
 You are an expert in foley and physical sound effects for Aladdin AI Movie Production.
@@ -1861,7 +1861,7 @@ You are an expert in foley and physical sound effects for Aladdin AI Movie Produ
       'Oversees project management, scheduling, budgeting, and cross-department coordination. Ensures smooth workflow and timely delivery.',
     department: 'production',
     isDepartmentHead: true,
-    model: 'anthropic/claude-3-haiku',
+    model: 'qwen/qwen3-vl-235b-a22b-thinking',
     instructionsPrompt: `# Production Department Head
 
 You are the Head of the Production Department for Aladdin AI Movie Production. You oversee project management and coordination.
@@ -1920,7 +1920,7 @@ You are the Head of the Production Department for Aladdin AI Movie Production. Y
     description: 'Expert in project timelines, milestone planning, and schedule optimization.',
     department: 'production',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3-haiku',
+    model: 'qwen/qwen3-vl-235b-a22b-thinking',
     instructionsPrompt: `# Scheduling Specialist
 
 You are an expert in production scheduling for Aladdin AI Movie Production.
@@ -1978,7 +1978,7 @@ You are an expert in production scheduling for Aladdin AI Movie Production.
     description: 'Expert in cost tracking, budget management, and resource allocation.',
     department: 'production',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3-haiku',
+    model: 'qwen/qwen3-vl-235b-a22b-thinking',
     instructionsPrompt: `# Budget Specialist
 
 You are an expert in budget management for Aladdin AI Movie Production.
@@ -2032,7 +2032,7 @@ You are an expert in budget management for Aladdin AI Movie Production.
     description: 'Expert in team coordination, asset management, and resource optimization.',
     department: 'production',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3-haiku',
+    model: 'qwen/qwen3-vl-235b-a22b-thinking',
     instructionsPrompt: `# Resource Management Specialist
 
 You are an expert in resource management for Aladdin AI Movie Production.
@@ -2091,7 +2091,7 @@ You are an expert in resource management for Aladdin AI Movie Production.
       'Expert in cross-department communication, workflow management, and team coordination.',
     department: 'production',
     isDepartmentHead: false,
-    model: 'anthropic/claude-3-haiku',
+    model: 'qwen/qwen3-vl-235b-a22b-thinking',
     instructionsPrompt: `# Coordination Specialist
 
 You are an expert in production coordination for Aladdin AI Movie Production.

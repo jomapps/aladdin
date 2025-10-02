@@ -155,7 +155,7 @@ export interface Department {
   description: string;
   icon?: string | null;
   color?: string | null;
-  priority: number;
+  codeDepNumber: number; // ← Process flow order
   isActive?: boolean | null;
   coreDepartment?: boolean | null; // ← Core department protection
   gatherCheck?: boolean | null; // ← Gather check flag

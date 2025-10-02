@@ -35,7 +35,7 @@ This document provides a comprehensive overview of all fields in the Departments
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `defaultModel` | text | ❌ No | `anthropic/claude-3.5-sonnet` | Default AI model for agents |
+| `defaultModel` | text | ❌ No | `anthropic/claude-sonnet-4.5` | Default AI model for agents |
 | `maxAgentSteps` | number | ❌ No | 20 | Maximum steps for agent execution |
 
 ### Coordination Settings (Group)
@@ -210,18 +210,18 @@ const customDepartments = await payload.find({
 })
 ```
 
-### Find High Priority Active Departments
+### Find Departments by Process Flow Order
 
 ```typescript
-const highPriorityDepts = await payload.find({
+const earlyProcessDepts = await payload.find({
   collection: 'departments',
   where: {
     and: [
       { isActive: { equals: true } },
-      { priority: { less_than_equal: 3 } },
+      { codeDepNumber: { less_than_equal: 3 } },
     ],
   },
-  sort: 'priority',
+  sort: 'codeDepNumber',
 })
 ```
 
@@ -293,7 +293,7 @@ export interface Department {
   description: string
   icon?: string | null
   color?: string | null
-  priority: number
+  codeDepNumber: number
   isActive?: boolean | null
   coreDepartment?: boolean | null
   gatherCheck?: boolean | null

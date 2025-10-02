@@ -67,7 +67,7 @@ User Request → Master Orchestrator → Department Head → Specialists → Dep
   isActive: boolean (default: true)
 
   // @codebuff/sdk Integration
-  defaultModel: string // e.g., "anthropic/claude-3.5-sonnet"
+  defaultModel: string // e.g., "anthropic/claude-sonnet-4.5"
   maxAgentSteps: number (default: 20)
 
   // Metadata
@@ -86,7 +86,7 @@ User Request → Master Orchestrator → Department Head → Specialists → Dep
     "icon": "📖",
     "color": "#8B5CF6",
     "priority": 1,
-    "defaultModel": "anthropic/claude-3.5-sonnet"
+    "defaultModel": "anthropic/claude-sonnet-4.5"
   },
   {
     "slug": "character",
@@ -95,7 +95,7 @@ User Request → Master Orchestrator → Department Head → Specialists → Dep
     "icon": "👤",
     "color": "#EC4899",
     "priority": 2,
-    "defaultModel": "anthropic/claude-3.5-sonnet"
+    "defaultModel": "anthropic/claude-sonnet-4.5"
   },
   {
     "slug": "visual",
@@ -104,7 +104,7 @@ User Request → Master Orchestrator → Department Head → Specialists → Dep
     "icon": "🎨",
     "color": "#F59E0B",
     "priority": 3,
-    "defaultModel": "anthropic/claude-3.5-sonnet"
+    "defaultModel": "anthropic/claude-sonnet-4.5"
   },
   {
     "slug": "video",
@@ -113,7 +113,7 @@ User Request → Master Orchestrator → Department Head → Specialists → Dep
     "icon": "🎬",
     "color": "#10B981",
     "priority": 4,
-    "defaultModel": "anthropic/claude-3.5-sonnet"
+    "defaultModel": "anthropic/claude-sonnet-4.5"
   },
   {
     "slug": "audio",
@@ -122,7 +122,7 @@ User Request → Master Orchestrator → Department Head → Specialists → Dep
     "icon": "🔊",
     "color": "#3B82F6",
     "priority": 5,
-    "defaultModel": "anthropic/claude-3.5-sonnet"
+    "defaultModel": "anthropic/claude-sonnet-4.5"
   },
   {
     "slug": "production",
@@ -131,7 +131,7 @@ User Request → Master Orchestrator → Department Head → Specialists → Dep
     "icon": "🎯",
     "color": "#EF4444",
     "priority": 6,
-    "defaultModel": "anthropic/claude-3.5-sonnet"
+    "defaultModel": "anthropic/claude-sonnet-4.5"
   }
 ]
 ```
@@ -155,7 +155,7 @@ User Request → Master Orchestrator → Department Head → Specialists → Dep
   isDepartmentHead: boolean (default: false)
 
   // @codebuff/sdk Configuration
-  model: string (required) // e.g., "anthropic/claude-3.5-sonnet"
+  model: string (required) // e.g., "anthropic/claude-sonnet-4.5"
   instructionsPrompt: text (required) // Core system prompt
   toolNames: array<string> // Custom tools this agent can use
   maxAgentSteps: number (default: 20)

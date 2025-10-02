@@ -37,7 +37,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const departmentsResult = await payload.find({
       collection: 'departments',
       limit: 100,
-      sort: 'priority',
+      sort: 'codeDepNumber',
     })
 
     // Map departments to metrics format

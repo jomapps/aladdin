@@ -818,7 +818,7 @@ import { z } from 'zod'
 
 export const masterOrchestratorAgent = {
   id: 'master-orchestrator',
-  model: 'anthropic/claude-3-5-sonnet-20241022',
+  model: 'anthropic/anthropic/claude-sonnet-4.5',
   displayName: 'Master Orchestrator',
   category: 'orchestration',
   agentLevel: 'master',
@@ -868,7 +868,7 @@ Route to: Character Department Head with instructions
 // src/lib/agents/definitions/character-dept-head.ts
 export const characterDepartmentHead = {
   id: 'character-department-head',
-  model: 'anthropic/claude-3-5-sonnet-20241022',
+  model: 'anthropic/anthropic/claude-sonnet-4.5',
   displayName: 'Character Department Head',
   category: 'department-head',
   agentLevel: 'department',
@@ -928,7 +928,7 @@ Specialists Needed:
 // src/lib/agents/definitions/character-creator.ts
 export const characterCreatorAgent = {
   id: 'character-creator-specialist',
-  model: 'anthropic/claude-3-5-sonnet-20241022',
+  model: 'anthropic/anthropic/claude-sonnet-4.5',
   displayName: 'Character Creator',
   category: 'specialist',
   agentLevel: 'specialist',

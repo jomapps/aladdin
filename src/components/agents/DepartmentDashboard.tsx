@@ -39,13 +39,15 @@ interface Department {
   description: string
   icon: string
   color: string
-  priority: number
+  codeDepNumber: number
 }
 
 export function DepartmentDashboard({ departmentId, className }: DepartmentDashboardProps) {
   const [department, setDepartment] = useState<Department | null>(null)
   const [agents, setAgents] = useState<Agent[]>([])
-  const [statusFilter, setStatusFilter] = useState<'all' | 'running' | 'completed' | 'failed'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'running' | 'completed' | 'failed'>(
+    'all',
+  )
   const [isLoading, setIsLoading] = useState(true)
 
   // Fetch department executions
@@ -195,9 +197,7 @@ export function DepartmentDashboard({ departmentId, className }: DepartmentDashb
           <AgentCard
             agent={departmentHead}
             department={department}
-            status={
-              executions.find((e) => e.agent?.id === departmentHead.id)?.status || 'pending'
-            }
+            status={executions.find((e) => e.agent?.id === departmentHead.id)?.status || 'pending'}
             qualityScore={departmentHead.performanceMetrics?.successRate}
           />
         </div>
