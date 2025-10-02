@@ -36,7 +36,7 @@ export default function ChatArea({ mode, onSuggestionClick }: ChatAreaProps) {
   const modeMessages = getMessagesByMode(mode)
 
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 bg-white dark:bg-zinc-950">
+    <div ref={scrollRef} className="h-full overflow-y-auto p-4 bg-white dark:bg-zinc-950">
       {/* Mode-specific welcome message */}
       {modeMessages.length === 0 && !isStreaming && (
         <div className="h-full flex items-center justify-center">

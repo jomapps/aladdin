@@ -224,11 +224,86 @@ Hover:          #27272a (zinc-800)
 
 ---
 
+## 🎯 Additional Features
+
+### Floating Toggle Button
+
+**Location**: Fixed to right middle of page
+**Visibility**: Only shows when modal is closed
+
+**Design**:
+- **Position**: `fixed right-0 top-1/2 -translate-y-1/2`
+- **Shape**: Rounded left side, flat right side (`rounded-l-full rounded-r-none`)
+- **Size**: 64px height × 48px width
+- **Colors**:
+  - Light mode: Black background (`bg-zinc-900`), white icons
+  - Dark mode: White background (`bg-zinc-100`), black icons
+- **Icons**:
+  - ChevronLeft (pointing left, suggesting "pull")
+  - MessageCircle (indicating chat functionality)
+- **Shadow**: `shadow-lg` for depth
+- **Animation**: Smooth transition on hover
+
+**Code**:
+```tsx
+{!isOpen && (
+  <Button
+    onClick={() => toggleRightOrchestrator()}
+    className={cn(
+      'fixed right-0 top-1/2 -translate-y-1/2 z-40',
+      'rounded-l-full rounded-r-none',
+      'h-16 w-12 px-2',
+      'bg-zinc-900 dark:bg-zinc-100',
+      'text-white dark:text-black',
+      'hover:bg-zinc-800 dark:hover:bg-zinc-200',
+      'shadow-lg',
+      'transition-all duration-300',
+      'flex items-center justify-center',
+      'border-l border-t border-b border-zinc-700 dark:border-zinc-300',
+    )}
+    title="Open AI Assistant"
+  >
+    <div className="flex flex-col items-center gap-1">
+      <ChevronLeft className="h-5 w-5" />
+      <MessageCircle className="h-4 w-4" />
+    </div>
+  </Button>
+)}
+```
+
+### Fixed Scrollbar Issue
+
+**Problem**: Double scrollbars appeared (one in ChatArea, one in parent container)
+
+**Solution**:
+- Changed ChatArea from `flex-1 overflow-y-auto` to `h-full overflow-y-auto`
+- Parent container uses `flex-1 overflow-hidden` to contain the scrolling
+- This ensures only ONE scrollbar appears in the chat area
+
+**Before**:
+```tsx
+<div className="flex-1 overflow-hidden">
+  <ChatArea /> {/* Had overflow-y-auto causing double scroll */}
+</div>
+```
+
+**After**:
+```tsx
+<div className="flex-1 overflow-hidden">
+  <ChatArea /> {/* Uses h-full overflow-y-auto for single scroll */}
+</div>
+```
+
+---
+
 ## 🧪 Testing Checklist
 
 - [x] Modal opens and closes properly
 - [x] Slide-in animation works smoothly
 - [x] Fixed height with proper scrolling
+- [x] **No double scrollbars** ✅
+- [x] **Floating button appears when closed** ✅
+- [x] **Floating button opens modal** ✅
 - [x] Mode selector switches modes
 - [x] Input field works correctly
 - [x] Send button enables/disables properly
