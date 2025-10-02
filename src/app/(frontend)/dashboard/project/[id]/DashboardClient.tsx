@@ -10,7 +10,6 @@ import ProjectSidebar from './components/ProjectSidebar'
 import MobileNav from './components/MobileNav'
 import QualityDashboard from './components/QualityDashboard'
 import Timeline from './components/Timeline'
-import RightOrchestrator from '@/components/layout/RightOrchestrator'
 
 interface Scene {
   id: string
@@ -95,9 +94,6 @@ export default function DashboardClient({
             </div>
           </div>
         </main>
-
-        {/* Right Orchestrator - AI Chat Sidebar */}
-        <RightOrchestrator />
       </div>
     </div>
   )
