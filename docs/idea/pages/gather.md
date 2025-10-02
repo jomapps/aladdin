@@ -220,19 +220,71 @@ Example: proj_123-gather-1704123456789-character_sketch.jpg
 - **Filter**: Date range, has image, has document
 - **Sort Options**: Latest, Oldest, A-Z, Z-A
 
+### Department Display Order
+
+**Critical Rule**: When displaying departments anywhere in the Gather page, they MUST be ordered by `codeDepNumber` in ascending order.
+
+**Department Collection Schema**:
+```typescript
+interface Department {
+  id: string
+  slug: string
+  name: string
+  description: string
+  icon?: string
+  color?: string
+  codeDepNumber: number  // Process flow order (1-7)
+  isActive?: boolean
+  coreDepartment?: boolean
+  gatherCheck?: boolean
+}
+```
+
+**Default Department Order** (by `codeDepNumber`):
+1. **Story Department** - `codeDepNumber: 1`
+2. **Character Department** - `codeDepNumber: 2`
+3. **Visual Department** - `codeDepNumber: 3`
+4. **Image Quality Department** - `codeDepNumber: 4`
+5. **Video Department** - `codeDepNumber: 5`
+6. **Audio Department** - `codeDepNumber: 6`
+7. **Production Department** - `codeDepNumber: 7`
+
+**Query Implementation**:
+```typescript
+// Fetch departments ordered by codeDepNumber
+const departments = await payload.find({
+  collection: 'departments',
+  where: {
+    isActive: {
+      equals: true
+    }
+  },
+  sort: 'codeDepNumber',  // Ascending order
+  limit: 100
+})
+```
+
+**UI Display**:
+- Department filters should appear in `codeDepNumber` order
+- Department badges/tags should follow this order
+- Department selection dropdowns must use this order
+- Any department listing must respect this order
+
+**Rationale**: The `codeDepNumber` represents the natural workflow progression in movie production (Story → Character → Visual → Video → Audio → Production), ensuring consistent and intuitive department ordering throughout the application.
+
 ---
 
 ## 🤖 AI Chat Integration
 
 ### Button Visibility (CRITICAL)
 
-**Conditional Rendering**: Buttons visible ONLY when on `/gather` route
+**Conditional Rendering**: Buttons visible ONLY when on `/gather` or `/project-readiness` routes
 - Prevents unqualified data in advanced workflow pages
-- Route detection: `pathname.includes('/gather')`
+- Route detection: `pathname.includes('/gather') || pathname.includes('/project-readiness')`
 
 ### Chat UI Implementation
 
-**Normal Chat View (on /gather route)**:
+**Normal Chat View (on /gather or /project-readiness routes)**:
 ```
 ┌─────────────────────────────────────────────────────┐
 │  💬 Chat Messages                                   │
@@ -1046,6 +1098,50 @@ Response: {
 }
 ```
 
+### Department Operations
+
+```typescript
+// GET: Fetch departments ordered by codeDepNumber
+GET /api/v1/departments
+Query Parameters:
+  - isActive?: boolean (filter by active status)
+  - gatherCheck?: boolean (filter by gather check flag)
+Response: {
+  departments: [{
+    id: string,
+    slug: string,
+    name: string,
+    description: string,
+    icon?: string,
+    color?: string,
+    codeDepNumber: number,
+    isActive: boolean,
+    coreDepartment: boolean,
+    gatherCheck: boolean
+  }],
+  total: number
+}
+
+// CRITICAL: Response is ALWAYS sorted by codeDepNumber in ascending order
+// This ensures consistent department ordering throughout the application
+
+Example Response:
+{
+  "departments": [
+    { "name": "Story Department", "codeDepNumber": 1, ... },
+    { "name": "Character Department", "codeDepNumber": 2, ... },
+    { "name": "Visual Department", "codeDepNumber": 3, ... },
+    { "name": "Image Quality Department", "codeDepNumber": 4, ... },
+    { "name": "Video Department", "codeDepNumber": 5, ... },
+    { "name": "Audio Department", "codeDepNumber": 6, ... },
+    { "name": "Production Department", "codeDepNumber": 7, ... }
+  ],
+  "total": 7
+}
+```
+
+**Implementation Note**: The API endpoint MUST always sort departments by `codeDepNumber` to maintain workflow consistency. Frontend components should NOT re-sort departments.
+
 ---
 
 ## 🔐 Security & Validation
@@ -1461,12 +1557,19 @@ function validateBrainOperation(operation: string) {
 - [ ] PUT `/api/v1/gather/{projectId}/{id}` - Update item
 - [ ] DELETE `/api/v1/gather/{projectId}/{id}` - Delete item
 - [ ] GET `/api/v1/gather/{projectId}/count` - Get count for badge
+- [ ] GET `/api/v1/departments` - Fetch departments sorted by codeDepNumber
 
 **Validation**:
 - [ ] Project validation against PayloadCMS
 - [ ] Database initialization on first access
 - [ ] User authentication checks
 - [ ] File type and size validation
+
+**Department Integration**:
+- [ ] Fetch departments from PayloadCMS sorted by `codeDepNumber`
+- [ ] Display departments in ascending `codeDepNumber` order in all UI components
+- [ ] Implement department filter/selection with proper ordering
+- [ ] Cache department list for performance
 
 ### Phase 2: AI Processing Pipeline (Week 2)
 
@@ -1518,6 +1621,7 @@ function validateBrainOperation(operation: string) {
 - [ ] Pagination component (20 per page)
 - [ ] Search bar with debouncing (300ms)
 - [ ] Filter controls (date, has image, has document)
+- [ ] Department filter/selector (ordered by codeDepNumber)
 
 **Page Implementation**:
 - [ ] Gather page route (`/dashboard/project/[id]/gather`)
@@ -1537,9 +1641,9 @@ function validateBrainOperation(operation: string) {
 ### Phase 5: Chat Integration (Week 3)
 
 **Conditional Rendering**:
-- [ ] Route detection for `/gather`
-- [ ] "Add to Gather" button (visible only on /gather)
-- [ ] "Add All to Gather" button (visible only on /gather)
+- [ ] Route detection for `/gather` and `/project-readiness`
+- [ ] "Add to Gather" button (visible only on /gather and /project-readiness)
+- [ ] "Add All to Gather" button (visible only on /gather and /project-readiness)
 
 **Selection Mode**:
 - [ ] Selection checkboxes for chat cards
