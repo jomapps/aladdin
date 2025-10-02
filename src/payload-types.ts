@@ -79,6 +79,7 @@ export interface Config {
     agents: Agent;
     'custom-tools': CustomTool;
     'agent-executions': AgentExecution;
+    'project-readiness': ProjectReadiness;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -97,6 +98,7 @@ export interface Config {
     agents: AgentsSelect<false> | AgentsSelect<true>;
     'custom-tools': CustomToolsSelect<false> | CustomToolsSelect<true>;
     'agent-executions': AgentExecutionsSelect<false> | AgentExecutionsSelect<true>;
+    'project-readiness': ProjectReadinessSelect<false> | ProjectReadinessSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -1305,6 +1307,91 @@ export interface AgentExecution {
   createdAt: string;
 }
 /**
+ * Department readiness evaluations for production pipeline
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-readiness".
+ */
+export interface ProjectReadiness {
+  id: string;
+  /**
+   * Project this evaluation belongs to
+   */
+  projectId: string | Project;
+  /**
+   * Department being evaluated
+   */
+  departmentId: string | Department;
+  /**
+   * Complete evaluation text from AI
+   */
+  evaluationResult?: string | null;
+  /**
+   * ~200 character summary of evaluation
+   */
+  evaluationSummary?: string | null;
+  /**
+   * Quality score (0-100) for this department
+   */
+  rating?: number | null;
+  /**
+   * Overall project readiness score (0-100)
+   */
+  readinessScore?: number | null;
+  /**
+   * Current status of this evaluation
+   */
+  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  /**
+   * tasks.ft.tc task ID for this evaluation
+   */
+  taskId?: string | null;
+  /**
+   * Current status from task service
+   */
+  taskStatus?: string | null;
+  /**
+   * How long the evaluation took to complete
+   */
+  evaluationDuration?: number | null;
+  /**
+   * Model used for evaluation (e.g., "anthropic/claude-sonnet-4.5")
+   */
+  agentModel?: string | null;
+  /**
+   * Number of gather items included in evaluation
+   */
+  gatherDataCount?: number | null;
+  /**
+   * Number of AI processing iterations used
+   */
+  iterationCount?: number | null;
+  /**
+   * Issues found during evaluation
+   */
+  issues?:
+    | {
+        issue: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Suggestions for improvement
+   */
+  suggestions?:
+    | {
+        suggestion: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * When this department was last evaluated
+   */
+  lastEvaluatedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
@@ -1358,6 +1445,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'agent-executions';
         value: string | AgentExecution;
+      } | null)
+    | ({
+        relationTo: 'project-readiness';
+        value: string | ProjectReadiness;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1961,6 +2052,40 @@ export interface AgentExecutionsSelect<T extends boolean = true> {
         id?: T;
       };
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-readiness_select".
+ */
+export interface ProjectReadinessSelect<T extends boolean = true> {
+  projectId?: T;
+  departmentId?: T;
+  evaluationResult?: T;
+  evaluationSummary?: T;
+  rating?: T;
+  readinessScore?: T;
+  status?: T;
+  taskId?: T;
+  taskStatus?: T;
+  evaluationDuration?: T;
+  agentModel?: T;
+  gatherDataCount?: T;
+  iterationCount?: T;
+  issues?:
+    | T
+    | {
+        issue?: T;
+        id?: T;
+      };
+  suggestions?:
+    | T
+    | {
+        suggestion?: T;
+        id?: T;
+      };
+  lastEvaluatedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -59,6 +59,10 @@ node_modules/
 .qoder/rules/byterover-rules.md
 .augment/rules/byterover-rules.md
 
+
+# Removed Windows wrapper files per user request
+hive-mind-prompt-*.txt
+
 # Claude Flow generated files
 .claude/settings.local.json
 .mcp.json

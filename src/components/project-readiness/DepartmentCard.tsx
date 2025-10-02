@@ -59,9 +59,9 @@ export function DepartmentCard({
   const getStatusBadge = () => {
     switch (department.status) {
       case 'completed':
-        return <Badge className="bg-green-500">✅ Completed</Badge>
+        return <Badge variant="default" className="bg-green-600 hover:bg-green-700">✅ Completed</Badge>
       case 'in_progress':
-        return <Badge className="bg-yellow-500">⏳ Evaluating</Badge>
+        return <Badge variant="default" className="bg-yellow-600 hover:bg-yellow-700">⏳ Evaluating</Badge>
       case 'failed':
         return <Badge variant="destructive">❌ Failed</Badge>
       default:

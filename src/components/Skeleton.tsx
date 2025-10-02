@@ -4,6 +4,7 @@
  * Reusable skeleton loaders for different UI sections
  */
 
+import { Skeleton as ShadcnSkeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
 interface SkeletonProps {
@@ -11,12 +12,7 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ className }: SkeletonProps) {
-  return (
-    <div
-      className={cn('animate-pulse rounded-md bg-muted', className)}
-      aria-label="Loading..."
-    />
-  )
+  return <ShadcnSkeleton className={className} />
 }
 
 export function MessageSkeleton() {
