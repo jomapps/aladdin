@@ -19,7 +19,13 @@ export const Departments: CollectionConfig = {
     read: () => true,
     create: () => true,
     update: () => true,
-    delete: () => true,
+    delete: ({ req, data }) => {
+      // Prevent deletion of core departments
+      if (data?.coreDepartment === true) {
+        return false
+      }
+      return true
+    },
   },
   fields: [
     // ========== IDENTITY ==========
@@ -104,6 +110,26 @@ export const Departments: CollectionConfig = {
         description: 'Whether this department is active',
       },
     },
+    {
+      name: 'coreDepartment',
+      type: 'checkbox',
+      label: 'Core Department',
+      defaultValue: false,
+      admin: {
+        description:
+          'Core departments cannot be deleted (Story, Character, Visual, Video, Audio, Production)',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'gatherCheck',
+      type: 'checkbox',
+      label: 'Gather Check',
+      defaultValue: false,
+      admin: {
+        description: 'Enable gather check for this department',
+      },
+    },
 
     // ========== @codebuff/sdk INTEGRATION ==========
     {
@@ -112,7 +138,8 @@ export const Departments: CollectionConfig = {
       label: 'Default AI Model',
       defaultValue: 'anthropic/claude-3.5-sonnet',
       admin: {
-        description: 'Default model for agents in this department (e.g., "anthropic/claude-3.5-sonnet")',
+        description:
+          'Default model for agents in this department (e.g., "anthropic/claude-3.5-sonnet")',
       },
     },
     {

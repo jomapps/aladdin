@@ -5,8 +5,7 @@
 
 import { CodebuffClient } from '@codebuff/sdk'
 import type { AladdinAgentDefinition } from '@/agents/types'
-import { masterOrchestratorAgent } from '@/agents/masterOrchestrator'
-import { characterDepartmentHead, hairStylistAgent } from '@/agents/departments/characterHead'
+import { allAgents } from '@/agents'
 
 export class AgentPool {
   private client: CodebuffClient
@@ -20,10 +19,12 @@ export class AgentPool {
 
     this.client = new CodebuffClient({ apiKey })
 
-    // Register default agents
-    this.registerAgent(masterOrchestratorAgent)
-    this.registerAgent(characterDepartmentHead)
-    this.registerAgent(hairStylistAgent)
+    // Register all agents from the agent registry
+    console.log('🚀 Registering all Aladdin agents...')
+    allAgents.forEach((agent) => {
+      this.registerAgent(agent)
+    })
+    console.log(`✅ Registered ${allAgents.length} agents total`)
   }
 
   /**
@@ -51,7 +52,7 @@ export class AgentPool {
       customToolDefinitions?: any[]
       previousRun?: any
       handleEvent?: (event: any) => void
-    } = {}
+    } = {},
   ) {
     const config = this.getAgentConfig(agentId)
     if (!config) {
@@ -63,7 +64,7 @@ export class AgentPool {
     return await this.client.run({
       agent: agentId,
       prompt,
-      ...options
+      ...options,
     })
   }
 
@@ -78,14 +79,14 @@ export class AgentPool {
    * Get agents by level
    */
   getAgentsByLevel(level: 'master' | 'department' | 'specialist'): AladdinAgentDefinition[] {
-    return this.listAgents().filter(agent => agent.agentLevel === level)
+    return this.listAgents().filter((agent) => agent.agentLevel === level)
   }
 
   /**
    * Get agents by department
    */
   getAgentsByDepartment(department: string): AladdinAgentDefinition[] {
-    return this.listAgents().filter(agent => agent.department === department)
+    return this.listAgents().filter((agent) => agent.department === department)
   }
 }
 

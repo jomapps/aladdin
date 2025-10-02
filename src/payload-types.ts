@@ -738,6 +738,14 @@ export interface Department {
    */
   isActive?: boolean | null;
   /**
+   * Core departments cannot be deleted (Story, Character, Visual, Video, Audio, Production)
+   */
+  coreDepartment?: boolean | null;
+  /**
+   * Enable gather check for this department
+   */
+  gatherCheck?: boolean | null;
+  /**
    * Default model for agents in this department (e.g., "anthropic/claude-3.5-sonnet")
    */
   defaultModel?: string | null;
@@ -1705,6 +1713,8 @@ export interface DepartmentsSelect<T extends boolean = true> {
   color?: T;
   priority?: T;
   isActive?: T;
+  coreDepartment?: T;
+  gatherCheck?: T;
   defaultModel?: T;
   maxAgentSteps?: T;
   coordinationSettings?:

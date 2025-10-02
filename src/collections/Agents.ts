@@ -300,14 +300,14 @@ export const Agents: CollectionConfig = {
       },
     },
     {
-      name: 'qualityThreshold',
+      name: 'passingThreshold',
       type: 'number',
-      label: 'Quality Threshold',
-      defaultValue: 80,
+      label: 'Passing Threshold',
+      defaultValue: 60,
       min: 0,
       max: 100,
       admin: {
-        description: 'Minimum quality score (0-100) for approval',
+        description: 'Minimum score (0-100) for output to pass. If missing/0, everything passes.',
       },
     },
 

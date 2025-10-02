@@ -1,8 +1,32 @@
 # Aladdin Documentation Index
 
-**Last Updated**: October 2, 2025  
-**Project**: Aladdin AI Movie Production Platform  
+**Last Updated**: January 2025
+**Project**: Aladdin AI Movie Production Platform
 **Architecture**: PayloadCMS 3.x + Next.js 15 + MongoDB + AI Agents
+
+---
+
+## 🚨 CRITICAL: Read This First
+
+### ⭐ **[AGENT_ARCHITECTURE_CLARIFIED.md](./AGENT_ARCHITECTURE_CLARIFIED.md)** - START HERE
+
+**Before reading any architecture documents, understand what's actually implemented:**
+
+- ✅ **@codebuff/sdk** is the ONLY agent framework (fully operational)
+- ❌ **LangGraph** is NOT implemented (documentation only)
+- ❌ **Domain MCP services** are NOT built (only Brain MCP exists)
+- ⚠️ **3 of 50+ agents** configured (framework ready for expansion)
+
+### Related Reality Check Documents:
+
+| Document | Purpose |
+|----------|---------|
+| [AGENT_ARCHITECTURE_CLARIFIED.md](./AGENT_ARCHITECTURE_CLARIFIED.md) | **Main guide** - What's implemented vs documented |
+| [ACTUAL_IMPLEMENTATION_STATUS.md](./ACTUAL_IMPLEMENTATION_STATUS.md) | Detailed component-by-component analysis |
+| [IMPLEMENTATION_REALITY_CHECK.md](./IMPLEMENTATION_REALITY_CHECK.md) | Quick reference for developers |
+| [idea/NEEDS_CLARIFICATION.md](./idea/NEEDS_CLARIFICATION.md) | Full discrepancy analysis |
+
+**Why This Matters**: Many architecture documents describe future plans as if they were current implementation. These reality check documents clarify what actually exists in the codebase.
 
 ---
 

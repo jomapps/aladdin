@@ -27,6 +27,8 @@ export const departmentsSeedData = [
     color: '#8B5CF6',
     priority: 1,
     isActive: true,
+    coreDepartment: true,
+    gatherCheck: true,
     defaultModel: 'anthropic/claude-3.5-sonnet',
     maxAgentSteps: 25,
     coordinationSettings: {
@@ -51,6 +53,8 @@ export const departmentsSeedData = [
     color: '#EC4899',
     priority: 2,
     isActive: true,
+    coreDepartment: true,
+    gatherCheck: true,
     defaultModel: 'anthropic/claude-3.5-sonnet',
     maxAgentSteps: 25,
     coordinationSettings: {
@@ -75,6 +79,8 @@ export const departmentsSeedData = [
     color: '#F59E0B',
     priority: 3,
     isActive: true,
+    coreDepartment: true,
+    gatherCheck: true,
     defaultModel: 'anthropic/claude-3.5-sonnet',
     maxAgentSteps: 20,
     coordinationSettings: {
@@ -99,6 +105,8 @@ export const departmentsSeedData = [
     color: '#10B981',
     priority: 4,
     isActive: true,
+    coreDepartment: true,
+    gatherCheck: false,
     defaultModel: 'anthropic/claude-3.5-sonnet',
     maxAgentSteps: 20,
     coordinationSettings: {
@@ -123,6 +131,8 @@ export const departmentsSeedData = [
     color: '#3B82F6',
     priority: 5,
     isActive: true,
+    coreDepartment: true,
+    gatherCheck: false,
     defaultModel: 'anthropic/claude-3.5-sonnet',
     maxAgentSteps: 20,
     coordinationSettings: {
@@ -147,6 +157,8 @@ export const departmentsSeedData = [
     color: '#6366F1',
     priority: 6,
     isActive: true,
+    coreDepartment: true,
+    gatherCheck: false,
     defaultModel: 'anthropic/claude-3-haiku',
     maxAgentSteps: 15,
     coordinationSettings: {

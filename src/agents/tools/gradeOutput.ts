@@ -33,8 +33,11 @@ export const gradeOutputTool = getCustomToolDefinition({
         consistency * 0.3
       )
 
-      const decision = overallScore >= 0.60 ? 'accept' :
-                      overallScore >= 0.40 ? 'revise' : 'discard'
+      // Note: This is a normalized 0-1 score. Convert to 0-100 for threshold comparison.
+      const scorePercentage = overallScore * 100
+
+      const decision = scorePercentage >= 60 ? 'accept' :
+                      scorePercentage >= 40 ? 'revise' : 'discard'
 
       const result = {
         specialistId,

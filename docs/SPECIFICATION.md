@@ -69,12 +69,13 @@ Unlike traditional rigid workflows, Aladdin uses a conversational interface wher
 | **CMS & Data Layer** | PayloadCMS v3 | Headless CMS for structured data |
 | **Primary Database** | MongoDB (Structured) | Payload collections & known schemas |
 | **Secondary Database** | MongoDB (Open) | Dynamic JSON collections per project |
-| **Knowledge Graph** | Neo4j | "The Brain" - embeddings & validation |
-| **AI Agent Framework** | @codebuff/sdk | Agent orchestration & execution |
-| **Agent Coordination** | LangGraph | Multi-agent workflow management |
-| **Image Generation** | FAL.ai | Text-to-image, image-to-image, composite |
-| **Video Generation** | FAL.ai | Text-to-video, image-to-video, video-to-video |
-| **Voice Generation** | ElevenLabs | Character voice synthesis |
+| **Knowledge Graph** | Neo4j (brain.ft.tc) | "The Brain" - embeddings & validation |
+| **AI Agent Framework** | @codebuff/sdk | Agent orchestration & execution (37 agents) |
+| **Agent Coordination** | Hierarchical (built-in) | Master → Dept Heads → Specialists |
+| **Task Service** | FastAPI + Celery + Redis (tasks.ft.tc) | GPU-intensive task processing |
+| **Image Generation** | FAL.ai (via Task Service) | Text-to-image, image-to-image, composite |
+| **Video Generation** | FAL.ai (via Task Service) | Text-to-video, image-to-video, video-to-video |
+| **Voice Generation** | ElevenLabs (via Task Service) | Character voice synthesis |
 | **Media Storage** | Cloudflare R2 | CDN for images, videos, assets |
 
 ---

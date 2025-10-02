@@ -137,10 +137,15 @@ export class DepartmentHeadAgent {
       )
 
       // 7. Review specialist outputs
+      // Use agent-specific passingThreshold, fallback to department setting, then default 60
+      const passingThreshold = headAgent.passingThreshold ??
+                               department.coordinationSettings?.minQualityThreshold ??
+                               60
+
       const reviewedResults = await this.reviewSpecialistOutputs(
         headAgent.agentId,
         specialistResults,
-        request.minQualityThreshold || department.coordinationSettings?.minQualityThreshold || 80
+        passingThreshold
       )
 
       specialistResults = reviewedResults
@@ -283,7 +288,7 @@ export class DepartmentHeadAgent {
   }
 
   /**
-   * Execute specialists in parallel
+   * Execute specialists in parallel with retry logic
    *
    * @param specialists - Array of specialist agents
    * @param prompt - Original prompt
@@ -296,39 +301,122 @@ export class DepartmentHeadAgent {
     context: AgentExecutionContext
   ): Promise<SpecialistResult[]> {
     const executions = specialists.map(async (specialist) => {
-      const startTime = Date.now()
-
-      try {
-        const result = await this.runner.executeAgent(
-          specialist.agentId,
-          prompt,
-          context
-        )
-
-        return {
-          agentId: specialist.agentId,
-          agentName: specialist.name,
-          specialization: specialist.specialization || 'general',
-          output: result.output,
-          qualityScore: result.qualityScore,
-          executionTime: Date.now() - startTime,
-          reviewStatus: 'approved' as const,
-        }
-      } catch (error) {
-        return {
-          agentId: specialist.agentId,
-          agentName: specialist.name,
-          specialization: specialist.specialization || 'general',
-          output: null,
-          qualityScore: 0,
-          executionTime: Date.now() - startTime,
-          reviewStatus: 'rejected' as const,
-          reviewNotes: error instanceof Error ? error.message : 'Execution failed',
-        }
-      }
+      return this.executeSpecialistWithRetry(specialist, prompt, context)
     })
 
     return Promise.all(executions)
+  }
+
+  /**
+   * Execute a single specialist with retry mechanism
+   *
+   * @param specialist - Specialist agent
+   * @param prompt - Original prompt
+   * @param context - Execution context
+   * @returns Specialist result
+   */
+  private async executeSpecialistWithRetry(
+    specialist: any,
+    prompt: string,
+    context: AgentExecutionContext
+  ): Promise<SpecialistResult> {
+    const maxRetries = specialist.executionSettings?.maxRetries ?? 3
+    const passingThreshold = specialist.passingThreshold ?? 60
+
+    let attempt = 0
+    let lastError: Error | null = null
+    let lastResult: any = null
+    let feedbackHistory: string[] = []
+
+    while (attempt <= maxRetries) {
+      const startTime = Date.now()
+
+      try {
+        // Build prompt with feedback from previous attempts
+        const retryPrompt = attempt === 0
+          ? prompt
+          : this.buildRetryPrompt(prompt, lastResult, feedbackHistory)
+
+        const result = await this.runner.executeAgent(
+          specialist.agentId,
+          retryPrompt,
+          context
+        )
+
+        const qualityScore = result.qualityScore || 0
+
+        // Check if passing threshold met (0 means everything passes)
+        if (passingThreshold === 0 || qualityScore >= passingThreshold) {
+          return {
+            agentId: specialist.agentId,
+            agentName: specialist.name,
+            specialization: specialist.specialization || 'general',
+            output: result.output,
+            qualityScore,
+            executionTime: Date.now() - startTime,
+            reviewStatus: 'approved' as const,
+            reviewNotes: attempt > 0
+              ? `Approved after ${attempt} retries`
+              : 'Approved on first attempt',
+          }
+        }
+
+        // Failed quality check, prepare for retry
+        lastResult = result
+        const feedback = `Quality score ${qualityScore} below threshold ${passingThreshold}. Improve quality, relevance, and consistency.`
+        feedbackHistory.push(feedback)
+        attempt++
+
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error('Unknown error')
+        attempt++
+
+        if (attempt <= maxRetries) {
+          feedbackHistory.push(`Execution failed: ${lastError.message}. Please retry.`)
+        }
+      }
+    }
+
+    // All retries exhausted
+    return {
+      agentId: specialist.agentId,
+      agentName: specialist.name,
+      specialization: specialist.specialization || 'general',
+      output: lastResult?.output || null,
+      qualityScore: lastResult?.qualityScore || 0,
+      executionTime: 0,
+      reviewStatus: 'rejected' as const,
+      reviewNotes: `Failed after ${maxRetries} retries. ${lastError?.message || 'Quality threshold not met'}`,
+    }
+  }
+
+  /**
+   * Build retry prompt with original request and feedback
+   *
+   * @param originalPrompt - Original user prompt
+   * @param lastResult - Previous attempt result
+   * @param feedbackHistory - Array of feedback from previous attempts
+   * @returns Enhanced retry prompt
+   */
+  private buildRetryPrompt(
+    originalPrompt: string,
+    lastResult: any,
+    feedbackHistory: string[]
+  ): string {
+    return `
+ORIGINAL REQUEST:
+${originalPrompt}
+
+PREVIOUS ATTEMPT FAILED:
+${JSON.stringify(lastResult?.output || 'No output', null, 2)}
+
+FEEDBACK FROM PREVIOUS ATTEMPTS:
+${feedbackHistory.map((fb, i) => `Attempt ${i + 1}: ${fb}`).join('\n')}
+
+INSTRUCTIONS:
+Please retry the task with improvements based on the feedback above.
+Focus on increasing quality, relevance, and consistency.
+    `.trim()
   }
 
   /**
@@ -336,28 +424,37 @@ export class DepartmentHeadAgent {
    *
    * @param headAgentId - Department head agent ID
    * @param results - Specialist results
-   * @param minThreshold - Minimum quality threshold
+   * @param passingThreshold - Minimum passing threshold (0-100). If 0 or missing, everything passes.
    * @returns Reviewed results
    */
   private async reviewSpecialistOutputs(
     headAgentId: string,
     results: SpecialistResult[],
-    minThreshold: number
+    passingThreshold: number
   ): Promise<SpecialistResult[]> {
     return results.map((result) => {
       // Simple quality assessment
       // In production, could use head agent to review
       const qualityScore = result.qualityScore || 75
 
-      if (qualityScore < minThreshold) {
+      // If passingThreshold is 0 or missing, everything passes
+      if (!passingThreshold || passingThreshold === 0) {
         return {
           ...result,
-          reviewStatus: 'rejected',
-          reviewNotes: `Quality score ${qualityScore} below threshold ${minThreshold}`,
+          reviewStatus: 'approved',
+          reviewNotes: 'Auto-approved (no threshold set)',
         }
       }
 
-      if (qualityScore < minThreshold + 10) {
+      if (qualityScore < passingThreshold) {
+        return {
+          ...result,
+          reviewStatus: 'rejected',
+          reviewNotes: `Quality score ${qualityScore} below threshold ${passingThreshold}`,
+        }
+      }
+
+      if (qualityScore < passingThreshold + 10) {
         return {
           ...result,
           reviewStatus: 'revision-needed',
