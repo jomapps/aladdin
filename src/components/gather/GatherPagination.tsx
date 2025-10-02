@@ -2,11 +2,18 @@
 
 /**
  * Gather Pagination Component
- * Handles pagination for gather items list
+ * Handles pagination for gather items list using shadcn Pagination
  */
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
 
 interface GatherPaginationProps {
   currentPage: number
@@ -24,32 +31,80 @@ export default function GatherPagination({
   const canGoPrevious = currentPage > 1
   const canGoNext = hasMore && currentPage < totalPages
 
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages: (number | 'ellipsis')[] = []
+    const maxVisible = 5 // Maximum number of page buttons to show
+
+    if (totalPages <= maxVisible) {
+      // Show all pages if total is small
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i)
+      }
+    } else {
+      // Always show first page
+      pages.push(1)
+
+      if (currentPage > 3) {
+        pages.push('ellipsis')
+      }
+
+      // Show pages around current page
+      const start = Math.max(2, currentPage - 1)
+      const end = Math.min(totalPages - 1, currentPage + 1)
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i)
+      }
+
+      if (currentPage < totalPages - 2) {
+        pages.push('ellipsis')
+      }
+
+      // Always show last page
+      pages.push(totalPages)
+    }
+
+    return pages
+  }
+
+  const pageNumbers = getPageNumbers()
+
   return (
-    <div className="flex items-center justify-center gap-4">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={!canGoPrevious}
-      >
-        <ChevronLeft className="w-4 h-4 mr-1" />
-        Previous
-      </Button>
+    <Pagination>
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious
+            onClick={() => canGoPrevious && onPageChange(currentPage - 1)}
+            className={!canGoPrevious ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+          />
+        </PaginationItem>
 
-      <span className="text-sm text-gray-600">
-        Page {currentPage} of {totalPages}
-      </span>
+        {pageNumbers.map((page, index) =>
+          page === 'ellipsis' ? (
+            <PaginationItem key={`ellipsis-${index}`}>
+              <PaginationEllipsis />
+            </PaginationItem>
+          ) : (
+            <PaginationItem key={page}>
+              <PaginationLink
+                onClick={() => onPageChange(page)}
+                isActive={currentPage === page}
+                className="cursor-pointer"
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ),
+        )}
 
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={!canGoNext}
-      >
-        Next
-        <ChevronRight className="w-4 h-4 ml-1" />
-      </Button>
-    </div>
+        <PaginationItem>
+          <PaginationNext
+            onClick={() => canGoNext && onPageChange(currentPage + 1)}
+            className={!canGoNext ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
   )
 }
-

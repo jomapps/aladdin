@@ -1,6 +1,5 @@
 import React from 'react'
 import '@/app/globals.css'
-import './styles.css'
 import { Toaster } from '@/components/ui/sonner'
 
 export const metadata = {

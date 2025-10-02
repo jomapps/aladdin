@@ -1,74 +1,75 @@
-'use client';
+'use client'
 
-import React from 'react';
-import { motion, HTMLMotionProps } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import React from 'react'
+import { motion } from 'framer-motion'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { Loader2 } from 'lucide-react'
+import type { VariantProps } from 'class-variance-authority'
 
-interface AnimatedButtonProps extends Omit<HTMLMotionProps<'button'>, 'ref'> {
-  variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive';
-  size?: 'sm' | 'md' | 'lg';
-  isLoading?: boolean;
-  children: React.ReactNode;
+interface AnimatedButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  isLoading?: boolean
+  asChild?: boolean
 }
 
-export const AnimatedButton = React.forwardRef<
-  HTMLButtonElement,
-  AnimatedButtonProps
->(
+/**
+ * AnimatedButton - Extends shadcn Button with framer-motion animations
+ *
+ * Features:
+ * - Hover scale animation
+ * - Tap feedback animation
+ * - Loading state with spinner
+ * - All shadcn Button variants and sizes
+ */
+export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButtonProps>(
   (
     {
       variant = 'default',
-      size = 'md',
+      size = 'default',
       isLoading = false,
       className,
       children,
       disabled,
+      asChild = false,
       ...props
     },
-    ref
+    ref,
   ) => {
-    const baseStyles =
-      'inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50';
-
-    const variants = {
-      default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-      secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-      outline:
-        'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
-      ghost: 'hover:bg-accent hover:text-accent-foreground',
-      destructive:
-        'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-    };
-
-    const sizes = {
-      sm: 'h-8 px-3 text-xs',
-      md: 'h-10 px-4 py-2 text-sm',
-      lg: 'h-11 px-8 text-base',
-    };
+    // Don't animate if disabled or loading
+    const shouldAnimate = !disabled && !isLoading
 
     return (
-      <motion.button
-        ref={ref}
-        whileHover={{ scale: disabled || isLoading ? 1 : 1.02 }}
-        whileTap={{ scale: disabled || isLoading ? 1 : 0.98 }}
+      <motion.div
+        whileHover={shouldAnimate ? { scale: 1.02 } : undefined}
+        whileTap={shouldAnimate ? { scale: 0.98 } : undefined}
         transition={{ duration: 0.1 }}
-        className={cn(baseStyles, variants[variant], sizes[size], className)}
-        disabled={disabled || isLoading}
-        {...props}
+        className="inline-flex"
       >
-        {isLoading && (
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-            className="h-4 w-4 rounded-full border-2 border-current border-t-transparent"
-          />
-        )}
-        {children}
-      </motion.button>
-    );
-  }
-);
+        <Button
+          ref={ref}
+          variant={variant}
+          size={size}
+          className={cn(className)}
+          disabled={disabled || isLoading}
+          asChild={asChild}
+          {...props}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {children}
+            </>
+          ) : (
+            children
+          )}
+        </Button>
+      </motion.div>
+    )
+  },
+)
 
-AnimatedButton.displayName = 'AnimatedButton';
+AnimatedButton.displayName = 'AnimatedButton'
 
-export default AnimatedButton;
+export default AnimatedButton

@@ -17,7 +17,7 @@ function SuggestionChip({ text, onClick }: SuggestionChipProps) {
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-700 text-sm transition-colors"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm transition-colors"
     >
       <Search className="w-3 h-3" />
       {text}
@@ -31,18 +31,18 @@ interface WelcomeProps {
 
 function Welcome({ onSuggestionClick }: WelcomeProps) {
   return (
-    <div className="max-w-md mx-auto space-y-6 py-8">
+    <div className="max-w-md mx-auto space-y-6 py-8 px-4">
       {/* Icon */}
       <div className="flex justify-center">
-        <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center">
-          <Search className="w-8 h-8 text-purple-600" />
+        <div className="w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+          <Search className="w-8 h-8 text-zinc-900 dark:text-zinc-100" />
         </div>
       </div>
 
       {/* Title */}
       <div className="text-center space-y-2">
-        <h3 className="text-xl font-semibold text-gray-900">Query Mode</h3>
-        <p className="text-sm text-gray-600">
+        <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Query Mode</h3>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
           Ask questions about your project. I can search through characters, scenes, locations, and
           more.
         </p>
@@ -50,25 +50,29 @@ function Welcome({ onSuggestionClick }: WelcomeProps) {
 
       {/* Entity types */}
       <div className="space-y-3">
-        <p className="text-xs font-medium text-gray-500 uppercase text-center">Search across</p>
+        <p className="text-xs font-medium text-zinc-500 dark:text-zinc-500 uppercase text-center">
+          Search across
+        </p>
 
         <div className="grid grid-cols-2 gap-2">
           {[
-            { icon: Users, label: 'Characters', color: 'bg-blue-100 text-blue-600' },
-            { icon: FileText, label: 'Scenes', color: 'bg-purple-100 text-purple-600' },
-            { icon: MapPin, label: 'Locations', color: 'bg-green-100 text-green-600' },
-            { icon: Box, label: 'Props', color: 'bg-orange-100 text-orange-600' },
+            { icon: Users, label: 'Characters' },
+            { icon: FileText, label: 'Scenes' },
+            { icon: MapPin, label: 'Locations' },
+            { icon: Box, label: 'Props' },
           ].map((item) => {
             const Icon = item.icon
             return (
               <div
                 key={item.label}
-                className="flex items-center gap-2 p-3 rounded-lg bg-gray-50 border border-gray-200"
+                className="flex items-center gap-2 p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800"
               >
-                <div className={cn('p-1.5 rounded', item.color)}>
-                  <Icon className="w-4 h-4" />
+                <div className="p-1.5 rounded bg-zinc-900 dark:bg-zinc-100">
+                  <Icon className="w-4 h-4 text-white dark:text-black" />
                 </div>
-                <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                  {item.label}
+                </span>
               </div>
             )
           })}
@@ -77,7 +81,9 @@ function Welcome({ onSuggestionClick }: WelcomeProps) {
 
       {/* Suggestions */}
       <div className="space-y-3">
-        <p className="text-xs font-medium text-gray-500 uppercase text-center">Try asking</p>
+        <p className="text-xs font-medium text-zinc-500 dark:text-zinc-500 uppercase text-center">
+          Try asking
+        </p>
 
         <div className="flex flex-wrap gap-2 justify-center">
           <SuggestionChip

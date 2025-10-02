@@ -36,7 +36,7 @@ export default function ChatArea({ mode, onSuggestionClick }: ChatAreaProps) {
   const modeMessages = getMessagesByMode(mode)
 
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
+    <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 bg-white dark:bg-zinc-950">
       {/* Mode-specific welcome message */}
       {modeMessages.length === 0 && !isStreaming && (
         <div className="h-full flex items-center justify-center">
@@ -61,22 +61,22 @@ export default function ChatArea({ mode, onSuggestionClick }: ChatAreaProps) {
       {isStreaming && !currentStreamingMessage && (
         <div className="mt-4 flex gap-3 animate-fadeIn">
           <div className="flex-shrink-0">
-            <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-              <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse" />
+            <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+              <div className="w-2 h-2 bg-zinc-900 dark:bg-zinc-100 rounded-full animate-pulse" />
             </div>
           </div>
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1.5 text-sm text-zinc-600 dark:text-zinc-400">
             <div className="flex gap-1">
               <div
-                className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                className="w-2 h-2 bg-zinc-400 dark:bg-zinc-600 rounded-full animate-bounce"
                 style={{ animationDelay: '0ms' }}
               />
               <div
-                className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                className="w-2 h-2 bg-zinc-400 dark:bg-zinc-600 rounded-full animate-bounce"
                 style={{ animationDelay: '150ms' }}
               />
               <div
-                className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                className="w-2 h-2 bg-zinc-400 dark:bg-zinc-600 rounded-full animate-bounce"
                 style={{ animationDelay: '300ms' }}
               />
             </div>

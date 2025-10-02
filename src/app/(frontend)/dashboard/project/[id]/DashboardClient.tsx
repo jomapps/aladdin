@@ -38,7 +38,7 @@ export default function DashboardClient({
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Mobile Navigation */}
       <MobileNav onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} projectName={projectName} />
 
@@ -56,40 +56,40 @@ export default function DashboardClient({
           <div className="max-w-7xl mx-auto">
             <div className="space-y-6">
               {/* Quality Dashboard */}
-              <Suspense fallback={<div className="h-64 bg-gray-100 animate-pulse rounded-lg" />}>
+              <Suspense fallback={<div className="h-64 bg-muted animate-pulse rounded-lg" />}>
                 <QualityDashboard projectId={projectId} />
               </Suspense>
 
               {/* Timeline */}
-              <Suspense fallback={<div className="h-48 bg-gray-100 animate-pulse rounded-lg" />}>
+              <Suspense fallback={<div className="h-48 bg-muted animate-pulse rounded-lg" />}>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Project Timeline</h2>
+                  <h2 className="text-xl font-bold text-foreground mb-4">Project Timeline</h2>
                   <Timeline scenes={scenes} duration={19} currentTime={7} />
                 </div>
               </Suspense>
 
               {/* Project Overview */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Scenes</h3>
-                  <div className="text-3xl font-bold text-blue-600">{scenes.length}</div>
-                  <p className="text-sm text-gray-600 mt-1">Total scenes in project</p>
+                <div className="bg-card border border-border rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Scenes</h3>
+                  <div className="text-3xl font-bold text-primary">{scenes.length}</div>
+                  <p className="text-sm text-muted-foreground mt-1">Total scenes in project</p>
                 </div>
 
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Characters</h3>
-                  <div className="text-3xl font-bold text-blue-600">{charactersCount}</div>
-                  <p className="text-sm text-gray-600 mt-1">Active characters</p>
+                <div className="bg-card border border-border rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Characters</h3>
+                  <div className="text-3xl font-bold text-primary">{charactersCount}</div>
+                  <p className="text-sm text-muted-foreground mt-1">Active characters</p>
                 </div>
 
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Duration</h3>
-                  <div className="text-3xl font-bold text-blue-600">
+                <div className="bg-card border border-border rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Duration</h3>
+                  <div className="text-3xl font-bold text-primary">
                     {totalDuration > 0
                       ? `${Math.floor(totalDuration / 60)}m ${totalDuration % 60}s`
                       : '0s'}
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">Total video length</p>
+                  <p className="text-sm text-muted-foreground mt-1">Total video length</p>
                 </div>
               </div>
             </div>
