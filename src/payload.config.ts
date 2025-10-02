@@ -19,6 +19,7 @@ import { Departments } from './collections/Departments'
 import { Agents } from './collections/Agents'
 import { CustomTools } from './collections/CustomTools'
 import { AgentExecutions } from './collections/AgentExecutions'
+import { ProjectReadiness } from './collections/ProjectReadiness'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -66,6 +67,7 @@ export default buildConfig({
     Agents,
     CustomTools,
     AgentExecutions,
+    ProjectReadiness,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

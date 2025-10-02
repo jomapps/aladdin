@@ -5,7 +5,7 @@
  * Phase 7: Production Polish
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useProjectRecentActivity } from '@/lib/react-query'
@@ -51,10 +51,39 @@ export default function ProjectSidebar({
 }: ProjectSidebarProps) {
   const pathname = usePathname()
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['departments']))
+  const [gatherCount, setGatherCount] = useState<number>(0)
   const { data: recentActivity, isLoading: isLoadingActivity } = useProjectRecentActivity(
     projectId,
     { limit: 5 },
   )
+
+  // Fetch gather count with caching (1 minute TTL)
+  useEffect(() => {
+    let isMounted = true
+    let cacheTimeout: NodeJS.Timeout
+
+    async function fetchGatherCount() {
+      try {
+        const response = await fetch(`/api/v1/gather/${projectId}/count`)
+        if (!response.ok) throw new Error('Failed to fetch count')
+        const data = await response.json()
+        if (isMounted) {
+          setGatherCount(data.count || 0)
+        }
+      } catch (error) {
+        console.error('Failed to fetch gather count:', error)
+      }
+    }
+
+    fetchGatherCount()
+    // Refresh count every 60 seconds
+    cacheTimeout = setInterval(fetchGatherCount, 60000)
+
+    return () => {
+      isMounted = false
+      clearInterval(cacheTimeout)
+    }
+  }, [projectId])
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => {
@@ -212,6 +241,46 @@ export default function ProjectSidebar({
 
           {/* Quick Actions */}
           <div className="border-t border-gray-200 pt-4 mt-4">
+            {/* Gather Link - Top Position */}
+            <Link
+              href={`${basePath}/gather`}
+              className={`
+                flex items-center gap-2 px-3 py-2 rounded text-sm
+                transition-colors w-full
+                ${
+                  pathname.includes('/gather')
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }
+              `}
+            >
+              <span>📦</span>
+              <span>Gather</span>
+              {gatherCount > 0 && (
+                <span className="ml-auto px-2 py-0.5 text-xs bg-gray-200 text-gray-700 rounded-full">
+                  {gatherCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Project Readiness Link */}
+            <Link
+              href={`${basePath}/project-readiness`}
+              className={`
+                flex items-center gap-2 px-3 py-2 rounded text-sm
+                transition-colors w-full
+                ${
+                  pathname.includes('/project-readiness')
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }
+              `}
+            >
+              <span>✅</span>
+              <span>Project Readiness</span>
+            </Link>
+
+            {/* Chat Link */}
             <Link
               href={`${basePath}/chat`}
               className="flex items-center gap-2 px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50 w-full"
@@ -219,6 +288,8 @@ export default function ProjectSidebar({
               <span>💬</span>
               <span>Chat with AI</span>
             </Link>
+
+            {/* Settings Link */}
             <Link
               href={`${basePath}/settings`}
               className="flex items-center gap-2 px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50 w-full"

@@ -9,6 +9,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { gatherDB } from '@/lib/db/gatherDatabase'
 import { getGatherAIProcessor } from '@/lib/gather/aiProcessor'
+import { getBrainClient } from '@/lib/brain/client'
 
 /**
  * GET /api/v1/gather/[projectId]
@@ -16,7 +17,7 @@ import { getGatherAIProcessor } from '@/lib/gather/aiProcessor'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
+  { params }: { params: Promise<{ projectId: string }> },
 ) {
   try {
     const { projectId } = await params
@@ -30,10 +31,7 @@ export async function GET(
     })
 
     if (!project) {
-      return NextResponse.json(
-        { error: 'Project not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
     // Parse query parameters
@@ -41,8 +39,18 @@ export async function GET(
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 20) // Max 20 per page
     const search = searchParams.get('search') || undefined
     const sort = (searchParams.get('sort') || 'latest') as 'latest' | 'oldest' | 'a-z' | 'z-a'
-    const hasImage = searchParams.get('hasImage') === 'true' ? true : searchParams.get('hasImage') === 'false' ? false : undefined
-    const hasDocument = searchParams.get('hasDocument') === 'true' ? true : searchParams.get('hasDocument') === 'false' ? false : undefined
+    const hasImage =
+      searchParams.get('hasImage') === 'true'
+        ? true
+        : searchParams.get('hasImage') === 'false'
+          ? false
+          : undefined
+    const hasDocument =
+      searchParams.get('hasDocument') === 'true'
+        ? true
+        : searchParams.get('hasDocument') === 'false'
+          ? false
+          : undefined
 
     // Fetch gather items
     const result = await gatherDB.getGatherItems(projectId, {
@@ -57,10 +65,7 @@ export async function GET(
     return NextResponse.json(result)
   } catch (error) {
     console.error('[Gather API] GET error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch gather items' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to fetch gather items' }, { status: 500 })
   }
 }
 
@@ -70,7 +75,7 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
+  { params }: { params: Promise<{ projectId: string }> },
 ) {
   try {
     const { projectId } = await params
@@ -78,10 +83,7 @@ export async function POST(
     const { content, imageUrl, documentUrl } = body
 
     if (!content) {
-      return NextResponse.json(
-        { error: 'Content is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Content is required' }, { status: 400 })
     }
 
     // Validate project exists
@@ -92,19 +94,13 @@ export async function POST(
     })
 
     if (!project) {
-      return NextResponse.json(
-        { error: 'Project not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
     // Get authenticated user
     const { user } = await payload.auth({ headers: request.headers })
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Process content with AI
@@ -129,6 +125,30 @@ export async function POST(
       createdBy: user.id,
     })
 
+    // Store in Brain service for semantic search
+    try {
+      const brainClient = getBrainClient()
+      await brainClient.addNode({
+        type: 'gather',
+        projectId,
+        properties: {
+          id: gatherItem._id?.toString(),
+          summary: processingResult.summary,
+          context: processingResult.context,
+          content: processingResult.enrichedContent,
+          extractedText: processingResult.extractedText,
+          imageUrl,
+          documentUrl,
+          createdAt: new Date().toISOString(),
+          createdBy: user.id,
+        },
+      })
+      console.log('[Gather API] Stored in Brain service:', gatherItem._id)
+    } catch (brainError) {
+      // Log error but don't fail the request
+      console.error('[Gather API] Failed to store in Brain service:', brainError)
+    }
+
     return NextResponse.json({
       success: true,
       item: gatherItem,
@@ -136,10 +156,6 @@ export async function POST(
     })
   } catch (error) {
     console.error('[Gather API] POST error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create gather item' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to create gather item' }, { status: 500 })
   }
 }
-

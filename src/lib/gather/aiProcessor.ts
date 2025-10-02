@@ -4,7 +4,14 @@
  */
 
 import { getLLMClient } from '@/lib/llm/client'
-import { AIProcessingOptions, ProcessingResult, EnrichmentResult, VisionExtractionResult } from './types'
+import { getBrainClient } from '@/lib/brain/client'
+import {
+  AIProcessingOptions,
+  ProcessingResult,
+  EnrichmentResult,
+  VisionExtractionResult,
+  DuplicateMatch,
+} from './types'
 
 export class GatherAIProcessor {
   private llmClient: ReturnType<typeof getLLMClient>
@@ -17,13 +24,17 @@ export class GatherAIProcessor {
   /**
    * Extract text from image or PDF using vision model
    */
-  async extractText(fileUrl: string, fileType: 'image' | 'document'): Promise<VisionExtractionResult> {
+  async extractText(
+    fileUrl: string,
+    fileType: 'image' | 'document',
+  ): Promise<VisionExtractionResult> {
     try {
       const visionModel = process.env.OPENROUTER_VISION_MODE || 'google/gemini-2.5-flash'
 
-      const prompt = fileType === 'image'
-        ? 'Extract all visible text from this image. Provide a clear, structured transcription.'
-        : 'Extract all text content from this PDF document. Provide a clear, structured transcription.'
+      const prompt =
+        fileType === 'image'
+          ? 'Extract all visible text from this image. Provide a clear, structured transcription.'
+          : 'Extract all text content from this PDF document. Provide a clear, structured transcription.'
 
       const response = await this.llmClient.complete({
         messages: [
@@ -86,7 +97,7 @@ Analyze if this content needs enrichment. If yes, provide enhanced version. If n
 
         try {
           const result = JSON.parse(response.content)
-          
+
           if (result.isComplete) {
             enrichedContent = result.content || enrichedContent
             return {
@@ -127,7 +138,8 @@ Analyze if this content needs enrichment. If yes, provide enhanced version. If n
         messages: [
           {
             role: 'system',
-            content: 'You are a concise summarization assistant. Generate brief, informative summaries of approximately 100 characters.',
+            content:
+              'You are a concise summarization assistant. Generate brief, informative summaries of approximately 100 characters.',
           },
           {
             role: 'user',
@@ -179,6 +191,56 @@ Project Context: ${JSON.stringify(projectContext, null, 2)}`,
   }
 
   /**
+   * Check for duplicate content using Brain service semantic search
+   */
+  async checkDuplicates(
+    content: any,
+    summary: string,
+    projectId: string,
+  ): Promise<DuplicateMatch[]> {
+    try {
+      // Initialize Brain client
+      const brainClient = getBrainClient()
+
+      // Create search query from content and summary
+      const searchText = typeof content === 'string' ? content : JSON.stringify(content)
+      const query = `${summary} ${searchText}`.substring(0, 1000) // Limit query length
+
+      // Search for similar content in Brain service
+      const results = await brainClient.searchSimilar({
+        query,
+        projectId,
+        type: 'gather', // Search only in gather items
+        limit: 5,
+        threshold: 0.8, // >80% similarity threshold as per spec
+      })
+
+      // Transform results to DuplicateMatch format
+      const duplicates: DuplicateMatch[] = results
+        .filter((result) => result.similarity >= 0.8)
+        .map((result) => ({
+          id: result.id,
+          similarity: result.similarity,
+          content: result.content,
+          summary: result.properties?.summary || '',
+          suggestion:
+            result.similarity > 0.95
+              ? 'skip' // Very high similarity - likely duplicate
+              : result.similarity > 0.9
+                ? 'merge' // High similarity - consider merging
+                : 'review', // Above threshold - needs review
+        }))
+
+      console.log(`[GatherAI] Found ${duplicates.length} potential duplicates`)
+      return duplicates
+    } catch (error) {
+      console.error('[GatherAI] Duplicate detection failed:', error)
+      // Return empty array on error - don't block the process
+      return []
+    }
+  }
+
+  /**
    * Full AI processing pipeline
    */
   async processContent(options: AIProcessingOptions): Promise<ProcessingResult> {
@@ -213,8 +275,8 @@ Project Context: ${JSON.stringify(projectContext, null, 2)}`,
       // Step 5: Generate context
       const context = await this.generateContext(enrichedContent, projectContext)
 
-      // Step 6: Check for duplicates (mock for now - will integrate with Brain)
-      const duplicates: any[] = []
+      // Step 6: Check for duplicates using Brain service
+      const duplicates = await this.checkDuplicates(enrichedContent, summary, projectId)
 
       return {
         summary,
@@ -240,4 +302,3 @@ export function getGatherAIProcessor(): GatherAIProcessor {
   }
   return processorInstance
 }
-

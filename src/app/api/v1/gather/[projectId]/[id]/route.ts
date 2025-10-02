@@ -10,6 +10,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { gatherDB } from '@/lib/db/gatherDatabase'
 import { getGatherAIProcessor } from '@/lib/gather/aiProcessor'
+import { getBrainClient } from '@/lib/brain/client'
 
 /**
  * GET /api/v1/gather/[projectId]/[id]
@@ -17,7 +18,7 @@ import { getGatherAIProcessor } from '@/lib/gather/aiProcessor'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ projectId: string; id: string }> }
+  { params }: { params: Promise<{ projectId: string; id: string }> },
 ) {
   try {
     const { projectId, id } = await params
@@ -30,29 +31,20 @@ export async function GET(
     })
 
     if (!project) {
-      return NextResponse.json(
-        { error: 'Project not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
     // Fetch gather item
     const item = await gatherDB.getGatherItem(projectId, id)
 
     if (!item) {
-      return NextResponse.json(
-        { error: 'Gather item not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Gather item not found' }, { status: 404 })
     }
 
     return NextResponse.json(item)
   } catch (error) {
     console.error('[Gather API] GET single error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch gather item' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to fetch gather item' }, { status: 500 })
   }
 }
 
@@ -62,7 +54,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ projectId: string; id: string }> }
+  { params }: { params: Promise<{ projectId: string; id: string }> },
 ) {
   try {
     const { projectId, id } = await params
@@ -77,28 +69,19 @@ export async function PUT(
     })
 
     if (!project) {
-      return NextResponse.json(
-        { error: 'Project not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
     // Get authenticated user
     const { user } = await payload.auth({ headers: request.headers })
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Check if item exists
     const existingItem = await gatherDB.getGatherItem(projectId, id)
     if (!existingItem) {
-      return NextResponse.json(
-        { error: 'Gather item not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Gather item not found' }, { status: 404 })
     }
 
     // Re-process content with AI (full pipeline)
@@ -130,10 +113,7 @@ export async function PUT(
     })
   } catch (error) {
     console.error('[Gather API] PUT error:', error)
-    return NextResponse.json(
-      { error: 'Failed to update gather item' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to update gather item' }, { status: 500 })
   }
 }
 
@@ -143,7 +123,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ projectId: string; id: string }> }
+  { params }: { params: Promise<{ projectId: string; id: string }> },
 ) {
   try {
     const { projectId, id } = await params
@@ -156,29 +136,33 @@ export async function DELETE(
     })
 
     if (!project) {
-      return NextResponse.json(
-        { error: 'Project not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
     // Get authenticated user
     const { user } = await payload.auth({ headers: request.headers })
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Delete gather item
     const deleted = await gatherDB.deleteGatherItem(projectId, id)
 
     if (!deleted) {
-      return NextResponse.json(
-        { error: 'Gather item not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Gather item not found' }, { status: 404 })
+    }
+
+    // Delete from Brain service
+    try {
+      const brainClient = getBrainClient()
+      await brainClient.deleteNode({
+        nodeId: id,
+        cascade: false, // Don't delete relationships
+      })
+      console.log('[Gather API] Deleted from Brain service:', id)
+    } catch (brainError) {
+      // Log error but don't fail the request
+      console.error('[Gather API] Failed to delete from Brain service:', brainError)
     }
 
     return NextResponse.json({
@@ -187,10 +171,6 @@ export async function DELETE(
     })
   } catch (error) {
     console.error('[Gather API] DELETE error:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete gather item' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to delete gather item' }, { status: 500 })
   }
 }
-

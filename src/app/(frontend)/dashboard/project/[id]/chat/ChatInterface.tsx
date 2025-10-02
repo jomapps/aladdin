@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef } from 'react'
 import MessageList from './MessageList'
 import SendMessageForm from './SendMessageForm'
+import GatherButtons from './GatherButtons'
 
 export interface Message {
   id: string
@@ -39,9 +40,7 @@ export default function ChatInterface({ projectId, projectSlug, userId }: ChatIn
   useEffect(() => {
     if (!conversationId) return
 
-    const eventSource = new EventSource(
-      `/api/v1/chat/${conversationId}/stream`
-    )
+    const eventSource = new EventSource(`/api/v1/chat/${conversationId}/stream`)
 
     eventSource.onopen = () => {
       console.log('✅ SSE connection opened')
@@ -77,7 +76,7 @@ export default function ChatInterface({ projectId, projectSlug, userId }: ChatIn
       const response = await fetch(`/api/v1/chat/conversation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId, userId })
+        body: JSON.stringify({ projectId, userId }),
       })
 
       if (!response.ok) {
@@ -116,7 +115,7 @@ export default function ChatInterface({ projectId, projectSlug, userId }: ChatIn
           role: 'assistant',
           content: data.content,
           timestamp: new Date(data.timestamp),
-          agentId: data.agentId
+          agentId: data.agentId,
         })
         break
 
@@ -128,7 +127,7 @@ export default function ChatInterface({ projectId, projectSlug, userId }: ChatIn
   }
 
   function addMessage(message: Message) {
-    setMessages(prev => [...prev, message])
+    setMessages((prev) => [...prev, message])
   }
 
   function addSystemMessage(content: string) {
@@ -136,7 +135,7 @@ export default function ChatInterface({ projectId, projectSlug, userId }: ChatIn
       id: Date.now().toString(),
       role: 'system',
       content,
-      timestamp: new Date()
+      timestamp: new Date(),
     })
   }
 
@@ -151,7 +150,7 @@ export default function ChatInterface({ projectId, projectSlug, userId }: ChatIn
         id: Date.now().toString(),
         role: 'user',
         content,
-        timestamp: new Date()
+        timestamp: new Date(),
       }
       addMessage(userMessage)
 
@@ -162,8 +161,8 @@ export default function ChatInterface({ projectId, projectSlug, userId }: ChatIn
         body: JSON.stringify({
           content,
           projectSlug,
-          userId
-        })
+          userId,
+        }),
       })
 
       if (!response.ok) {
@@ -186,19 +185,16 @@ export default function ChatInterface({ projectId, projectSlug, userId }: ChatIn
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-2">
             <div
-              className={`w-2 h-2 rounded-full ${
-                isConnected ? 'bg-green-500' : 'bg-red-500'
-              }`}
+              className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}
             />
-            <span className="text-gray-600">
-              {isConnected ? 'Connected' : 'Disconnected'}
-            </span>
+            <span className="text-gray-600">{isConnected ? 'Connected' : 'Disconnected'}</span>
           </div>
-          {isLoading && (
-            <span className="text-gray-500">AI is processing...</span>
-          )}
+          {isLoading && <span className="text-gray-500">AI is processing...</span>}
         </div>
       </div>
+
+      {/* Gather Buttons - Conditional on route */}
+      <GatherButtons projectId={projectId} messages={messages} />
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto">
@@ -207,10 +203,7 @@ export default function ChatInterface({ projectId, projectSlug, userId }: ChatIn
 
       {/* Input Form */}
       <div className="border-t border-gray-200 bg-white">
-        <SendMessageForm
-          onSend={handleSendMessage}
-          disabled={isLoading || !conversationId}
-        />
+        <SendMessageForm onSend={handleSendMessage} disabled={isLoading || !conversationId} />
       </div>
     </div>
   )
