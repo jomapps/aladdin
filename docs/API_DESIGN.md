@@ -632,7 +632,165 @@ Response:
 }
 ```
 
-### 3.6 Image Generation
+### 3.6 Gather System
+
+**Add to Gather**
+```
+POST /api/v1/gather/{projectId}
+
+Request:
+{
+  "content": "Detailed character description or story element",
+  "metadata": {
+    "source": "chat",
+    "conversationId": "conv_123"
+  }
+}
+
+Response:
+{
+  "id": "gather_001",
+  "projectId": "proj_abc123",
+  "content": "Detailed character description...",
+  "createdAt": "2025-01-28T10:00:00Z"
+}
+```
+
+**Get Gather Count**
+```
+GET /api/v1/gather/{projectId}/count
+
+Response:
+{
+  "count": 42
+}
+```
+
+**List Gather Items**
+```
+GET /api/v1/gather/{projectId}?limit=50&offset=0
+
+Response:
+{
+  "items": [ /* Gather items */ ],
+  "total": 42,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+### 3.7 Project Readiness
+
+**Get Project Readiness**
+```
+GET /api/v1/project-readiness/{projectId}
+
+Response:
+{
+  "projectId": "proj_abc123",
+  "projectReadinessScore": 72,
+  "gatherLineCount": 42,
+  "departments": [
+    {
+      "departmentId": "dept_story",
+      "departmentSlug": "story",
+      "departmentName": "Story",
+      "departmentNumber": 1,
+      "status": "completed",
+      "rating": 85,
+      "threshold": 70,
+      "canEvaluate": true,
+      "evaluationResult": {
+        "summary": "Strong narrative foundation...",
+        "issues": [],
+        "suggestions": ["Consider adding subplot..."]
+      }
+    }
+  ]
+}
+```
+
+**Submit Department Evaluation**
+```
+POST /api/v1/project-readiness/{projectId}/evaluate
+
+Request:
+{
+  "departmentNumber": 1
+}
+
+Response:
+{
+  "taskId": "task_eval_001",
+  "status": "queued",
+  "departmentId": "dept_story"
+}
+```
+
+**Get Task Status**
+```
+GET /api/v1/project-readiness/{projectId}/task/{taskId}/status
+
+Response:
+{
+  "taskId": "task_eval_001",
+  "status": "completed",
+  "result": {
+    "rating": 85,
+    "summary": "Strong narrative foundation...",
+    "issues": [],
+    "suggestions": ["Consider adding subplot..."]
+  }
+}
+```
+
+**Sync Evaluation Results**
+```
+POST /api/v1/project-readiness/{projectId}/department/{departmentId}/sync
+
+Response:
+{
+  "success": true,
+  "status": "completed",
+  "rating": 85
+}
+```
+
+**Cancel Evaluation**
+```
+DELETE /api/v1/project-readiness/{projectId}/task/{taskId}/cancel
+
+Response:
+{
+  "success": true,
+  "taskId": "task_eval_001",
+  "status": "cancelled"
+}
+```
+
+**Webhook: Evaluation Complete**
+```
+POST /api/webhooks/evaluation-complete
+
+Request:
+{
+  "task_id": "task_eval_001",
+  "status": "completed",
+  "result": {
+    "rating": 85,
+    "summary": "Strong narrative foundation...",
+    "issues": [],
+    "suggestions": ["Consider adding subplot..."]
+  }
+}
+
+Response:
+{
+  "success": true
+}
+```
+
+### 3.8 Image Generation
 
 **Generate Master Reference**
 ```

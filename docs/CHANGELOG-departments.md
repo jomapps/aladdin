@@ -2,6 +2,75 @@
 
 ## Recent Updates
 
+### ✅ Added Project Readiness System
+
+**Date:** 2025-10-02
+
+**Changes:**
+- Implemented comprehensive Project Readiness evaluation system
+- Added sequential department evaluation workflow (1→7)
+- Created threshold-based gating mechanism
+- Integrated with gather database for evaluation data
+- Built tasks.ft.tc (Celery-Redis) integration for long-running evaluations
+- Created 7 new API routes for project readiness
+- Implemented Zustand store with 30-second polling
+- Built complete UI components for evaluation progress tracking
+
+**New Collections:**
+- `project-readiness` - Stores department evaluation results with status, rating, issues, and suggestions
+
+**New API Routes:**
+- `GET /api/v1/project-readiness/{projectId}` - Get all department evaluations
+- `POST /api/v1/project-readiness/{projectId}/evaluate` - Submit department evaluation
+- `GET /api/v1/project-readiness/{projectId}/task/{taskId}/status` - Check task status
+- `POST /api/v1/project-readiness/{projectId}/department/{departmentId}/sync` - Sync evaluation results
+- `DELETE /api/v1/project-readiness/{projectId}/task/{taskId}/cancel` - Cancel evaluation
+- `POST /api/webhooks/evaluation-complete` - Webhook for task completion
+- `GET /api/v1/gather/{projectId}/count` - Get gather item count
+
+**New UI Components:**
+- `DepartmentCard.tsx` - Main card with collapsible results, threshold validation
+- `AnimatedProgress.tsx` - Animated progress with elapsed time
+- `ReadinessOverview.tsx` - Overall project readiness score display
+
+**Key Features:**
+- Sequential evaluation (departments 1→7 in strict order)
+- Threshold gating (previous department must meet threshold)
+- Department 1 always enabled to start the flow
+- 30-second client-side polling for real-time updates
+- Webhook callbacks for task completion notifications
+- Comprehensive error handling and validation
+
+**Department Integration:**
+- Uses `codeDepNumber` field for sequential ordering
+- Leverages `threshold` field for quality gating
+- Integrates with gather databases (`aladdin-gather-{projectId}`)
+- Filters gather data by department relevancy
+
+**Documentation:**
+- [Complete Specification](./idea/pages/project-readiness.md)
+- [Environment Setup](./PROJECT_READINESS_ENV.md)
+- [Implementation Guide](./PROJECT_READINESS_IMPLEMENTATION.md)
+- [Department Process Flow](./DEPARTMENT_PROCESS_FLOW.md) - Updated with Project Readiness integration
+
+**Files Created:** 18 new files, 2 modified, 3 documentation files
+
+**Environment Variables Required:**
+```bash
+TASKS_FT_TC_API_URL=https://tasks.ft.tc
+TASKS_FT_TC_API_KEY=your_api_key_here
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+**Migration Steps:**
+1. Add environment variables to `.env`
+2. Run `pnpm payload generate:types` to update TypeScript types
+3. Run `pnpm db:seed` to ensure core departments exist
+4. Verify navigation link appears in project sidebar
+5. Test evaluation workflow on gather page
+
+---
+
 ### ✅ Updated AI Models to Claude Sonnet 4.5 & Qwen (Latest)
 
 **Date:** 2025-01-02

@@ -47,6 +47,11 @@
 2. [Authentication](./AUTHENTICATION.md) - Authentication and authorization system
 3. [AI Agent Integration](./AI_AGENT_INTEGRATION.md) - How to integrate with AI agents
 
+### For Features
+1. [Gather Feature](./features/GATHER_FEATURE.md) - Content collection and management system
+2. [Gather Implementation Summary](./GATHER_IMPLEMENTATION_SUMMARY.md) - Complete implementation details
+3. [Gather Quick Start](./implementation/GATHER_QUICK_START.md) - Get started with Gather
+
 ---
 
 ## 📚 Documentation by Category
@@ -80,8 +85,16 @@
 | Document | Purpose | Audience |
 |----------|---------|----------|
 | [Video Generation Pipeline](./VIDEO_GENERATION_PIPELINE.md) | Video generation workflow | Developers, Product |
+| [Project Readiness](./idea/pages/project-readiness.md) | **Production readiness evaluation system** | All developers |
+| [Gather Page](./idea/pages/gather.md) | Unqualified data collection system | All developers |
 | [Redis Configuration](./REDIS-CONFIGURATION.md) | Redis setup and usage | Backend developers |
 | [Accessibility Guide](./accessibility-guide.md) | WCAG compliance and best practices | Frontend developers |
+
+#### Project Readiness System
+- [Complete Specification](./idea/pages/project-readiness.md) - Full feature specification
+- [Environment Setup](./PROJECT_READINESS_ENV.md) - Environment variables & configuration
+- [Implementation Guide](./PROJECT_READINESS_IMPLEMENTATION.md) - Implementation summary & testing
+- [Department Process Flow](./DEPARTMENT_PROCESS_FLOW.md) - Sequential evaluation workflow
 
 ### 4. API Documentation
 
@@ -123,7 +136,19 @@
 | [E2E Test Results](./testing/E2E_TEST_RESULTS.md) | Latest test results | QA |
 | [Mock Data Removal](./testing/MOCK_DATA_REMOVAL_COMPLETE.md) | Real data integration status | Developers |
 
-### 7. Research & Design Decisions
+### 7. Feature Documentation
+
+| Document | Purpose | Audience |
+|----------|---------|----------|
+| [Gather Feature](./features/GATHER_FEATURE.md) | Complete feature overview | All developers |
+| [Gather Implementation Summary](./GATHER_IMPLEMENTATION_SUMMARY.md) | Implementation details | Developers |
+| [Gather Quick Start](./implementation/GATHER_QUICK_START.md) | Quick start guide | New developers |
+| [Gather Brain Integration](./implementation/GATHER_BRAIN_INTEGRATION.md) | Brain service integration | Backend developers |
+| [Gather Chat/Sidebar Integration](./implementation/GATHER_CHAT_SIDEBAR_INTEGRATION.md) | UI integration | Frontend developers |
+| [Core Departments Protection](./features/core-departments-protection.md) | Department system | Backend developers |
+| [Department Fields Summary](./features/department-fields-summary.md) | Department schema | All developers |
+
+### 8. Research & Design Decisions
 
 | Document | Purpose | Audience |
 |----------|---------|----------|

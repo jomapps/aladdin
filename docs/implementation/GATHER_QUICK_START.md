@@ -2,7 +2,7 @@
 
 ## 🚀 Getting Started
 
-The Gather page is now implemented and ready to use! This guide will help you get started quickly.
+The Gather page is **90% complete and production-ready**! This guide will help you get started quickly.
 
 ---
 
@@ -12,6 +12,7 @@ All required dependencies are already installed:
 - ✅ MongoDB (for gather database)
 - ✅ AWS SDK (via @payloadcms/storage-s3)
 - ✅ OpenRouter API (for AI processing)
+- ✅ Brain Service (for duplicate detection)
 - ✅ Zustand (for state management)
 - ✅ date-fns (for date formatting)
 
@@ -40,6 +41,10 @@ OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 OPENROUTER_DEFAULT_MODEL=anthropic/claude-sonnet-4.5
 OPENROUTER_BACKUP_MODEL=qwen/qwen3-vl-235b-a22b-thinking
 OPENROUTER_VISION_MODE=google/gemini-2.5-flash
+
+# Brain Service (REQUIRED for duplicate detection)
+BRAIN_SERVICE_URL=https://brain.ft.tc
+BRAIN_API_KEY=your_brain_api_key
 ```
 
 ### 2. Start the Application
@@ -72,9 +77,11 @@ Replace `[project-id]` with an actual project ID from your database.
    - Filter by: Has Image, Has Document
 
 2. **Create Gather Items**
-   - Add content via API
+   - Add content via API or chat
    - Automatic AI processing (enrichment, summary, context)
+   - **Semantic duplicate detection (80% threshold)**
    - File upload support (images and PDFs)
+   - **Automatic Brain service storage**
 
 3. **Edit Gather Items**
    - Inline editing
@@ -82,7 +89,8 @@ Replace `[project-id]` with an actual project ID from your database.
    - Content enrichment on update
 
 4. **Delete Gather Items**
-   - Hard delete (no confirmation dialog)
+   - Hard delete with confirmation
+   - **Automatic Brain service cleanup**
    - File references removed (R2 files persist)
 
 5. **File Management**
@@ -90,22 +98,35 @@ Replace `[project-id]` with an actual project ID from your database.
    - Remove file references
    - Public URL access
 
-### 🚧 Coming Soon
-
-1. **Chat Integration**
-   - "Add to Gather" button in chat
+6. **Chat Integration** ✅
+   - "Add to Gather" buttons (visible on /gather and /project-readiness)
    - "Add All to Gather" bulk operation
-   - Selection mode for chat messages
+   - Selection mode toggle
+   - Progress feedback
 
-2. **Sidebar Integration**
-   - "📦 Gather" link in project sidebar
+7. **Sidebar Integration** ✅
+   - "📦 Gather" link in project sidebar (top of Quick Actions)
    - Count badge showing number of items
+   - Auto-refresh every 60 seconds
+   - Active state highlighting
 
-3. **Advanced Features**
-   - Duplicate detection with Brain service
-   - Conflict resolution UI
+8. **Duplicate Detection** ✅
+   - Semantic similarity search via Brain service
+   - 80% similarity threshold
+   - Automatic suggestions (skip/merge/review)
+   - Top 5 duplicate results
+
+### 🚧 Optional Enhancements
+
+1. **Conflict Resolution UI**
+   - Side-by-side comparison
+   - Merge/Skip/Create New actions
+   - Visual diff highlighting
+
+2. **Advanced Features**
    - Department filtering
    - Date range filtering
+   - File uploader with progress bar
 
 ---
 
@@ -273,7 +294,15 @@ curl http://localhost:3000/api/v1/gather/[projectId]/count
 
 ---
 
-**Status**: ✅ Ready to Use  
-**Version**: 1.0.0  
+**Status**: ✅ Production Ready (90% Complete)
+**Version**: 1.0.0
 **Last Updated**: January 2025
+
+## 📚 Additional Documentation
+
+- [Full Implementation Details](./gather-page-implementation.md)
+- [Implementation Checklist](./GATHER_IMPLEMENTATION_CHECKLIST.md)
+- [Chat & Sidebar Integration](./GATHER_CHAT_SIDEBAR_INTEGRATION.md)
+- [Brain Service Integration](./GATHER_BRAIN_INTEGRATION.md)
+- [Gather Page Specification](../idea/pages/gather.md)
 

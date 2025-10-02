@@ -308,9 +308,57 @@ const nextDept = await payload.find({
 
 ---
 
+## Project Readiness Integration
+
+The Project Readiness system uses this department process flow for sequential evaluation:
+
+### Sequential Evaluation Process
+
+```
+1. Story Department (threshold: 70)
+   ↓ [Evaluate gather data → Rating ≥ 70?]
+
+2. Character Department (threshold: 70)
+   ↓ [Previous dept ≥ 70? → Evaluate → Rating ≥ 70?]
+
+3. Visual Department (threshold: 70)
+   ↓ [Previous dept ≥ 70? → Evaluate → Rating ≥ 70?]
+
+4. Image Quality Department (threshold: 70)
+   ↓ [Previous dept ≥ 70? → Evaluate → Rating ≥ 70?]
+
+5. Video Department (threshold: 70)
+   ↓ [Previous dept ≥ 70? → Evaluate → Rating ≥ 70?]
+
+6. Audio Department (threshold: 70)
+   ↓ [Previous dept ≥ 70? → Evaluate → Rating ≥ 70?]
+
+7. Production Department (threshold: 70)
+   ↓ [Previous dept ≥ 70? → Evaluate → Final Rating]
+
+Project Readiness Score (Average of all departments)
+```
+
+### Key Features
+
+- **Sequential Processing**: Departments must evaluate in order (1→7)
+- **Threshold Gating**: Each department requires previous ≥ threshold to enable evaluation
+- **Department 1 Always Enabled**: Story department can always be evaluated to start the flow
+- **Gather Data Integration**: Evaluations analyze all gather database content filtered by department relevancy
+- **Task Queue Integration**: Uses tasks.ft.tc (Celery-Redis) for long-running evaluations
+- **Real-time Updates**: 30-second client polling for status updates
+
+### Related Documentation
+
+- [Project Readiness Specification](./idea/pages/project-readiness.md)
+- [Environment Setup](./PROJECT_READINESS_ENV.md)
+- [Implementation Guide](./PROJECT_READINESS_IMPLEMENTATION.md)
+
+---
+
 ## Next Steps
 
-1. ⏳ Implement gather check logic in department execution
+1. ✅ Project Readiness system implemented
 2. ⏳ Create process flow visualization in UI
 3. ⏳ Add progress tracking across departments
 4. ⏳ Implement quality gates between steps
