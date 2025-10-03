@@ -13,15 +13,18 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Authenticate user
+    // 1. Authenticate user (bypass in development)
     const payload = await getPayload({ config: await configPromise })
-    const { user } = await payload.auth({ req: request as any })
+    let userId: string | null = null
 
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
+    if (process.env.NODE_ENV === 'development') {
+      userId = 'dev-user'
+    } else {
+      const { user } = await payload.auth({ req: request as any })
+      if (!user) {
+        return NextResponse.json({ error: 'Unauthorized', code: 'AUTH_REQUIRED' }, { status: 401 })
+      }
+      userId = user.id
     }
 
     // 2. Parse request
@@ -31,7 +34,7 @@ export async function POST(request: NextRequest) {
     if (!content || !projectId) {
       return NextResponse.json(
         { error: 'Missing required fields', code: 'VALIDATION_ERROR' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -46,7 +49,7 @@ export async function POST(request: NextRequest) {
     if (!project) {
       return NextResponse.json(
         { error: 'Project not found', code: 'PROJECT_NOT_FOUND' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -55,7 +58,7 @@ export async function POST(request: NextRequest) {
       content,
       projectId,
       conversationId,
-      userId: user.id,
+      userId: userId!,
       limit,
       types,
     })
@@ -78,7 +81,7 @@ export async function POST(request: NextRequest) {
         code: 'QUERY_ERROR',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

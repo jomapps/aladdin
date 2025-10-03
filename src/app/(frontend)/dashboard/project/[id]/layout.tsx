@@ -5,13 +5,19 @@
 
 import RightOrchestrator from '@/components/layout/RightOrchestrator'
 
-export default function ProjectLayout({ children }: { children: React.ReactNode }) {
+export default function ProjectLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode
+  params: { id: string }
+}) {
+  const projectId = params.id
   return (
     <>
       {children}
       {/* AI Chat - Available on all project pages */}
-      <RightOrchestrator />
+      <RightOrchestrator projectId={projectId} />
     </>
   )
 }
-

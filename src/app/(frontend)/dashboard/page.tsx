@@ -45,11 +45,11 @@ export default function DashboardPage() {
             <div className="grid w-full grid-cols-2 gap-4 text-center text-slate-200">
               <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Projects</p>
-                <p className="mt-2 text-2xl font-bold">—</p>
+                <p className="mt-2 text-2xl font-bold">--</p>
               </div>
               <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Readiness</p>
-                <p className="mt-2 text-2xl font-bold">—</p>
+                <p className="mt-2 text-2xl font-bold">--</p>
               </div>
             </div>
             <p className="text-xs text-slate-400">

@@ -164,7 +164,7 @@ export default function QualityDashboard({ projectId }: QualityDashboardProps) {
                   .filter((m) => m.alerts > 0)
                   .map((m) => (
                     <div key={m.id} className="rounded-2xl border border-amber-200/30 bg-amber-500/15 px-4 py-3 text-sm">
-                      <span className="font-semibold">{m.name}</span> — {m.alerts}{' '}
+                      <span className="font-semibold">{m.name}</span> - {m.alerts}{' '}
                       {m.alerts === 1 ? 'alert' : 'alerts'} open
                     </div>
                   ))}

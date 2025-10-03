@@ -18,10 +18,11 @@ import ModeSelector from './ModeSelector'
 import ChatArea from './ChatArea'
 import MessageInput from './MessageInput'
 
-// For now, use a fixed project ID - this should be passed from the parent component
-const PROJECT_ID = 'demo-project'
+interface RightOrchestratorProps {
+  projectId: string
+}
 
-export default function RightOrchestrator() {
+export default function RightOrchestrator({ projectId }: RightOrchestratorProps) {
   const {
     isRightOrchestratorOpen,
     isMobileRightOverlay,
@@ -34,7 +35,7 @@ export default function RightOrchestrator() {
 
   // Initialize orchestrator chat
   const { sendMessage, isLoading } = useOrchestratorChat({
-    projectId: PROJECT_ID,
+    projectId,
   })
 
   // Initialize streaming connection
