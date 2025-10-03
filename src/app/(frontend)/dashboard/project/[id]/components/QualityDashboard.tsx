@@ -85,12 +85,12 @@ export default function QualityDashboard({ projectId }: QualityDashboardProps) {
   }
 
   return (
-    <div className="space-y-8 rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-2xl shadow-[0_50px_140px_-80px_rgba(56,189,248,0.75)] sm:p-8">
+    <div className="space-y-8 rounded-3xl border border-slate-700/60 bg-slate-950/70 p-6 backdrop-blur-2xl text-white shadow-[0_50px_140px_-80px_rgba(56,189,248,0.75)] sm:p-8">
       {/* Header */}
-      <div className="flex flex-col gap-4 text-slate-100 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Quality Dashboard</h2>
-          <p className="mt-1 text-sm text-slate-300">
+          <h2 className="text-2xl font-semibold tracking-tight text-white">Quality Dashboard</h2>
+          <p className="mt-1 text-sm text-slate-200/80">
             Real-time quality metrics across departments, tuned for cinematic delivery.
           </p>
         </div>
@@ -98,7 +98,7 @@ export default function QualityDashboard({ projectId }: QualityDashboardProps) {
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value as typeof timeRange)}
-            className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-slate-100 backdrop-blur transition hover:border-white/30"
+            className="rounded-xl border border-slate-600/70 bg-slate-900/70 px-4 py-2 text-sm text-slate-100 transition hover:border-sky-400/40"
           >
             <option value="24h">Last 24 Hours</option>
             <option value="7d">Last 7 Days</option>
@@ -114,18 +114,18 @@ export default function QualityDashboard({ projectId }: QualityDashboardProps) {
       </div>
 
       {/* Overall Score */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-sky-500/30 via-indigo-600/30 to-purple-600/30 p-8 text-slate-100">
+      <div className="relative overflow-hidden rounded-3xl border border-slate-600/70 bg-gradient-to-br from-sky-600/40 via-indigo-700/35 to-purple-700/35 p-8 text-white">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.35),transparent_55%)]" />
         <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div>
-            <div className="text-sm font-semibold uppercase tracking-[0.35em] text-slate-200">
+            <div className="text-sm font-semibold uppercase tracking-[0.35em] text-slate-100/80">
               Overall Project Quality
             </div>
             <div className="mt-4 text-5xl font-black tracking-tight">{overallScore}</div>
-            <div className="text-sm text-slate-200/80">Score out of 100</div>
+            <div className="text-sm text-slate-100/70">Score out of 100</div>
           </div>
           {totalAlerts > 0 && (
-            <div className="flex flex-col items-end gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 py-4 text-right shadow-[0_20px_80px_-60px_rgba(248,113,113,0.8)]">
+            <div className="flex flex-col items-end gap-2 rounded-2xl border border-rose-300/40 bg-rose-500/20 px-6 py-4 text-right shadow-[0_20px_80px_-60px_rgba(248,113,113,0.8)]">
               <span className="text-xs font-semibold uppercase tracking-[0.35em] text-rose-200">
                 Active Alerts
               </span>
@@ -142,7 +142,7 @@ export default function QualityDashboard({ projectId }: QualityDashboardProps) {
           ? DEFAULT_DEPARTMENTS.map((dept) => (
               <div
                 key={dept.id}
-                className="h-36 animate-pulse rounded-2xl border border-white/10 bg-white/5"
+                className="h-36 animate-pulse rounded-2xl border border-slate-800/60 bg-slate-900/40"
               />
             ))
           : metrics.map((metric) => <QualityMetricCard key={metric.id} metric={metric} />)}
@@ -150,11 +150,11 @@ export default function QualityDashboard({ projectId }: QualityDashboardProps) {
 
       {/* Alerts Section */}
       {totalAlerts > 0 && (
-        <div className="rounded-3xl border border-amber-200/30 bg-amber-500/10 p-6 text-amber-100">
+        <div className="rounded-3xl border border-amber-300/40 bg-amber-500/20 p-6 text-amber-100">
           <div className="flex items-start gap-4">
             <div className="mt-1 text-2xl">⚠️</div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold">Active Quality Alerts</h3>
+              <h3 className="text-lg font-semibold text-white">Active Quality Alerts</h3>
               <p className="mt-1 text-sm text-amber-100/90">
                 {totalAlerts} {totalAlerts === 1 ? 'issue' : 'issues'} require immediate review across
                 your departments.
@@ -163,7 +163,7 @@ export default function QualityDashboard({ projectId }: QualityDashboardProps) {
                 {metrics
                   .filter((m) => m.alerts > 0)
                   .map((m) => (
-                    <div key={m.id} className="rounded-2xl border border-amber-200/30 bg-amber-500/15 px-4 py-3 text-sm">
+                    <div key={m.id} className="rounded-2xl border border-amber-300/40 bg-amber-500/25 px-4 py-3 text-sm text-amber-50">
                       <span className="font-semibold">{m.name}</span> - {m.alerts}{' '}
                       {m.alerts === 1 ? 'alert' : 'alerts'} open
                     </div>
@@ -175,9 +175,9 @@ export default function QualityDashboard({ projectId }: QualityDashboardProps) {
       )}
 
       {/* Historical Trends Placeholder */}
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-slate-200">
-        <h3 className="text-lg font-semibold">Quality Trends</h3>
-        <div className="mt-4 flex h-64 items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/5 text-slate-400">
+      <div className="rounded-3xl border border-slate-700/60 bg-slate-900/60 p-6 text-slate-200">
+        <h3 className="text-lg font-semibold text-white">Quality Trends</h3>
+        <div className="mt-4 flex h-64 items-center justify-center rounded-2xl border border-dashed border-slate-600/60 bg-slate-900/50 text-slate-400">
           Chart visualization coming soon (Recharts integration)
         </div>
       </div>

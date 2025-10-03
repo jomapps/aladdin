@@ -15,10 +15,25 @@ type Args = {
   }>
 }
 
-export const generateMetadata = ({ params, searchParams }: Args): Promise<Metadata> =>
-  generatePageMetadata({ config, params, searchParams })
+export const generateMetadata = async ({ params, searchParams }: Args): Promise<Metadata> => {
+  const [resolvedParams, resolvedSearchParams] = await Promise.all([params, searchParams])
 
-const NotFound = ({ params, searchParams }: Args) =>
-  NotFoundPage({ config, params, searchParams, importMap })
+  return generatePageMetadata({
+    config,
+    params: Promise.resolve(resolvedParams),
+    searchParams: Promise.resolve(resolvedSearchParams),
+  })
+}
+
+const NotFound = async ({ params, searchParams }: Args) => {
+  const [resolvedParams, resolvedSearchParams] = await Promise.all([params, searchParams])
+
+  return NotFoundPage({
+    config,
+    params: Promise.resolve(resolvedParams),
+    searchParams: Promise.resolve(resolvedSearchParams),
+    importMap,
+  })
+}
 
 export default NotFound

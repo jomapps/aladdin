@@ -31,17 +31,8 @@ export interface ChatHandlerResult {
 /**
  * Handle general chat requests
  */
-export async function handleChat(
-  options: ChatHandlerOptions
-): Promise<ChatHandlerResult> {
-  const {
-    content,
-    conversationId,
-    userId,
-    model,
-    temperature = 0.7,
-    maxTokens = 2000,
-  } = options
+export async function handleChat(options: ChatHandlerOptions): Promise<ChatHandlerResult> {
+  const { content, conversationId, userId, model, temperature = 0.7, maxTokens = 2000 } = options
 
   // 1. Initialize clients
   const llmClient = getLLMClient()
@@ -50,6 +41,7 @@ export async function handleChat(
   // 2. Load or create conversation
   let actualConversationId = conversationId
   let conversationHistory: LLMMessage[] = []
+  let conversationProjectId: string | undefined
 
   if (conversationId) {
     try {
@@ -64,6 +56,17 @@ export async function handleChat(
           content: msg.content,
         }))
       }
+
+      // Capture project association if present
+      try {
+        // project can be an ID or a populated doc
+        // @ts-ignore - Payload returns either string or object
+        const proj = (conversation as any).project
+        if (proj) {
+          conversationProjectId =
+            typeof proj === 'string' ? proj : proj?.id?.toString?.() || proj?.id
+        }
+      } catch {}
     } catch (error) {
       console.error('[ChatHandler] Failed to load conversation:', error)
       // Continue with empty history
@@ -105,6 +108,52 @@ Be encouraging and supportive while maintaining professionalism.`,
     },
   ]
 
+  // Intercept "what should I do next"-type intents to provide deterministic guidance
+  if (isNextStepIntent(content)) {
+    const suggestion = await computeNextDepartmentSuggestion(payload, conversationProjectId)
+
+    // Save conversation with deterministic assistant response
+    try {
+      await payload.update({
+        collection: 'conversations',
+        id: actualConversationId!,
+        data: {
+          messages: {
+            // @ts-ignore
+            append: [
+              {
+                id: `msg-${Date.now()}-user`,
+                role: 'user',
+                content,
+                timestamp: new Date(),
+              },
+              {
+                id: `msg-${Date.now()}-assistant`,
+                role: 'assistant',
+                content: suggestion,
+                timestamp: new Date(),
+                agentId: 'heuristic/next-step',
+              },
+            ],
+          },
+          lastMessageAt: new Date(),
+          updatedAt: new Date(),
+        },
+      })
+    } catch (saveError) {
+      console.error('[ChatHandler] Failed to save conversation (heuristic):', saveError)
+      // Continue anyway
+    }
+
+    return {
+      conversationId: actualConversationId!,
+      message: suggestion,
+      model: 'heuristic/next-step',
+      usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+      suggestions: [],
+    }
+  }
+
   // 5. Get LLM response
   const llmResponse = await llmClient.chat(messages, {
     temperature,
@@ -143,7 +192,90 @@ Be encouraging and supportive while maintaining professionalism.`,
         lastMessageAt: new Date(),
         updatedAt: new Date(),
       },
+
+/**
+ * Detects if the user is asking for the next step
+ */
+function isNextStepIntent(text: string): boolean {
+  const t = (text || '').toLowerCase()
+  const phrases = [
+    'what should i do next',
+    "what's next",
+    'what is next',
+    'next step',
+    'where should i start',
+    'what do i do next',
+  ]
+  return phrases.some((p) => t.includes(p))
+}
+
+/**
+ * Compute next department suggestion using project readiness if available,
+ * otherwise fall back to first core department by codeDepNumber.
+ */
+async function computeNextDepartmentSuggestion(
+  payload: any,
+  projectId?: string,
+): Promise<string> {
+  try {
+    const departments = await payload.find({
+      collection: 'departments',
+      where: {
+        and: [
+          { coreDepartment: { equals: true } },
+          { gatherCheck: { equals: true } },
+          { isActive: { equals: true } },
+        ],
+      },
+      sort: 'codeDepNumber',
+      limit: 100,
     })
+
+    const docs = departments?.docs || []
+    if (!docs.length) {
+      return 'Try loading the Story Department'
+    }
+
+    // If no project context, suggest the first department in the flow
+    if (!projectId) {
+      const first = docs[0]
+      return `Try loading the ${first.name}`
+    }
+
+    // With project context: find the lowest-number department not above threshold
+    for (const dept of docs) {
+      const evaluation = await payload.find({
+        collection: 'project-readiness',
+        where: {
+          and: [
+            { projectId: { equals: projectId } },
+            { departmentId: { equals: dept.id } },
+          ],
+        },
+        sort: '-lastEvaluatedAt',
+        limit: 1,
+      })
+
+      const evalData = evaluation?.docs?.[0]
+      const threshold = (dept.coordinationSettings as any)?.minQualityThreshold || 80
+      const rating = evalData?.rating ?? null
+      const status = evalData?.status ?? 'pending'
+      const aboveThreshold = rating !== null && rating >= threshold && status === 'completed'
+
+      if (!aboveThreshold) {
+        return `Try loading the ${dept.name}`
+      }
+    }
+
+    // All above thresholds
+    const last = docs[docs.length - 1]
+    return `All core departments meet their thresholds. Try loading the ${last.name}.`
+  } catch (e) {
+    console.warn('[ChatHandler] Failed to compute next department suggestion:', e)
+    return 'Try loading the Story Department'
+  }
+}
+
   } catch (saveError) {
     console.error('[ChatHandler] Failed to save conversation:', saveError)
     // Continue anyway - don't fail the request
@@ -166,10 +298,7 @@ Be encouraging and supportive while maintaining professionalism.`,
 /**
  * Generate contextual follow-up suggestions
  */
-function generateChatSuggestions(
-  userMessage: string,
-  assistantResponse: string
-): string[] {
+function generateChatSuggestions(userMessage: string, assistantResponse: string): string[] {
   const suggestions: string[] = []
 
   // Check for code in response

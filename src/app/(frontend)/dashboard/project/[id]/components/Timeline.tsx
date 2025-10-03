@@ -5,7 +5,7 @@
  * Phase 7: Production Polish
  */
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import TimelineClip from './TimelineClip'
 
 interface Scene {
@@ -33,7 +33,6 @@ export default function Timeline({
   onSceneSelect,
 }: TimelineProps) {
   const [zoom, setZoom] = useState(1)
-  const [isDragging, setIsDragging] = useState(false)
   const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
 
@@ -65,25 +64,25 @@ export default function Timeline({
   const currentTimePercent = duration > 0 ? (currentTime / duration) * 100 : 0
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 text-slate-100">
+    <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-950/70 text-white">
       {/* Controls */}
-      <div className="flex flex-col gap-3 border-b border-white/10 bg-white/5 px-4 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-slate-700/60 bg-slate-900/60 px-4 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <button
             onClick={handleZoomOut}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/10 transition hover:border-white/30 hover:bg-white/20"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-600/70 bg-slate-900/60 transition hover:border-sky-400/40 hover:bg-slate-900/80"
             title="Zoom out"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
             </svg>
           </button>
-          <span className="text-sm text-gray-600 min-w-[60px] text-center">
+          <span className="min-w-[60px] text-center text-sm text-slate-200">
             {Math.round(zoom * 100)}%
           </span>
           <button
             onClick={handleZoomIn}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/10 transition hover:border-white/30 hover:bg-white/20"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-600/70 bg-slate-900/60 transition hover:border-sky-400/40 hover:bg-slate-900/80"
             title="Zoom in"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,7 +102,7 @@ export default function Timeline({
 
         <div className="inline-flex items-center gap-2">
           <button
-            className="inline-flex h-9 items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-4 font-semibold uppercase tracking-[0.3em] text-xs text-slate-200 transition hover:border-white/30 hover:bg-white/20"
+            className="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-600/70 bg-slate-900/60 px-4 font-semibold uppercase tracking-[0.3em] text-xs text-slate-100 transition hover:border-sky-400/40 hover:bg-slate-900/80"
           >
             Preview
           </button>
@@ -114,19 +113,19 @@ export default function Timeline({
       <div className="relative overflow-x-auto px-4 py-6">
         <div
           ref={timelineRef}
-          className="relative h-28 cursor-pointer rounded-2xl border border-white/10 bg-white/5"
+          className="relative h-28 cursor-pointer rounded-2xl border border-slate-700/60 bg-slate-900/60"
           style={{ width: `${100 * zoom}%`, minWidth: '100%' }}
           onClick={handleTimelineClick}
         >
           {/* Time markers */}
-          <div className="absolute inset-x-0 top-0 h-7 border-b border-white/10">
+          <div className="absolute inset-x-0 top-0 h-7 border-b border-slate-700/60">
             {[0, 0.25, 0.5, 0.75, 1].map((fraction) => (
               <div
                 key={fraction}
-                className="absolute top-0 h-full border-l border-white/10"
+                className="absolute top-0 h-full border-l border-slate-700/60"
                 style={{ left: `${fraction * 100}%` }}
               >
-                <span className="absolute left-2 top-1 text-[10px] font-medium uppercase tracking-[0.3em] text-slate-300">
+                <span className="absolute left-2 top-1 text-[10px] font-medium uppercase tracking-[0.3em] text-slate-200">
                   {formatTime(duration * fraction)}
                 </span>
               </div>

@@ -4,20 +4,34 @@
  */
 
 import RightOrchestrator from '@/components/layout/RightOrchestrator'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
 
-export default function ProjectLayout({
+export default async function ProjectLayout({
   children,
   params,
 }: {
   children: React.ReactNode
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
-  const projectId = params.id
+  const { id: projectId } = await params
+
+  // Fetch project name server-side to display in RightOrchestrator header
+  let projectName: string | undefined
+  try {
+    const payload = await getPayload({ config: await configPromise })
+    const project = await payload.findByID({ collection: 'projects', id: projectId })
+    projectName = project?.name as string | undefined
+  } catch (err) {
+    // Non-fatal: header will just show default title
+    projectName = undefined
+  }
+
   return (
     <>
       {children}
       {/* AI Chat - Available on all project pages */}
-      <RightOrchestrator projectId={projectId} />
+      <RightOrchestrator projectId={projectId} projectName={projectName} />
     </>
   )
 }

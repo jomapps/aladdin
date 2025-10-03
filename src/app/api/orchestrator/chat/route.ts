@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
     // 4. Get conversation history if conversationId provided
     let conversationHistory: any[] = []
     let actualConversationId = conversationId
+    let conversationProjectId: string | undefined
 
     if (conversationId) {
       try {
@@ -60,6 +61,17 @@ export async function POST(req: NextRequest) {
             role: msg.role,
             content: msg.content,
           }))
+
+          // Capture project association if present
+          try {
+            // project can be an ID or a populated doc
+            // @ts-ignore - Payload returns either string or object
+            const proj = (conversation as any).project
+            if (proj) {
+              conversationProjectId =
+                typeof proj === 'string' ? proj : proj?.id?.toString?.() || proj?.id
+            }
+          } catch {}
         }
       } catch (convError) {
         console.error('[Chat API] Failed to load conversation:', convError)
@@ -89,6 +101,9 @@ export async function POST(req: NextRequest) {
 - General questions and explanations
 - Code assistance and debugging
 - Writing and editing
+
+- Analysis and problem-solving
+
 - Analysis and problem-solving
 - Creative tasks
 
@@ -100,6 +115,58 @@ Provide clear, concise, and helpful responses. Use markdown formatting when appr
         content: message,
       },
     ]
+
+    // Intercept "what should I do next"-type intents to provide deterministic guidance
+    if (isNextStepIntent(message)) {
+      const suggestion = await computeNextDepartmentSuggestion(payload, conversationProjectId)
+
+      // Save conversation with deterministic assistant response
+      try {
+        await payload.update({
+          collection: 'conversations',
+          id: actualConversationId!,
+          data: {
+            messages: {
+              // @ts-ignore
+              append: [
+                {
+                  role: 'user',
+                  content: message,
+                  mode: 'chat',
+                  createdAt: new Date(),
+                },
+                {
+                  role: 'assistant',
+                  content: suggestion,
+                  mode: 'chat',
+                  metadata: {
+                    model: 'heuristic/next-step',
+                  },
+                  createdAt: new Date(),
+                },
+              ],
+            },
+            updatedAt: new Date(),
+          },
+        })
+      } catch (saveError) {
+        console.error('[Chat API] Failed to save conversation (heuristic):', saveError)
+      }
+
+      const response: ChatResponse = {
+        message: suggestion,
+        conversationId: actualConversationId!,
+        model: 'heuristic/next-step',
+        usage: {
+          promptTokens: 0,
+          completionTokens: 0,
+          totalTokens: 0,
+        },
+        suggestions: [],
+      }
+
+      return NextResponse.json(response)
+    }
 
     // 7. Get LLM response
     const llmResponse = await llmClient.chat(messages, {
@@ -201,4 +268,81 @@ function generateChatSuggestions(userMessage: string, assistantResponse: string)
   suggestions.push('What are the pros and cons?')
 
   return suggestions.slice(0, 3)
+}
+
+/**
+ * Detects if the user is asking for the next step
+ */
+function isNextStepIntent(text: string): boolean {
+  const t = (text || '').toLowerCase()
+  const phrases = [
+    'what should i do next',
+    "what's next",
+    'what is next',
+    'next step',
+    'where should i start',
+    'what do i do next',
+  ]
+  return phrases.some((p) => t.includes(p))
+}
+
+/**
+ * Compute next department suggestion using project readiness if available,
+ * otherwise fall back to first core department by codeDepNumber.
+ */
+async function computeNextDepartmentSuggestion(payload: any, projectId?: string): Promise<string> {
+  try {
+    const departments = await payload.find({
+      collection: 'departments',
+      where: {
+        and: [
+          { coreDepartment: { equals: true } },
+          { gatherCheck: { equals: true } },
+          { isActive: { equals: true } },
+        ],
+      },
+      sort: 'codeDepNumber',
+      limit: 100,
+    })
+
+    const docs = departments?.docs || []
+    if (!docs.length) {
+      return 'Try loading the Story Department'
+    }
+
+    // If no project context, suggest the first department in the flow
+    if (!projectId) {
+      const first = docs[0]
+      return `Try loading the ${first.name}`
+    }
+
+    // With project context: find the lowest-number department not above threshold
+    for (const dept of docs) {
+      const evaluation = await payload.find({
+        collection: 'project-readiness',
+        where: {
+          and: [{ projectId: { equals: projectId } }, { departmentId: { equals: dept.id } }],
+        },
+        sort: '-lastEvaluatedAt',
+        limit: 1,
+      })
+
+      const evalData = evaluation?.docs?.[0]
+      const threshold = (dept.coordinationSettings as any)?.minQualityThreshold || 80
+      const rating = evalData?.rating ?? null
+      const status = evalData?.status ?? 'pending'
+      const aboveThreshold = rating !== null && rating >= threshold && status === 'completed'
+
+      if (!aboveThreshold) {
+        return `Try loading the ${dept.name}`
+      }
+    }
+
+    // All above thresholds
+    const last = docs[docs.length - 1]
+    return `All core departments meet their thresholds. Try loading the ${last.name}.`
+  } catch (e) {
+    console.warn('[Chat API] Failed to compute next department suggestion:', e)
+    return 'Try loading the Story Department'
+  }
 }

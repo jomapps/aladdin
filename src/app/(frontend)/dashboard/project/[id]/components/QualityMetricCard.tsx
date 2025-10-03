@@ -76,12 +76,12 @@ export default function QualityMetricCard({ metric }: QualityMetricCardProps) {
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 text-slate-100 transition duration-200 hover:border-white/30 hover:bg-white/10 ${metric.alerts > 0 ? 'ring-1 ring-amber-300/50' : ''}`}
+      className={`relative overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-900/70 p-5 text-white transition duration-200 hover:border-sky-400/40 hover:bg-slate-900/80 ${metric.alerts > 0 ? 'ring-1 ring-amber-300/50' : ''}`}
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-semibold tracking-wide">{metric.name}</h3>
+        <h3 className="text-base font-semibold tracking-wide text-white">{metric.name}</h3>
         {metric.alerts > 0 && (
-          <span className="rounded-full border border-amber-300/40 bg-amber-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100">
+          <span className="rounded-full border border-amber-300/40 bg-amber-500/30 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-50">
             {metric.alerts} Alert{metric.alerts !== 1 ? 's' : ''}
           </span>
         )}
@@ -101,7 +101,7 @@ export default function QualityMetricCard({ metric }: QualityMetricCardProps) {
           {trend.icon}
           {trend.label}
         </div>
-        <div className="text-slate-400">
+        <div className="text-slate-300">
           {new Date(metric.lastUpdated).toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',

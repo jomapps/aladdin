@@ -20,9 +20,10 @@ import MessageInput from './MessageInput'
 
 interface RightOrchestratorProps {
   projectId: string
+  projectName?: string
 }
 
-export default function RightOrchestrator({ projectId }: RightOrchestratorProps) {
+export default function RightOrchestrator({ projectId, projectName }: RightOrchestratorProps) {
   const {
     isRightOrchestratorOpen,
     isMobileRightOverlay,
@@ -112,10 +113,15 @@ export default function RightOrchestrator({ projectId }: RightOrchestratorProps)
           <div className="flex flex-col h-full">
             {/* Header with mode selector */}
             <div className="flex-shrink-0 border-b border-zinc-200 dark:border-zinc-800">
-              <div className="px-4 py-3">
+              <div className="px-4 py-3 flex items-start justify-between gap-3">
                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                   AI Assistant
                 </h2>
+                {projectName && (
+                  <div className="text-[11px] leading-tight text-zinc-500 dark:text-zinc-400 text-right whitespace-pre-wrap break-words max-w-[60%]">
+                    {projectName}
+                  </div>
+                )}
               </div>
               <ModeSelector />
             </div>

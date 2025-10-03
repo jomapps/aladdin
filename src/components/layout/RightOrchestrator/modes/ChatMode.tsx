@@ -24,88 +24,75 @@ function Welcome({ onSuggestionClick }: WelcomeProps) {
 
       {/* Title */}
       <div className="text-center space-y-2">
-        <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">General Chat</h3>
+        <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Project AI Assistant</h3>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Have a conversation about anything. This mode doesn't access your project data.
+          Let's build your story together, one department at a time.
         </p>
       </div>
 
-      {/* Capabilities */}
+      {/* Workflow Instructions */}
       <div className="space-y-3">
         <p className="text-xs font-medium text-zinc-500 dark:text-zinc-500 uppercase text-center">
-          I can help with
+          How to get started
         </p>
 
         <div className="space-y-2">
-          {[
-            {
-              icon: Sparkles,
-              title: 'Creative Writing',
-              description: "Brainstorm ideas and overcome writer's block",
-            },
-            {
-              icon: HelpCircle,
-              title: 'General Questions',
-              description: 'Ask about storytelling, structure, or techniques',
-            },
-            {
-              icon: Lightbulb,
-              title: 'Ideas & Feedback',
-              description: 'Get suggestions and constructive feedback',
-            },
-          ].map((capability, index) => {
-            const Icon = capability.icon
-            return (
-              <div
-                key={index}
-                className="flex items-start gap-3 p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800"
-              >
-                <div className="p-2 rounded-lg bg-zinc-900 dark:bg-zinc-100">
-                  <Icon className="w-4 h-4 text-white dark:text-black" />
+          <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-bold">
+                1
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                  Check Project Readiness
                 </div>
-
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    {capability.title}
-                  </div>
-                  <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
-                    {capability.description}
-                  </div>
+                <div className="text-xs text-blue-700 dark:text-blue-300">
+                  I'll analyze which department needs attention first based on readiness scores.
+                  If no data exists yet, we'll start with Story.
                 </div>
               </div>
-            )
-          })}
-        </div>
-      </div>
+            </div>
+          </div>
 
-      {/* Starter prompts */}
-      <div className="space-y-3">
-        <p className="text-xs font-medium text-zinc-500 dark:text-zinc-500 uppercase text-center">
-          Start a conversation
-        </p>
+          <div className="p-4 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-bold">
+                2
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-green-900 dark:text-green-100 mb-1">
+                  Start with the Department with Lowest Readiness
+                </div>
+                <div className="text-xs text-green-700 dark:text-green-300">
+                  I'll ask: "Please tell me something about [Department Name]"
+                  (e.g., Story, Characters, Setting, Plot, etc.)
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <div className="space-y-2">
-          {[
-            "Explain the hero's journey structure",
-            'How do I create compelling dialogue?',
-            'What makes a good plot twist?',
-            'Give me tips for character development',
-          ].map((prompt, index) => (
-            <button
-              key={index}
-              onClick={() => onSuggestionClick?.(prompt)}
-              className="w-full text-left px-4 py-3 rounded-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors text-sm text-zinc-900 dark:text-zinc-100"
-            >
-              {prompt}
-            </button>
-          ))}
+          <div className="p-4 rounded-lg bg-purple-50 dark:bg-purple-950 border border-purple-200 dark:border-purple-800">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-sm font-bold">
+                3
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-purple-900 dark:text-purple-100 mb-1">
+                  Gather Information Iteratively
+                </div>
+                <div className="text-xs text-purple-700 dark:text-purple-300">
+                  As you provide details, I'll help organize and refine your project until all departments reach the readiness threshold.
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Info note */}
-      <div className="p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg">
-        <p className="text-xs text-zinc-600 dark:text-zinc-400 text-center">
-          💡 Switch to Query, Data, or Task mode to work with your project
+      <div className="p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
+        <p className="text-xs text-amber-800 dark:text-amber-200 text-center">
+          💡 I'll guide you through each department systematically based on what needs the most attention
         </p>
       </div>
     </div>

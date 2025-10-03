@@ -123,13 +123,13 @@ export default function ProjectSidebar({
   return (
     <>
       {/* Overlay for mobile */}
-      {isOpen && <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden" onClick={onToggle} />}
+      {isOpen && <div className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm lg:hidden" onClick={onToggle} />}
 
       {/* Sidebar */}
       <aside
         className={`
           fixed left-0 top-0 h-screen w-72 overflow-y-auto
-          border-r border-white/10 bg-white/5 backdrop-blur-2xl
+          border-r border-white/10 bg-slate-950/80 backdrop-blur-xl
           shadow-[0_60px_160px_-100px_rgba(59,130,246,0.65)] transition-transform duration-300 ease-in-out
           z-50 lg:z-0 lg:sticky
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -139,16 +139,16 @@ export default function ProjectSidebar({
         <div className="border-b border-white/10 px-5 py-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-300">
                 Project
               </p>
-              <h2 className="mt-2 line-clamp-2 text-lg font-semibold text-slate-100">
+              <h2 className="mt-2 line-clamp-2 text-lg font-semibold text-white">
                 {projectName}
               </h2>
             </div>
             <button
               onClick={onToggle}
-              className="lg:hidden rounded-xl border border-white/10 bg-white/10 p-1.5 text-slate-100"
+              className="lg:hidden rounded-xl border border-white/10 bg-white/10 p-1.5 text-slate-100/90"
               aria-label="Close navigation"
             >
               <X className="h-4 w-4" />
@@ -156,7 +156,7 @@ export default function ProjectSidebar({
           </div>
           <Link
             href={basePath}
-            className="mt-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-400 hover:text-slate-200"
+            className="mt-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300 hover:text-white"
           >
             Overview
           </Link>
@@ -168,7 +168,7 @@ export default function ProjectSidebar({
           <div>
             <button
               onClick={() => toggleSection('departments')}
-              className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-left text-sm font-semibold uppercase tracking-[0.3em] text-slate-300 hover:border-white/30 hover:bg-white/10"
+              className="flex w-full items-center justify-between rounded-xl border border-slate-700/60 bg-slate-900/50 px-4 py-3 text-left text-sm font-semibold uppercase tracking-[0.3em] text-slate-200 hover:border-sky-400/40 hover:bg-slate-900/70"
             >
               <span>Departments</span>
               {expandedSections.has('departments') ? (
@@ -187,20 +187,20 @@ export default function ProjectSidebar({
                       key={dept.id}
                       href={`${basePath}${dept.path}`}
                       className={`
-                        group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-white/10 px-4 py-3 text-sm transition
+                        group relative flex items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 text-sm transition
                         ${
                           isActive
-                            ? 'border-white/30 bg-white/10'
-                            : 'bg-white/5 hover:border-white/20 hover:bg-white/10'
+                            ? 'border-sky-400/50 bg-sky-500/20 text-white'
+                            : 'border-slate-800/70 bg-slate-900/60 text-slate-200 hover:border-sky-400/30 hover:bg-slate-900/80'
                         }
                       `}
                     >
                       <span
-                        className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-gradient-to-br ${dept.accent}`}
+                        className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-gradient-to-br ${dept.accent}`}
                       >
-                        <Icon className="h-4 w-4 text-slate-100" />
+                        <Icon className="h-4 w-4 text-white" />
                       </span>
-                      <span className="font-medium tracking-wide text-slate-200">{dept.name}</span>
+                      <span className="font-medium tracking-wide">{dept.name}</span>
                     </Link>
                   )
                 })}
@@ -212,7 +212,7 @@ export default function ProjectSidebar({
           <div>
             <button
               onClick={() => toggleSection('content')}
-              className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-left text-sm font-semibold uppercase tracking-[0.3em] text-slate-300 hover:border-white/30 hover:bg-white/10"
+              className="flex w-full items-center justify-between rounded-xl border border-slate-700/60 bg-slate-900/50 px-4 py-3 text-left text-sm font-semibold uppercase tracking-[0.3em] text-slate-200 hover:border-sky-400/40 hover:bg-slate-900/70"
             >
               <span>Content</span>
               {expandedSections.has('content') ? (
@@ -225,30 +225,30 @@ export default function ProjectSidebar({
               <div className="mt-3 space-y-2">
                 <Link
                   href={`${basePath}/scenes`}
-                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:border-white/30 hover:bg-white/10"
+                  className="flex items-center gap-3 rounded-2xl border border-slate-800/70 bg-slate-900/60 px-4 py-3 text-sm text-slate-200 transition hover:border-sky-400/30 hover:bg-slate-900/80"
                 >
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/10">
-                    <Film className="h-4 w-4" />
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-slate-800/80">
+                    <Film className="h-4 w-4 text-white" />
                   </span>
-                  <span className="font-medium tracking-wide">Scenes</span>
+                  <span className="font-medium tracking-wide text-slate-100">Scenes</span>
                 </Link>
                 <Link
                   href={`${basePath}/characters`}
-                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:border-white/30 hover:bg-white/10"
+                  className="flex items-center gap-3 rounded-2xl border border-slate-800/70 bg-slate-900/60 px-4 py-3 text-sm text-slate-200 transition hover:border-sky-400/30 hover:bg-slate-900/80"
                 >
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/10">
-                    <Users className="h-4 w-4" />
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-slate-800/80">
+                    <Users className="h-4 w-4 text-white" />
                   </span>
-                  <span className="font-medium tracking-wide">Characters</span>
+                  <span className="font-medium tracking-wide text-slate-100">Characters</span>
                 </Link>
                 <Link
                   href={`${basePath}/assets`}
-                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:border-white/30 hover:bg-white/10"
+                  className="flex items-center gap-3 rounded-2xl border border-slate-800/70 bg-slate-900/60 px-4 py-3 text-sm text-slate-200 transition hover:border-sky-400/30 hover:bg-slate-900/80"
                 >
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/10">
-                    <Boxes className="h-4 w-4" />
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-slate-800/80">
+                    <Boxes className="h-4 w-4 text-white" />
                   </span>
-                  <span className="font-medium tracking-wide">Assets</span>
+                  <span className="font-medium tracking-wide text-slate-100">Assets</span>
                 </Link>
               </div>
             )}
@@ -258,7 +258,7 @@ export default function ProjectSidebar({
           <div>
             <button
               onClick={() => toggleSection('recent')}
-              className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-left text-sm font-semibold uppercase tracking-[0.3em] text-slate-300 hover:border-white/30 hover:bg-white/10"
+              className="flex w-full items-center justify-between rounded-xl border border-slate-700/60 bg-slate-900/50 px-4 py-3 text-left text-sm font-semibold uppercase tracking-[0.3em] text-slate-200 hover:border-sky-400/40 hover:bg-slate-900/70"
             >
               <span>Recent</span>
               {expandedSections.has('recent') ? (
@@ -270,21 +270,21 @@ export default function ProjectSidebar({
             {expandedSections.has('recent') && (
               <div className="mt-3 space-y-2">
                 {isLoadingActivity ? (
-                  <div className="flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 py-6">
-                    <Loader2 className="h-4 w-4 animate-spin text-slate-300" />
+                  <div className="flex items-center justify-center rounded-2xl border border-slate-800/70 bg-slate-900/60 py-6">
+                    <Loader2 className="h-4 w-4 animate-spin text-slate-200" />
                   </div>
                 ) : !recentActivity || recentActivity.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-6 text-sm text-slate-400">
+                  <p className="rounded-2xl border border-dashed border-slate-700/60 bg-slate-900/50 px-4 py-6 text-sm text-slate-300">
                     No recent activity yet.
                   </p>
                 ) : (
                   recentActivity.map((item) => (
                     <div
                       key={item.id}
-                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:border-white/30 hover:bg-white/10"
+                      className="rounded-2xl border border-slate-800/70 bg-slate-900/60 px-4 py-3 text-sm text-slate-200 transition hover:border-sky-400/30 hover:bg-slate-900/80"
                     >
-                      <div className="font-medium text-slate-100">{item.entityName}</div>
-                      <div className="text-xs text-slate-400">
+                      <div className="font-medium text-white">{item.entityName}</div>
+                      <div className="text-xs text-slate-300">
                         {item.action} •{' '}
                         {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
                       </div>
@@ -301,20 +301,20 @@ export default function ProjectSidebar({
             <Link
               href={`${basePath}/gather`}
               className={`
-                flex items-center gap-3 rounded-2xl border border-white/10 px-4 py-3 text-sm transition-colors
+                flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition-colors
                 ${
                   pathname.includes('/gather')
-                    ? 'border-white/30 bg-white/10 text-slate-100'
-                    : 'bg-white/5 text-slate-200 hover:border-white/20 hover:bg-white/10'
+                    ? 'border-sky-400/50 bg-sky-500/20 text-white'
+                    : 'border-slate-800/70 bg-slate-900/60 text-slate-200 hover:border-sky-400/30 hover:bg-slate-900/80'
                 }
               `}
             >
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/10">
-                <Package className="h-4 w-4" />
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-slate-800/80">
+                <Package className="h-4 w-4 text-white" />
               </span>
               <span>Gather</span>
               {gatherCount > 0 && (
-                <span className="ml-auto rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs text-slate-200">
+                <span className="ml-auto rounded-full border border-white/20 bg-slate-800/80 px-2 py-0.5 text-xs text-slate-100">
                   {gatherCount}
                 </span>
               )}
@@ -324,16 +324,16 @@ export default function ProjectSidebar({
             <Link
               href={`${basePath}/project-readiness`}
               className={`
-                flex items-center gap-3 rounded-2xl border border-white/10 px-4 py-3 text-sm transition-colors
+                flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition-colors
                 ${
                   pathname.includes('/project-readiness')
-                    ? 'border-white/30 bg-white/10 text-slate-100'
-                    : 'bg-white/5 text-slate-200 hover:border-white/20 hover:bg-white/10'
+                    ? 'border-sky-400/50 bg-sky-500/20 text-white'
+                    : 'border-slate-800/70 bg-slate-900/60 text-slate-200 hover:border-sky-400/30 hover:bg-slate-900/80'
                 }
               `}
             >
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/10">
-                <ShieldCheck className="h-4 w-4" />
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-slate-800/80">
+                <ShieldCheck className="h-4 w-4 text-white" />
               </span>
               <span>Project Readiness</span>
             </Link>
@@ -341,10 +341,10 @@ export default function ProjectSidebar({
             {/* Chat Link */}
             <Link
               href={`${basePath}/chat`}
-              className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:border-white/20 hover:bg-white/10"
+              className="flex items-center gap-3 rounded-2xl border border-slate-800/70 bg-slate-900/60 px-4 py-3 text-sm text-slate-200 transition hover:border-sky-400/30 hover:bg-slate-900/80"
             >
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/10">
-                <MessageSquare className="h-4 w-4" />
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-slate-800/80">
+                <MessageSquare className="h-4 w-4 text-white" />
               </span>
               <span>Chat with AI</span>
             </Link>
@@ -352,10 +352,10 @@ export default function ProjectSidebar({
             {/* Settings Link */}
             <Link
               href={`${basePath}/settings`}
-              className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:border-white/20 hover:bg-white/10"
+              className="flex items-center gap-3 rounded-2xl border border-slate-800/70 bg-slate-900/60 px-4 py-3 text-sm text-slate-200 transition hover:border-sky-400/30 hover:bg-slate-900/80"
             >
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/10">
-                <Settings className="h-4 w-4" />
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-slate-800/80">
+                <Settings className="h-4 w-4 text-white" />
               </span>
               <span>Settings</span>
             </Link>

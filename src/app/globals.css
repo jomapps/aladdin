@@ -172,8 +172,8 @@
   }
 
   .glass-panel {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.72), rgba(15, 23, 42, 0.45));
-    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: linear-gradient(135deg, rgba(12, 21, 39, 0.88), rgba(12, 21, 39, 0.68));
+    border: 1px solid rgba(148, 163, 184, 0.38);
     box-shadow: 0 30px 80px -40px rgba(59, 130, 246, 0.55);
     backdrop-filter: blur(18px);
   }

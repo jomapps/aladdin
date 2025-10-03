@@ -54,14 +54,14 @@ export default function DashboardClient({
         <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-10">
           <div className="mx-auto flex max-w-6xl flex-col gap-8 pb-12">
             {/* Quality Dashboard */}
-            <Suspense fallback={<div className="h-64 animate-pulse rounded-3xl border border-white/10 bg-white/5" />}>
+            <Suspense fallback={<div className="h-64 animate-pulse rounded-3xl border border-slate-700/60 bg-slate-900/60" />}>
               <QualityDashboard projectId={projectId} />
             </Suspense>
 
             {/* Timeline */}
-            <Suspense fallback={<div className="h-48 animate-pulse rounded-3xl border border-white/10 bg-white/5" />}>
-              <section className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl shadow-[0_40px_120px_-60px_rgba(124,58,237,0.6)]">
-                <h2 className="mb-4 text-xl font-semibold uppercase tracking-[0.3em] text-slate-300">
+            <Suspense fallback={<div className="h-48 animate-pulse rounded-3xl border border-slate-700/60 bg-slate-900/60" />}>
+              <section className="rounded-3xl border border-slate-700/60 bg-slate-950/70 p-6 backdrop-blur-xl text-white shadow-[0_40px_120px_-60px_rgba(124,58,237,0.6)]">
+                <h2 className="mb-4 text-xl font-semibold uppercase tracking-[0.3em] text-slate-100/80">
                   Project Timeline
                 </h2>
                 <Timeline scenes={scenes} duration={Math.max(totalDuration, 19)} currentTime={7} />
