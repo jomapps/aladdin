@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Parse request
     const body = await request.json()
-    const { content, conversationId, model, temperature, maxTokens } = body
+    const { content, conversationId, projectId, model, temperature, maxTokens } = body
 
     if (!content) {
       return NextResponse.json(
@@ -34,19 +34,40 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('[Chat API] Processing message:', { conversationId })
+    console.log('[Chat API] Processing message:', { conversationId, projectId })
 
-    // 3. Handle chat
+    // 3. Validate project access if projectId provided
+    if (projectId) {
+      try {
+        const project = await payload.findByID({
+          collection: 'projects',
+          id: projectId,
+        })
+
+        if (!project) {
+          return NextResponse.json(
+            { error: 'Project not found', code: 'PROJECT_NOT_FOUND' },
+            { status: 404 },
+          )
+        }
+      } catch (error) {
+        console.warn('[Chat API] Project validation failed:', error)
+        // Continue without project context if validation fails
+      }
+    }
+
+    // 4. Handle chat
     const result = await handleChat({
       content,
       conversationId,
+      projectId,
       userId: userId!,
       model,
       temperature,
       maxTokens,
     })
 
-    // 4. Return response
+    // 5. Return response
     return NextResponse.json({
       success: true,
       conversationId: result.conversationId,

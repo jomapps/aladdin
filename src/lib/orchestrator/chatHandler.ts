@@ -1,9 +1,12 @@
 /**
  * Chat Mode Handler
- * Handles general AI conversation without project context
+ * Handles general AI conversation with optional project context via Brain service
  */
 
 import { getLLMClient, type LLMMessage } from '@/lib/llm/client'
+import { getBrainClient } from '@/lib/brain/client'
+import { GLOBAL_PROJECT_ID, DEFAULT_SIMILARITY_THRESHOLD, DEFAULT_SEARCH_LIMIT } from '@/lib/brain/constants'
+import type { SearchSimilarResult } from '@/lib/brain/types'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 
@@ -11,6 +14,7 @@ export interface ChatHandlerOptions {
   content: string
   conversationId?: string
   userId: string
+  projectId?: string // Optional: if provided, uses project context; otherwise uses global
   model?: string
   temperature?: number
   maxTokens?: number
@@ -29,14 +33,24 @@ export interface ChatHandlerResult {
 }
 
 /**
- * Handle general chat requests
+ * Handle general chat requests with Brain service integration
  */
 export async function handleChat(options: ChatHandlerOptions): Promise<ChatHandlerResult> {
-  const { content, conversationId, userId, model, temperature = 0.7, maxTokens = 2000 } = options
+  const { content, conversationId, userId, projectId, model, temperature = 0.7, maxTokens = 2000 } = options
 
   // 1. Initialize clients
   const llmClient = getLLMClient()
+  const brainClient = getBrainClient()
   const payload = await getPayload({ config: await configPromise })
+
+  // Determine if we're using project-specific or global context
+  const effectiveProjectId = projectId || GLOBAL_PROJECT_ID
+  const isProjectContext = !!projectId
+
+  console.log('[ChatHandler] Initialized with context:', {
+    projectId: effectiveProjectId,
+    isProjectContext
+  })
 
   // 2. Load or create conversation
   let actualConversationId = conversationId
@@ -88,18 +102,61 @@ export async function handleChat(options: ChatHandlerOptions): Promise<ChatHandl
     actualConversationId = newConversation.id.toString()
   }
 
-  // 4. Build messages array with system prompt
-  const messages: LLMMessage[] = [
-    {
-      role: 'system',
-      content: `You are a helpful AI assistant for creative professionals. You can help with:
+  // 4. Query Brain service for relevant context
+  console.log('[ChatHandler] Searching Brain for context:', content)
+
+  let brainResults: SearchSimilarResult[] = []
+  let brainContext = ''
+
+  try {
+    brainResults = await brainClient.searchSimilar({
+      query: content,
+      projectId: effectiveProjectId,
+      limit: DEFAULT_SEARCH_LIMIT,
+      threshold: DEFAULT_SIMILARITY_THRESHOLD,
+    })
+
+    console.log('[ChatHandler] Brain results:', brainResults.length)
+
+    if (brainResults.length > 0) {
+      brainContext = `\n\nRelevant Knowledge (${brainResults.length} items found):\n\n${brainResults
+        .map((r, i) =>
+          `${i + 1}. ${r.type.toUpperCase()}: ${r.properties.name || r.id} (${Math.round(r.similarity * 100)}% relevant)\n${r.content.substring(0, 200)}...`
+        )
+        .join('\n\n')}`
+    }
+  } catch (brainError: any) {
+    console.warn('[ChatHandler] Brain search not available:', brainError.message)
+    // Continue without Brain context - service may not have data yet
+  }
+
+  // 5. Build messages array with system prompt (enhanced with Brain context)
+  const systemPrompt = isProjectContext
+    ? `You are a helpful AI assistant for a movie production project. You can help with:
+- Understanding project details (characters, scenes, locations, plot)
+- Creative writing and storytelling within the project context
+- Brainstorming ideas and overcoming writer's block
+- Providing constructive feedback on the project
+
+${brainContext ? brainContext : 'The project knowledge base is being built. I can still help with general creative guidance.'}
+
+Provide clear, concise, and helpful responses. Use markdown formatting when appropriate.
+Be encouraging and supportive while maintaining professionalism.`
+    : `You are a helpful AI assistant for creative professionals. You can help with:
 - Creative writing and storytelling
 - Brainstorming ideas and overcoming writer's block
 - General questions about narrative structure and techniques
 - Providing constructive feedback and suggestions
 
+${brainContext ? brainContext : ''}
+
 Provide clear, concise, and helpful responses. Use markdown formatting when appropriate.
-Be encouraging and supportive while maintaining professionalism.`,
+Be encouraging and supportive while maintaining professionalism.`
+
+  const messages: LLMMessage[] = [
+    {
+      role: 'system',
+      content: systemPrompt,
     },
     ...conversationHistory,
     {
@@ -154,7 +211,7 @@ Be encouraging and supportive while maintaining professionalism.`,
     }
   }
 
-  // 5. Get LLM response
+  // 6. Get LLM response
   const llmResponse = await llmClient.chat(messages, {
     temperature,
     maxTokens,
@@ -163,12 +220,13 @@ Be encouraging and supportive while maintaining professionalism.`,
   console.log('[ChatHandler] LLM response generated:', {
     tokens: llmResponse.usage.totalTokens,
     model: llmResponse.model,
+    brainResultsUsed: brainResults.length,
   })
 
-  // 6. Generate contextual suggestions
+  // 7. Generate contextual suggestions
   const suggestions = generateChatSuggestions(content, llmResponse.content)
 
-  // 7. Save messages to conversation
+  // 8. Save messages to conversation
   try {
     await payload.update({
       collection: 'conversations',
@@ -187,6 +245,7 @@ Be encouraging and supportive while maintaining professionalism.`,
             role: 'assistant',
             content: llmResponse.content,
             timestamp: new Date(),
+            metadata: brainResults.length > 0 ? { brainResultsCount: brainResults.length } : undefined,
           },
         ],
         lastMessageAt: new Date(),
@@ -281,7 +340,7 @@ async function computeNextDepartmentSuggestion(
     // Continue anyway - don't fail the request
   }
 
-  // 8. Return result
+  // 9. Return result
   return {
     conversationId: actualConversationId,
     message: llmResponse.content,

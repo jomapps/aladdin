@@ -28,6 +28,12 @@ function Welcome({ onSuggestionClick }: WelcomeProps) {
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           Let's build your story together, one department at a time.
         </p>
+        <div className="flex items-center justify-center gap-2 pt-1">
+          <div className="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400"></div>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+            Powered by Brain Knowledge Graph
+          </span>
+        </div>
       </div>
 
       {/* Workflow Instructions */}
@@ -93,6 +99,13 @@ function Welcome({ onSuggestionClick }: WelcomeProps) {
       <div className="p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
         <p className="text-xs text-amber-800 dark:text-amber-200 text-center">
           💡 I'll guide you through each department systematically based on what needs the most attention
+        </p>
+      </div>
+
+      {/* Brain Context Info */}
+      <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+        <p className="text-xs text-blue-800 dark:text-blue-200 text-center">
+          🧠 When you're in a project, I use the Brain knowledge graph to provide context-aware responses about your characters, scenes, and story elements.
         </p>
       </div>
     </div>
