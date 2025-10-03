@@ -114,7 +114,7 @@ The **Gather** feature is a content collection and management system that allows
 
 ## Features
 
-### ✅ Implemented (90% Complete)
+### ✅ Implemented (95% Complete)
 
 #### 1. Core CRUD Operations
 - Create, read, update, delete gather items
@@ -129,6 +129,16 @@ The **Gather** feature is a content collection and management system that allows
 - **Summary Generation**: Concise ~100 character summaries
 - **Context Generation**: Detailed contextual paragraphs
 - **Model Fallback**: Default → Backup → Vision model chain
+
+#### 3. AI Chat Integration (NEW - January 2025)
+- **Add to Gather from Chat**: Add AI chat messages directly to gather
+- **Dual-Mode Operation**:
+  - **Quick Add**: "Add All" button to bulk add all messages
+  - **Selective Add**: Selection mode with click-to-select messages
+- **Smart Filtering**: Automatically filters out empty messages
+- **Visual Feedback**: Checkboxes, highlighting, and clear button states
+- **Both Message Types**: Can add both user questions and AI responses
+- **Conditional Display**: Buttons only appear on gather and project-readiness pages
 
 #### 3. Duplicate Detection
 - **Semantic Search**: Brain service integration
@@ -308,11 +318,18 @@ BRAIN_API_KEY=your_brain_api_key
 
 ## Related Documentation
 
+### Implementation Guides
 - [Implementation Details](../implementation/gather-page-implementation.md)
 - [Quick Start Guide](../implementation/GATHER_QUICK_START.md)
 - [Implementation Checklist](../implementation/GATHER_IMPLEMENTATION_CHECKLIST.md)
+
+### Integration Documentation
 - [Chat & Sidebar Integration](../implementation/GATHER_CHAT_SIDEBAR_INTEGRATION.md)
+- [Gather Buttons in RightOrchestrator](../implementation/GATHER_BUTTONS_RIGHT_ORCHESTRATOR.md) ⭐ NEW
+- [Selection Feature Fixes](../implementation/GATHER_SELECTION_FIXES.md) ⭐ NEW
 - [Brain Service Integration](../implementation/GATHER_BRAIN_INTEGRATION.md)
+
+### Specifications
 - [Gather Page Specification](../idea/pages/gather.md)
 
 ---

@@ -154,6 +154,21 @@
 
 ---
 
+## ✅ Recent Updates (January 2025)
+
+### AI Chat Integration - COMPLETE
+- [x] Add to Gather from RightOrchestrator chat
+- [x] Dual-mode operation (Normal + Selection)
+- [x] Click-to-select messages with visual feedback
+- [x] Empty message filtering
+- [x] Both user and AI message selection
+- [x] "Add All" and "Add Selected" buttons
+- [x] Dark mode support
+
+**Documentation**: See [GATHER_BUTTONS_RIGHT_ORCHESTRATOR.md](./GATHER_BUTTONS_RIGHT_ORCHESTRATOR.md) and [GATHER_SELECTION_FIXES.md](./GATHER_SELECTION_FIXES.md)
+
+---
+
 ## 🚧 What Still Needs Implementation
 
 ### Phase 3: Conflict Resolution UI (Only remaining phase)

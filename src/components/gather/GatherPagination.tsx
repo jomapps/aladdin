@@ -14,6 +14,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
+import { cn } from '@/lib/utils'
 
 interface GatherPaginationProps {
   currentPage: number
@@ -76,7 +77,10 @@ export default function GatherPagination({
         <PaginationItem>
           <PaginationPrevious
             onClick={() => canGoPrevious && onPageChange(currentPage - 1)}
-            className={!canGoPrevious ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+            className={cn(
+              'border-slate-700/70 bg-slate-900/60 text-white hover:border-sky-400/40 hover:bg-slate-900/80',
+              !canGoPrevious && 'pointer-events-none opacity-40'
+            )}
           />
         </PaginationItem>
 
@@ -90,7 +94,10 @@ export default function GatherPagination({
               <PaginationLink
                 onClick={() => onPageChange(page)}
                 isActive={currentPage === page}
-                className="cursor-pointer"
+                className={cn(
+                  'cursor-pointer border-slate-700/70 bg-slate-900/60 text-white hover:border-sky-400/40 hover:bg-slate-900/80',
+                  currentPage === page && 'border-sky-400/60 bg-sky-500/25 text-white shadow-[0_12px_40px_-30px_rgba(56,189,248,0.8)]'
+                )}
               >
                 {page}
               </PaginationLink>
@@ -101,7 +108,10 @@ export default function GatherPagination({
         <PaginationItem>
           <PaginationNext
             onClick={() => canGoNext && onPageChange(currentPage + 1)}
-            className={!canGoNext ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+            className={cn(
+              'border-slate-700/70 bg-slate-900/60 text-white hover:border-sky-400/40 hover:bg-slate-900/80',
+              !canGoNext && 'pointer-events-none opacity-40'
+            )}
           />
         </PaginationItem>
       </PaginationContent>

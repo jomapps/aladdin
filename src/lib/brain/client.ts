@@ -148,11 +148,11 @@ export class BrainClient {
 
   /**
    * Search for similar content using query text
-   * This method uses the brain service's /search endpoint for hybrid search
+   * This method uses the brain service's /api/v1/search endpoint for hybrid search
    */
   async searchSimilar(query: SearchSimilarQuery): Promise<SearchSimilarResult[]> {
     try {
-      const response = await this.axiosInstance.post('/search', {
+      const response = await this.axiosInstance.post('/api/v1/search', {
         query: query.query,
         project_id: query.projectId,
         type: query.type,

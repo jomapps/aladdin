@@ -1,7 +1,7 @@
 # AI Chat Global Availability
 
-**Date**: 2025-10-02  
-**Status**: ✅ COMPLETE
+**Date**: 2025-10-02 (Original), Updated: 2025-01-03
+**Status**: ✅ COMPLETE + ENHANCED
 
 ---
 
@@ -242,8 +242,21 @@ Users can:
 - [AI_CHAT_REDESIGN.md](./AI_CHAT_REDESIGN.md) - Complete AI chat redesign
 - [FLOATING_BUTTON_AND_SCROLL_FIX.md](./FLOATING_BUTTON_AND_SCROLL_FIX.md) - Floating button implementation
 - [THEME_ISSUES_RESOLVED.md](./THEME_ISSUES_RESOLVED.md) - Theme color fixes
+- [GATHER_BUTTONS_RIGHT_ORCHESTRATOR.md](../implementation/GATHER_BUTTONS_RIGHT_ORCHESTRATOR.md) - Add to Gather feature ⭐ NEW
+- [GATHER_SELECTION_FIXES.md](../implementation/GATHER_SELECTION_FIXES.md) - Selection feature fixes ⭐ NEW
 
 ---
 
-**Status**: ✅ AI chat is now available on all project pages with consistent floating button and modal behavior!
+## 🎉 Current Status
+
+✅ AI chat is now available on all project pages with consistent floating button and modal behavior!
+
+### Enhanced Features (January 2025)
+
+On **Gather** and **Project Readiness** pages, the AI chat includes special "Add to Gather" functionality:
+- **Dual-Mode Operation**: Normal mode for quick "Add All" and Selection mode for precise control
+- **Click-to-Select**: Click any message to select/deselect with visual feedback
+- **Smart Filtering**: Empty messages automatically filtered out
+- **Both Message Types**: Can add both user questions and AI responses for better context
+- **Dark Mode Support**: Fully styled for both light and dark themes
 

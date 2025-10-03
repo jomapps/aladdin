@@ -24,12 +24,20 @@ const defaultConfig: BrainSyncConfig = {
 /**
  * Initialize Brain client with retry configuration
  */
-function getBrainClient(timeout: number = 5000): BrainClient {
-  return new BrainClient({
-    baseUrl: process.env.BRAIN_SERVICE_URL || 'http://localhost:8000',
-    timeout,
-    retries: 1, // Single retry for hooks to avoid blocking
-  });
+function getBrainClientHook(timeout: number = 5000): BrainClient {
+  const apiUrl = process.env.BRAIN_SERVICE_BASE_URL || process.env.BRAIN_SERVICE_URL || 'http://localhost:8000';
+  const apiKey = process.env.BRAIN_SERVICE_API_KEY || process.env.BRAIN_API_KEY || '';
+
+  return new BrainClient(
+    {
+      apiUrl,
+      apiKey,
+    },
+    {
+      timeout,
+      retries: 1, // Single retry for hooks to avoid blocking
+    }
+  );
 }
 
 /**
@@ -84,7 +92,7 @@ async function syncToBrain(params: {
       return;
     }
 
-    const brainClient = getBrainClient(config.timeout);
+    const brainClient = getBrainClientHook(config.timeout);
 
     // Handle different operations
     switch (operation) {

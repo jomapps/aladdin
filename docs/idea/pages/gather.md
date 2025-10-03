@@ -36,7 +36,9 @@ src/app/(frontend)/dashboard/project/[id]/gather
 - **Main Menu**: Standard top navigation
 - **Left Sidebar**: Project navigation (includes Gather link with count badge)
 - **Center Panel**: Gather card list with pagination
-- **Right Sidebar**: AI chat integration with conditional gather buttons
+- **Right Sidebar**: AI chat integration with gather buttons
+  - **Normal Mode**: "Select Messages" and "Add All" buttons
+  - **Selection Mode**: "Cancel" and "Add Selected" buttons with click-to-select messages
 
 ---
 
@@ -284,7 +286,9 @@ const departments = await payload.find({
 
 ### Chat UI Implementation
 
-**Normal Chat View (on /gather or /project-readiness routes)**:
+**✅ IMPLEMENTED - January 2025**
+
+#### Normal Mode (on /gather or /project-readiness routes):
 ```
 ┌─────────────────────────────────────────────────────┐
 │  💬 Chat Messages                                   │
@@ -295,32 +299,40 @@ const departments = await payload.find({
 │  │ AI: "Maya's backstory: She grew up..."        │ │
 │  └───────────────────────────────────────────────┘ │
 │                                                     │
-│  [📦 Add to Gather] [📦 Add All to Gather]         │
+│  [📦 Select Messages] [📦 Add All (4)]             │
 └─────────────────────────────────────────────────────┘
 ```
 
-### Add to Gather (Selection Mode)
+#### Selection Mode:
 
 **Workflow**:
-1. User clicks "Add to Gather"
-2. Chat cards get selection checkboxes
-3. User selects multiple cards
-4. Click "Add to Gather" to process
+1. User clicks "Select Messages"
+2. Checkboxes appear on all message cards
+3. User clicks messages to select/deselect (blue highlight)
+4. Click "Add Selected (X)" to process
+5. Selection mode exits automatically
 
 **UI**:
 ```
 ┌─────────────────────────────────────────────────────┐
-│  Select items to add to Gather:                     │
+│  💬 Chat Messages (Click to select)                 │
 │  ┌───────────────────────────────────────────────┐ │
-│  │ ☑ User: "Create a character named Maya"      │ │
+│  │ ☑ User: "Create a character named Maya"      │ │ ← Blue highlight
 │  │ ☐ AI: "Here's Maya's profile..."             │ │
-│  │ ☑ User: "Add backstory"                      │ │
-│  │ ☑ AI: "Maya's backstory: She grew up..."     │ │
+│  │ ☑ User: "Add backstory"                      │ │ ← Blue highlight
+│  │ ☑ AI: "Maya's backstory: She grew up..."     │ │ ← Blue highlight
 │  └───────────────────────────────────────────────┘ │
 │                                                     │
-│  [Add Selected (3)] [Cancel]                        │
+│  [Cancel] [📦 Add Selected (3)] Click messages     │
 └─────────────────────────────────────────────────────┘
 ```
+
+**Features**:
+- ✅ Empty messages automatically filtered out
+- ✅ Both user and AI messages selectable
+- ✅ Visual feedback with checkboxes and highlighting
+- ✅ Dark mode support
+- ✅ Mobile responsive
 
 ### Add All to Gather (Bulk Operation)
 

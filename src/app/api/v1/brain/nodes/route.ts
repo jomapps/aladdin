@@ -29,12 +29,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Initialize Brain client
-    const brainClient = new BrainClient({
-      baseUrl: process.env.BRAIN_SERVICE_URL || 'http://localhost:8000',
-      timeout: 30000,
-      retries: 2,
-    });
+    // Initialize Brain client using singleton
+    const { getBrainClient } = await import('@/lib/brain/client');
+    const brainClient = getBrainClient();
 
     // Add node to graph
     const node = await brainClient.addNode({
@@ -108,12 +105,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Initialize Brain client
-    const brainClient = new BrainClient({
-      baseUrl: process.env.BRAIN_SERVICE_URL || 'http://localhost:8000',
-      timeout: 30000,
-      retries: 2,
-    });
+    // Initialize Brain client using singleton
+    const { getBrainClient } = await import('@/lib/brain/client');
+    const brainClient = getBrainClient();
 
     // Retrieve node
     const node = await brainClient.getNode({
@@ -191,12 +185,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Initialize Brain client
-    const brainClient = new BrainClient({
-      baseUrl: process.env.BRAIN_SERVICE_URL || 'http://localhost:8000',
-      timeout: 30000,
-      retries: 2,
-    });
+    // Initialize Brain client using singleton
+    const { getBrainClient } = await import('@/lib/brain/client');
+    const brainClient = getBrainClient();
 
     // Delete node
     await brainClient.deleteNode({

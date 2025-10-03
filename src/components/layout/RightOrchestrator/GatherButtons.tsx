@@ -81,6 +81,7 @@ export default function GatherButtons({ projectId }: GatherButtonsProps) {
       // Process messages one by one
       let successCount = 0
       let errorCount = 0
+      let brainFailCount = 0
 
       for (const message of messagesToProcess) {
         try {
@@ -93,6 +94,17 @@ export default function GatherButtons({ projectId }: GatherButtonsProps) {
           })
 
           if (response.ok) {
+            const result = await response.json()
+
+            // Check brain save status
+            if (!result.brain?.saved) {
+              brainFailCount++
+              console.warn('[Gather] Brain save failed for message:', {
+                messageId: message.id,
+                error: result.brain?.error,
+              })
+            }
+
             successCount++
           } else {
             errorCount++
@@ -103,9 +115,8 @@ export default function GatherButtons({ projectId }: GatherButtonsProps) {
         }
       }
 
-      alert(
-        `Added ${successCount} message${successCount !== 1 ? 's' : ''} to Gather.${errorCount > 0 ? ` ${errorCount} failed.` : ''}`,
-      )
+      const message = `Added ${successCount} message${successCount !== 1 ? 's' : ''} to Gather.${errorCount > 0 ? ` ${errorCount} failed.` : ''}${brainFailCount > 0 ? ` ⚠️ ${brainFailCount} saved to DB only (Brain save failed).` : ''}`
+      alert(message)
 
       // Refresh the page to show updated gather count
       window.location.reload()

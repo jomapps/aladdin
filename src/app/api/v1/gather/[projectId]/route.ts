@@ -126,6 +126,9 @@ export async function POST(
     })
 
     // Store in Brain service for semantic search
+    let brainSaveSuccess = false
+    let brainError: string | undefined
+
     try {
       const brainClient = getBrainClient()
       await brainClient.addNode({
@@ -143,16 +146,26 @@ export async function POST(
           createdBy: user.id,
         },
       })
-      console.log('[Gather API] Stored in Brain service:', gatherItem._id)
-    } catch (brainError) {
-      // Log error but don't fail the request
-      console.error('[Gather API] Failed to store in Brain service:', brainError)
+      brainSaveSuccess = true
+      console.log('[Gather API] ✅ Stored in Brain service:', gatherItem._id)
+    } catch (error: any) {
+      // Log detailed error but don't fail the request
+      brainError = error.message || 'Unknown error'
+      console.error('[Gather API] ❌ Failed to store in Brain service:', {
+        error: brainError,
+        itemId: gatherItem._id,
+        projectId,
+      })
     }
 
     return NextResponse.json({
       success: true,
       item: gatherItem,
       duplicates: processingResult.duplicates,
+      brain: {
+        saved: brainSaveSuccess,
+        error: brainError,
+      },
     })
   } catch (error) {
     console.error('[Gather API] POST error:', error)

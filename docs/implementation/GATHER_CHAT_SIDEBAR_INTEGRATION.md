@@ -79,12 +79,18 @@ useEffect(() => {
 
 ### 2. Chat Integration (`GatherButtons.tsx`)
 
+**Status**: ✅ FULLY IMPLEMENTED (Updated January 2025)
+
 #### Features:
 - **Conditional Rendering** - Only shows on `/gather` and `/project-readiness` routes
-- **Select Messages** - Toggle selection mode
-- **Add All to Gather** - Bulk add all AI messages
+- **Empty Message Filtering** - Automatically filters out empty AI responses ✅ NEW
+- **Dual-Mode Operation** - Normal mode and Selection mode ✅ ENHANCED
+- **Select Messages** - Toggle selection mode with click-to-select ✅ IMPLEMENTED
+- **Add All to Gather** - Bulk add all messages (user + AI) ✅ ENHANCED
+- **Add Selected to Gather** - Add only selected messages ✅ NEW
 - **Progress Feedback** - Loading state during processing
 - **Success/Error Reporting** - Shows count of successful/failed additions
+- **Both Message Types** - Can select both user and AI messages ✅ NEW
 
 #### Implementation Details:
 
@@ -136,22 +142,27 @@ When processing:
 3. Badge shows number of items in gather
 4. Click to navigate to gather page
 
-#### Adding Chat Messages to Gather:
-1. Navigate to project chat page
-2. Have a conversation with AI agents
-3. Notice "Add All to Gather" button appears at top
-4. Click to add all AI responses to gather
+#### Method 1: Add All Messages (Quick):
+1. Navigate to gather or project-readiness page
+2. Have a conversation with AI agents in RightOrchestrator
+3. Notice "Add All (X)" button appears at bottom of chat
+4. Click to add all messages (user + AI) to gather
 5. Confirm the action
 6. Wait for processing (shows progress)
 7. See success/error count
 8. Page refreshes to show updated count
 
-#### Selection Mode (Future Enhancement):
-1. Click "Select Messages" button
-2. Checkboxes appear on chat messages
-3. Select specific messages to add
-4. Click "Add Selected to Gather"
-5. Cancel selection mode anytime
+#### Method 2: Select Specific Messages (Precise):
+1. Navigate to gather or project-readiness page
+2. Have a conversation with AI agents
+3. Click "Select Messages" button
+4. Checkboxes appear on all message cards
+5. Click messages to select/deselect (blue highlight)
+6. Click "Add Selected (X)" button
+7. Confirm the action
+8. Wait for processing
+9. Selection mode exits automatically
+10. Page refreshes to show updated count
 
 ---
 

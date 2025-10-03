@@ -202,8 +202,8 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
 
   if (departments.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">No departments found</p>
+      <div className="py-12 text-center">
+        <p className="text-slate-300">No departments found</p>
       </div>
     )
   }
@@ -249,8 +249,8 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
         return (
           <Card
             key={dept.id}
-            className={`transition-all hover:shadow-lg border-l-4 flex flex-col min-h-[200px] ${!canEvaluate ? 'opacity-60' : ''}`}
-            style={{ borderLeftColor: dept.color || '#6b7280' }}
+            className={`min-h-[200px] flex flex-col border border-slate-800/70 bg-slate-900/70 text-white transition-all hover:border-sky-400/40 hover:shadow-[0_24px_80px_-45px_rgba(15,23,42,0.9)] ${!canEvaluate ? 'opacity-60' : ''}`}
+            style={{ boxShadow: `inset 4px 0 0 ${dept.color || '#38bdf8'}` }}
           >
             <CardHeader
               className="px-6 py-5 cursor-pointer"
@@ -260,17 +260,19 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
                 <div className="flex items-center gap-3 flex-1">
                   {dept.icon && (
                     <div
-                      className="flex items-center justify-center w-10 h-10 rounded-full text-2xl flex-shrink-0"
-                      style={{ backgroundColor: `${dept.color}20` || '#f3f4f6' }}
+                      className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl text-2xl text-white"
+                      style={{ backgroundColor: `${dept.color || '#38bdf8'}33` }}
                     >
                       {dept.icon}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-xl font-semibold text-foreground break-words">
+                    <h3 className="text-xl font-semibold text-white break-words">
                       {dept.name}
                     </h3>
-                    <p className="text-xs text-muted-foreground">Department {dept.codeDepNumber}</p>
+                    <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
+                      Department {dept.codeDepNumber}
+                    </p>
                   </div>
                 </div>
                 {getStatusBadge(evaluation)}
@@ -281,29 +283,31 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
               className="flex-1 cursor-pointer px-6 pb-5"
               onClick={() => handleDepartmentClick(dept.slug)}
             >
-              <p className="text-sm text-muted-foreground whitespace-normal break-words">
+              <p className="text-sm text-slate-300 whitespace-normal break-words">
                 {dept.description}
               </p>
 
               {/* Threshold Display (Always show if evaluation exists) */}
               {evaluation && (
-                <div className="mt-3 pt-3 border-t">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Required Threshold:</span>
-                    <span className="font-medium text-foreground">{evaluation.threshold}%</span>
+                <div className="mt-3 border-t border-slate-800/70 pt-3">
+                  <div className="flex items-center justify-between text-xs text-slate-300">
+                    <span>Required Threshold:</span>
+                    <span className="font-semibold text-white">{evaluation.threshold}%</span>
                   </div>
                   {evaluation.rating !== null && (
-                    <div className="flex items-center justify-between text-xs mt-1">
-                      <span className="text-muted-foreground">Current Score:</span>
-                      <span className={`font-medium ${evaluation.rating >= evaluation.threshold ? 'text-green-500' : 'text-yellow-500'}`}>
+                    <div className="mt-1 flex items-center justify-between text-xs text-slate-300">
+                      <span>Current Score:</span>
+                      <span
+                        className={`font-semibold ${evaluation.rating >= evaluation.threshold ? 'text-emerald-300' : 'text-amber-300'}`}
+                      >
                         {evaluation.rating}%
                       </span>
                     </div>
                   )}
                   {evaluation.lastEvaluatedAt && (
-                    <div className="flex items-center justify-between text-xs mt-1">
-                      <span className="text-muted-foreground">Last Evaluated:</span>
-                      <span className="font-medium">
+                    <div className="mt-1 flex items-center justify-between text-xs text-slate-300">
+                      <span>Last Evaluated:</span>
+                      <span className="font-medium text-white">
                         {new Date(evaluation.lastEvaluatedAt).toLocaleDateString()}
                       </span>
                     </div>
@@ -315,10 +319,10 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
             <CardFooter className="flex-col gap-3 pt-4 px-6 pb-6">
               {/* Congratulations Alert */}
               {celebratingDepts.has(dept.id) && evaluation?.rating !== null && evaluation.rating >= evaluation.threshold && (
-                <Alert className="w-full bg-green-500/10 border-green-500/50">
-                  <PartyPopper className="h-4 w-4 text-green-500" />
-                  <AlertTitle className="text-green-500">Congratulations!</AlertTitle>
-                  <AlertDescription className="text-green-500/90">
+                <Alert className="w-full border-emerald-400/40 bg-emerald-500/15 text-emerald-100">
+                  <PartyPopper className="h-4 w-4 text-emerald-200" />
+                  <AlertTitle className="text-emerald-200">Congratulations!</AlertTitle>
+                  <AlertDescription className="text-emerald-100/90">
                     You can now move to the next department or add more info to this department.
                   </AlertDescription>
                 </Alert>
@@ -326,10 +330,10 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
 
               {/* Warning if previous department hasn't met threshold */}
               {!canEvaluate && !isFirstDepartment && (
-                <Alert className="w-full bg-yellow-500/10 border-yellow-500/50">
-                  <AlertCircle className="h-4 w-4 text-yellow-500" />
-                  <AlertTitle className="text-yellow-500 text-sm">Previous Department Required</AlertTitle>
-                  <AlertDescription className="text-yellow-500/90 text-xs">
+                <Alert className="w-full border-amber-400/40 bg-amber-500/15 text-amber-100">
+                  <AlertCircle className="h-4 w-4 text-amber-200" />
+                  <AlertTitle className="text-sm text-amber-100">Previous Department Required</AlertTitle>
+                  <AlertDescription className="text-xs text-amber-100/80">
                     Complete <strong>{previousDeptName}</strong> department and meet its threshold first to unlock evaluation.
                   </AlertDescription>
                 </Alert>
@@ -339,7 +343,11 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
                 onClick={(e) => handleEvaluateClick(e, dept.slug, dept.codeDepNumber)}
                 disabled={isEvaluating || !canEvaluate}
                 variant={evaluation?.status === 'completed' && evaluation.rating !== null && evaluation.rating >= evaluation.threshold ? 'outline' : 'default'}
-                className="w-full"
+                className={`w-full ${
+                  evaluation?.status === 'completed' && evaluation.rating !== null && evaluation.rating >= evaluation.threshold
+                    ? 'border-slate-700/70 bg-slate-900/60 text-white hover:border-sky-400/40 hover:bg-slate-900/80'
+                    : 'bg-gradient-to-r from-sky-500 to-indigo-500 text-white hover:brightness-110'
+                }`}
                 size="sm"
               >
                 {isEvaluating ? (

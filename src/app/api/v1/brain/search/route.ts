@@ -48,12 +48,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Initialize Brain client
-    const brainClient = new BrainClient({
-      baseUrl: process.env.BRAIN_SERVICE_URL || 'http://localhost:8000',
-      timeout: 30000,
-      retries: 2,
-    });
+    // Initialize Brain client using singleton
+    const { getBrainClient } = await import('@/lib/brain/client');
+    const brainClient = getBrainClient();
 
     // Search similar content
     const results = await brainClient.searchSimilar({
