@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: 'Invalid format. Must be json, csv, or pdf',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: 'Either projectId or departmentId is required',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -136,14 +136,17 @@ export async function POST(request: NextRequest) {
         success: false,
         error: error.message || 'Failed to export audit trail',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
 
 /**
- * Rate limiting middleware (simple implementation)
+ * Rate limiting (simple implementation)
  * In production, use Redis or a proper rate limiting service
+ *
+ * Note: This is a basic in-memory rate limiter.
+ * For production, implement proper middleware or use a service like Upstash Rate Limit.
  */
 const rateLimits = new Map<string, { count: number; resetAt: number }>()
 
@@ -166,25 +169,4 @@ function checkRateLimit(identifier: string): boolean {
 
   limit.count++
   return true
-}
-
-/**
- * Middleware to check rate limits
- */
-export async function middleware(request: NextRequest) {
-  // Use IP or user ID for rate limiting
-  const identifier =
-    request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
-
-  if (!checkRateLimit(identifier)) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Rate limit exceeded. Please try again later.',
-      },
-      { status: 429 }
-    )
-  }
-
-  return NextResponse.next()
 }

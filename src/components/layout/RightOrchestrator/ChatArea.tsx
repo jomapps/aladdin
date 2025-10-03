@@ -35,6 +35,18 @@ export default function ChatArea({ mode, onSuggestionClick }: ChatAreaProps) {
   // Filter messages by current mode
   const modeMessages = getMessagesByMode(mode)
 
+  // Debug logging
+  useEffect(() => {
+    console.log('[ChatArea] State:', {
+      mode,
+      totalMessages: messages.length,
+      modeMessages: modeMessages.length,
+      isStreaming,
+      hasStreamingMessage: !!currentStreamingMessage,
+      shouldShowWelcome: modeMessages.length === 0 && !isStreaming,
+    })
+  }, [mode, messages.length, modeMessages.length, isStreaming, currentStreamingMessage])
+
   return (
     <div ref={scrollRef} className="h-full overflow-y-auto p-4 bg-white dark:bg-zinc-950">
       {/* Mode-specific welcome message */}

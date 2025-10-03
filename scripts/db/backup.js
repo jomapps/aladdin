@@ -38,13 +38,19 @@ const PAYLOAD_COLLECTIONS = [
   'agent-executions',
 ]
 
-interface BackupOptions {
-  name?: string
-}
+/**
+ * @typedef {Object} BackupOptions
+ * @property {string} [name] - Optional backup name
+ */
 
-function parseArgs(): BackupOptions {
+/**
+ * Parse command line arguments
+ * @returns {BackupOptions}
+ */
+function parseArgs() {
   const args = process.argv.slice(2)
-  const options: BackupOptions = {}
+  /** @type {BackupOptions} */
+  const options = {}
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--name' && args[i + 1]) {
@@ -56,12 +62,23 @@ function parseArgs(): BackupOptions {
   return options
 }
 
-function getBackupName(customName?: string): string {
+/**
+ * Generate backup name with timestamp
+ * @param {string} [customName] - Optional custom name prefix
+ * @returns {string}
+ */
+function getBackupName(customName) {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
   return customName ? `${customName}-${timestamp}` : `backup-${timestamp}`
 }
 
-async function backupPayloadCollections(client: MongoClient, backupDir: string): Promise<void> {
+/**
+ * Backup PayloadCMS collections
+ * @param {import('mongodb').MongoClient} client
+ * @param {string} backupDir
+ * @returns {Promise<void>}
+ */
+async function backupPayloadCollections(client, backupDir) {
   console.log('\n💾 Backing up PayloadCMS collections...')
 
   const db = client.db()
@@ -92,14 +109,20 @@ async function backupPayloadCollections(client: MongoClient, backupDir: string):
   console.log(`\n✅ PayloadCMS backup completed (${backed} collections)`)
 }
 
-async function backupOpenDatabases(client: MongoClient, backupDir: string): Promise<void> {
+/**
+ * Backup Open MongoDB databases
+ * @param {import('mongodb').MongoClient} client
+ * @param {string} backupDir
+ * @returns {Promise<void>}
+ */
+async function backupOpenDatabases(client, backupDir) {
   console.log('\n💾 Backing up Open MongoDB databases...')
 
   const adminDb = client.db('admin')
   const { databases } = await adminDb.admin().listDatabases()
 
   // Find all databases starting with 'open_'
-  const openDatabases = databases.filter((db: any) => db.name.startsWith('open_'))
+  const openDatabases = databases.filter((db) => db.name.startsWith('open_'))
 
   if (openDatabases.length === 0) {
     console.log('  ℹ️  No open databases found')
@@ -136,7 +159,12 @@ async function backupOpenDatabases(client: MongoClient, backupDir: string): Prom
   console.log(`\n✅ Open databases backup completed (${backed} databases)`)
 }
 
-async function createBackupMetadata(backupDir: string): Promise<void> {
+/**
+ * Create backup metadata file
+ * @param {string} backupDir
+ * @returns {Promise<void>}
+ */
+async function createBackupMetadata(backupDir) {
   const metadata = {
     timestamp: new Date().toISOString(),
     payloadDbUri: PAYLOAD_DB_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@'), // Hide credentials
@@ -162,8 +190,8 @@ async function main() {
   fs.mkdirSync(path.join(backupDir, 'payload'), { recursive: true })
   fs.mkdirSync(path.join(backupDir, 'open'), { recursive: true })
 
-  let payloadClient: MongoClient | null = null
-  let openClient: MongoClient | null = null
+  let payloadClient = null
+  let openClient = null
 
   try {
     // Connect to PayloadCMS database

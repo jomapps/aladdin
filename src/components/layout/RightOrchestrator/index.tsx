@@ -6,7 +6,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { ChevronRight, ChevronLeft, X } from 'lucide-react'
+import { ChevronRight, ChevronLeft, X, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useLayoutStore } from '@/stores/layoutStore'
 import { useOrchestratorStore } from '@/stores/orchestratorStore'
@@ -31,7 +31,7 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
     setMobileRightOverlay,
   } = useLayoutStore()
 
-  const { conversationId, setPanelOpen } = useOrchestratorStore()
+  const { conversationId, setPanelOpen, setMode, clearMessages, messages } = useOrchestratorStore()
 
   // Initialize orchestrator chat
   const { sendMessage, isLoading } = useOrchestratorChat({
@@ -40,6 +40,11 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
 
   // Initialize streaming connection
   useStreamingResponse(conversationId)
+
+  // Sync mode between stores on mount and when orchestratorMode changes
+  useEffect(() => {
+    setMode(orchestratorMode)
+  }, [orchestratorMode, setMode])
 
   // Update panel state
   useEffect(() => {
@@ -108,19 +113,33 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
               <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                 AI Assistant
               </h2>
-              <div className="text-[11px] leading-tight text-right whitespace-pre-wrap break-words max-w-[60%]">
-                {projectName ? (
-                  <span className="font-semibold text-zinc-600 dark:text-zinc-300 animate-pulse">
-                    {projectName}
-                  </span>
-                ) : (
-                  <span className="relative inline-flex items-center">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 animate-ping" />
-                    <span className="relative inline-flex font-bold text-blue-600 dark:text-blue-400 animate-pulse">
-                      GLOBAL
-                    </span>
-                  </span>
+              <div className="flex items-center gap-2">
+                {messages.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearMessages}
+                    className="h-7 px-2 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                    title="Clear all messages"
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Clear
+                  </Button>
                 )}
+                <div className="text-[11px] leading-tight text-right whitespace-pre-wrap break-words max-w-[60%]">
+                  {projectName ? (
+                    <span className="font-semibold text-zinc-600 dark:text-zinc-300 animate-pulse">
+                      {projectName}
+                    </span>
+                  ) : (
+                    <span className="relative inline-flex items-center">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 animate-ping" />
+                      <span className="relative inline-flex font-bold text-blue-600 dark:text-blue-400 animate-pulse">
+                        GLOBAL
+                      </span>
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <ModeSelector />

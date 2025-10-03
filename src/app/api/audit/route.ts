@@ -135,47 +135,9 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * GET /api/audit/[executionId]
+ * TODO: GET /api/audit/[executionId]
  * Get single execution by ID
+ *
+ * This should be moved to src/app/api/audit/[executionId]/route.ts
+ * to follow Next.js App Router conventions for dynamic routes.
  */
-export async function GET_BY_ID(
-  request: NextRequest,
-  { params }: { params: Promise<{ executionId: string }> },
-) {
-  try {
-    const { executionId } = await params
-    const searchParams = request.nextUrl.searchParams
-    const includeEvents = searchParams.get('includeEvents') === 'true'
-    const includeToolCalls = searchParams.get('includeToolCalls') !== 'false'
-
-    const query = getAuditQuery()
-    const execution = await query.findById(executionId, {
-      includeEvents,
-      includeToolCalls,
-    })
-
-    if (!execution) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Execution not found',
-        },
-        { status: 404 },
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: execution,
-    })
-  } catch (error: any) {
-    console.error('Audit query error:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message || 'Failed to fetch execution',
-      },
-      { status: 500 },
-    )
-  }
-}

@@ -10,7 +10,9 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, TrendingUp, CheckCircle2, Clock, AlertCircle } from 'lucide-react'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import { Loader2, TrendingUp, CheckCircle2, Clock, AlertCircle, PartyPopper } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Department {
   id: string
@@ -44,6 +46,7 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
   const [evaluations, setEvaluations] = useState<Map<string, DepartmentEvaluation>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [celebratingDepts, setCelebratingDepts] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const fetchData = async () => {
@@ -73,15 +76,31 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
         if (evalsResponse.ok) {
           const evalsData = await evalsResponse.json()
           const evalMap = new Map<string, DepartmentEvaluation>()
+          const previousEvaluations = new Map(evaluations)
 
           evalsData.departments?.forEach((dept: any) => {
-            evalMap.set(dept.departmentId, {
+            const newEval: DepartmentEvaluation = {
               departmentId: dept.departmentId,
               status: dept.status,
               rating: dept.rating,
               threshold: dept.threshold,
               lastEvaluatedAt: dept.lastEvaluatedAt,
-            })
+            }
+            evalMap.set(dept.departmentId, newEval)
+
+            // Check if threshold was just crossed
+            const prevEval = previousEvaluations.get(dept.departmentId)
+            const wasNotMeetingThreshold = !prevEval || (prevEval.rating !== null && prevEval.rating < prevEval.threshold)
+            const nowMeetsThreshold = newEval.rating !== null && newEval.rating >= newEval.threshold
+
+            if (wasNotMeetingThreshold && nowMeetsThreshold && newEval.status === 'completed') {
+              setCelebratingDepts(prev => new Set(prev).add(dept.departmentId))
+
+              // Show toast notification
+              toast.success(`🎉 ${dept.departmentName} department reached threshold!`, {
+                description: `Score: ${newEval.rating}% (Threshold: ${newEval.threshold}%)`
+              })
+            }
           })
 
           setEvaluations(evalMap)
@@ -234,13 +253,21 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
                 {dept.description}
               </p>
 
-              {/* Evaluation Stats */}
-              {evaluation?.rating !== null && (
+              {/* Threshold Display (Always show if evaluation exists) */}
+              {evaluation && (
                 <div className="mt-3 pt-3 border-t">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Threshold:</span>
-                    <span className="font-medium">{evaluation.threshold}%</span>
+                    <span className="text-muted-foreground">Required Threshold:</span>
+                    <span className="font-medium text-foreground">{evaluation.threshold}%</span>
                   </div>
+                  {evaluation.rating !== null && (
+                    <div className="flex items-center justify-between text-xs mt-1">
+                      <span className="text-muted-foreground">Current Score:</span>
+                      <span className={`font-medium ${evaluation.rating >= evaluation.threshold ? 'text-green-500' : 'text-yellow-500'}`}>
+                        {evaluation.rating}%
+                      </span>
+                    </div>
+                  )}
                   {evaluation.lastEvaluatedAt && (
                     <div className="flex items-center justify-between text-xs mt-1">
                       <span className="text-muted-foreground">Last Evaluated:</span>
@@ -253,11 +280,22 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
               )}
             </CardContent>
 
-            <CardFooter className="pt-4 px-6 pb-6">
+            <CardFooter className="flex-col gap-3 pt-4 px-6 pb-6">
+              {/* Congratulations Alert */}
+              {celebratingDepts.has(dept.id) && evaluation?.rating !== null && evaluation.rating >= evaluation.threshold && (
+                <Alert className="w-full bg-green-500/10 border-green-500/50">
+                  <PartyPopper className="h-4 w-4 text-green-500" />
+                  <AlertTitle className="text-green-500">Congratulations!</AlertTitle>
+                  <AlertDescription className="text-green-500/90">
+                    You can now move to the next department or add more info to this department.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <Button
                 onClick={(e) => handleEvaluateClick(e, dept.slug, dept.codeDepNumber)}
-                disabled={isEvaluating}
-                variant={evaluation?.status === 'completed' ? 'outline' : 'default'}
+                disabled={isEvaluating || (evaluation?.rating !== null && evaluation.rating < evaluation.threshold && evaluation.status === 'completed')}
+                variant={evaluation?.status === 'completed' && evaluation.rating !== null && evaluation.rating >= evaluation.threshold ? 'outline' : 'default'}
                 className="w-full"
                 size="sm"
               >
@@ -266,7 +304,7 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Evaluating...
                   </>
-                ) : evaluation?.status === 'completed' ? (
+                ) : evaluation?.status === 'completed' && evaluation.rating !== null && evaluation.rating >= evaluation.threshold ? (
                   <>
                     <TrendingUp className="mr-2 h-4 w-4" />
                     Re-evaluate

@@ -24,14 +24,20 @@ const OPEN_DB_URI =
   process.env.DATABASE_URI_OPEN || process.env.DATABASE_URI || 'mongodb://localhost:27017'
 const BACKUPS_DIR = path.resolve(__dirname, '../../backups')
 
-interface RestoreOptions {
-  backup?: string
-  confirm?: boolean
-}
+/**
+ * @typedef {Object} RestoreOptions
+ * @property {string} [backup] - Backup name to restore
+ * @property {boolean} [confirm] - Skip confirmation prompt
+ */
 
-function parseArgs(): RestoreOptions {
+/**
+ * Parse command line arguments
+ * @returns {RestoreOptions}
+ */
+function parseArgs() {
   const args = process.argv.slice(2)
-  const options: RestoreOptions = {}
+  /** @type {RestoreOptions} */
+  const options = {}
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--backup' && args[i + 1]) {
@@ -45,7 +51,11 @@ function parseArgs(): RestoreOptions {
   return options
 }
 
-function getLatestBackup(): string | null {
+/**
+ * Get the latest backup directory
+ * @returns {string | null}
+ */
+function getLatestBackup() {
   if (!fs.existsSync(BACKUPS_DIR)) {
     return null
   }
@@ -62,7 +72,12 @@ function getLatestBackup(): string | null {
   return backups.length > 0 ? backups[0] : null
 }
 
-async function askConfirmation(backupName: string): Promise<boolean> {
+/**
+ * Ask user for confirmation
+ * @param {string} backupName
+ * @returns {Promise<boolean>}
+ */
+async function askConfirmation(backupName) {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -80,7 +95,13 @@ async function askConfirmation(backupName: string): Promise<boolean> {
   })
 }
 
-async function restorePayloadCollections(client: MongoClient, backupDir: string): Promise<void> {
+/**
+ * Restore PayloadCMS collections
+ * @param {import('mongodb').MongoClient} client
+ * @param {string} backupDir
+ * @returns {Promise<void>}
+ */
+async function restorePayloadCollections(client, backupDir) {
   console.log('\n📥 Restoring PayloadCMS collections...')
 
   const payloadBackupDir = path.join(backupDir, 'payload')
@@ -123,7 +144,13 @@ async function restorePayloadCollections(client: MongoClient, backupDir: string)
   console.log(`\n✅ PayloadCMS restore completed (${restored} collections)`)
 }
 
-async function restoreOpenDatabases(client: MongoClient, backupDir: string): Promise<void> {
+/**
+ * Restore Open MongoDB databases
+ * @param {import('mongodb').MongoClient} client
+ * @param {string} backupDir
+ * @returns {Promise<void>}
+ */
+async function restoreOpenDatabases(client, backupDir) {
   console.log('\n📥 Restoring Open MongoDB databases...')
 
   const openBackupDir = path.join(backupDir, 'open')
@@ -222,8 +249,8 @@ async function main() {
     }
   }
 
-  let payloadClient: MongoClient | null = null
-  let openClient: MongoClient | null = null
+  let payloadClient = null
+  let openClient = null
 
   try {
     // Connect to PayloadCMS database

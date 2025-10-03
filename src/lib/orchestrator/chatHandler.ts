@@ -5,7 +5,11 @@
 
 import { getLLMClient, type LLMMessage } from '@/lib/llm/client'
 import { getBrainClient } from '@/lib/brain/client'
-import { GLOBAL_PROJECT_ID, DEFAULT_SIMILARITY_THRESHOLD, DEFAULT_SEARCH_LIMIT } from '@/lib/brain/constants'
+import {
+  GLOBAL_PROJECT_ID,
+  DEFAULT_SIMILARITY_THRESHOLD,
+  DEFAULT_SEARCH_LIMIT,
+} from '@/lib/brain/constants'
 import type { SearchSimilarResult } from '@/lib/brain/types'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
@@ -36,7 +40,15 @@ export interface ChatHandlerResult {
  * Handle general chat requests with Brain service integration
  */
 export async function handleChat(options: ChatHandlerOptions): Promise<ChatHandlerResult> {
-  const { content, conversationId, userId, projectId, model, temperature = 0.7, maxTokens = 2000 } = options
+  const {
+    content,
+    conversationId,
+    userId,
+    projectId,
+    model,
+    temperature = 0.7,
+    maxTokens = 2000,
+  } = options
 
   // 1. Initialize clients
   const llmClient = getLLMClient()
@@ -52,7 +64,7 @@ export async function handleChat(options: ChatHandlerOptions): Promise<ChatHandl
   console.log('[ChatHandler] Initialized with context:', {
     brainProjectId,
     isProjectContext,
-    actualProjectId: projectId
+    actualProjectId: projectId,
   })
 
   // 2. Load or create conversation
@@ -123,8 +135,9 @@ export async function handleChat(options: ChatHandlerOptions): Promise<ChatHandl
 
     if (brainResults.length > 0) {
       brainContext = `\n\nRelevant Knowledge (${brainResults.length} items found):\n\n${brainResults
-        .map((r, i) =>
-          `${i + 1}. ${r.type.toUpperCase()}: ${r.properties.name || r.id} (${Math.round(r.similarity * 100)}% relevant)\n${r.content.substring(0, 200)}...`
+        .map(
+          (r, i) =>
+            `${i + 1}. ${r.type.toUpperCase()}: ${r.properties.name || r.id} (${Math.round(r.similarity * 100)}% relevant)\n${r.content.substring(0, 200)}...`,
         )
         .join('\n\n')}`
     }
@@ -248,12 +261,31 @@ Be encouraging and supportive while maintaining professionalism.`
             role: 'assistant',
             content: llmResponse.content,
             timestamp: new Date(),
-            metadata: brainResults.length > 0 ? { brainResultsCount: brainResults.length } : undefined,
+            metadata:
+              brainResults.length > 0 ? { brainResultsCount: brainResults.length } : undefined,
           },
         ],
         lastMessageAt: new Date(),
         updatedAt: new Date(),
       },
+    })
+  } catch (saveError) {
+    console.error('[ChatHandler] Failed to save conversation:', saveError)
+  }
+
+  // 9. Return result
+  return {
+    conversationId: actualConversationId,
+    message: llmResponse.content,
+    model: llmResponse.model,
+    usage: {
+      promptTokens: llmResponse.usage.promptTokens,
+      completionTokens: llmResponse.usage.completionTokens,
+      totalTokens: llmResponse.usage.totalTokens,
+    },
+    suggestions,
+  }
+}
 
 /**
  * Detects if the user is asking for the next step
@@ -275,10 +307,7 @@ function isNextStepIntent(text: string): boolean {
  * Compute next department suggestion using project readiness if available,
  * otherwise fall back to first core department by codeDepNumber.
  */
-async function computeNextDepartmentSuggestion(
-  payload: any,
-  projectId?: string,
-): Promise<string> {
+async function computeNextDepartmentSuggestion(payload: any, projectId?: string): Promise<string> {
   try {
     const departments = await payload.find({
       collection: 'departments',
@@ -309,10 +338,7 @@ async function computeNextDepartmentSuggestion(
       const evaluation = await payload.find({
         collection: 'project-readiness',
         where: {
-          and: [
-            { projectId: { equals: projectId } },
-            { departmentId: { equals: dept.id } },
-          ],
+          and: [{ projectId: { equals: projectId } }, { departmentId: { equals: dept.id } }],
         },
         sort: '-lastEvaluatedAt',
         limit: 1,
@@ -335,25 +361,6 @@ async function computeNextDepartmentSuggestion(
   } catch (e) {
     console.warn('[ChatHandler] Failed to compute next department suggestion:', e)
     return 'Try loading the Story Department'
-  }
-}
-
-  } catch (saveError) {
-    console.error('[ChatHandler] Failed to save conversation:', saveError)
-    // Continue anyway - don't fail the request
-  }
-
-  // 9. Return result
-  return {
-    conversationId: actualConversationId,
-    message: llmResponse.content,
-    model: llmResponse.model,
-    usage: {
-      promptTokens: llmResponse.usage.promptTokens,
-      completionTokens: llmResponse.usage.completionTokens,
-      totalTokens: llmResponse.usage.totalTokens,
-    },
-    suggestions,
   }
 }
 

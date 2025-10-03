@@ -7,6 +7,7 @@
 
 import { Search, Upload, Zap, MessageCircle } from 'lucide-react'
 import { useLayoutStore, OrchestratorMode } from '@/stores/layoutStore'
+import { useOrchestratorStore } from '@/stores/orchestratorStore'
 import { cn } from '@/lib/utils'
 
 const modes: Array<{
@@ -43,6 +44,13 @@ const modes: Array<{
 
 export default function ModeSelector() {
   const { orchestratorMode, setOrchestratorMode } = useLayoutStore()
+  const { setMode } = useOrchestratorStore()
+
+  const handleModeChange = (newMode: OrchestratorMode) => {
+    // Update both stores to keep them in sync
+    setOrchestratorMode(newMode)
+    setMode(newMode)
+  }
 
   return (
     <div className="flex border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
@@ -53,7 +61,7 @@ export default function ModeSelector() {
         return (
           <button
             key={mode.id}
-            onClick={() => setOrchestratorMode(mode.id)}
+            onClick={() => handleModeChange(mode.id)}
             className={cn(
               'flex-1 flex flex-col items-center gap-1.5 py-3 text-xs font-medium transition-all border-b-2',
               isActive

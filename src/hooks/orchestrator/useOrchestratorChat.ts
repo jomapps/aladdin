@@ -75,13 +75,25 @@ export function useOrchestratorChat(options: SendMessageOptions) {
 
         const data = await response.json()
 
+        console.log('[useOrchestratorChat] Response received:', {
+          mode,
+          hasMessage: !!data.message,
+          hasConversationId: !!data.conversationId,
+          dataKeys: Object.keys(data),
+        })
+
         // Update conversation ID if new
         if (data.conversationId && !conversationId) {
+          console.log('[useOrchestratorChat] Setting new conversationId:', data.conversationId)
           setConversationId(data.conversationId)
         }
 
-        // If Chat mode, let SSE streaming add the assistant message to avoid duplicates
-        if (mode !== 'chat' && data.message) {
+        // Add assistant message for all modes (including chat)
+        // Note: Chat mode now returns JSON response, not SSE streaming
+        if (data.message) {
+          console.log('[useOrchestratorChat] Adding assistant message for mode:', mode)
+          console.log('[useOrchestratorChat] Message content:', data.message)
+
           const assistantMessage: Message = {
             id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             role: 'assistant',
@@ -107,12 +119,17 @@ export function useOrchestratorChat(options: SendMessageOptions) {
           }
 
           addMessage(assistantMessage)
+          console.log('[useOrchestratorChat] Assistant message added:', {
+            id: assistantMessage.id,
+            contentLength: assistantMessage.content.length,
+            mode: assistantMessage.mode,
+          })
+        } else {
+          console.warn('[useOrchestratorChat] No message in response:', data)
         }
 
-        // If Chat mode, keep streaming flag; SSE will clear it on 'complete'
-        if (mode !== 'chat') {
-          setIsStreaming(false)
-        }
+        // Clear streaming flag for all modes
+        setIsStreaming(false)
       } catch (err) {
         console.error('Failed to send message:', err)
         setError(err instanceof Error ? err : new Error('Failed to send message'))
