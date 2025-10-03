@@ -5,6 +5,8 @@
  * Phase 7: Production Polish
  */
 
+import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react'
+
 interface DepartmentMetrics {
   id: string
   name: string
@@ -19,72 +21,87 @@ interface QualityMetricCardProps {
 }
 
 export default function QualityMetricCard({ metric }: QualityMetricCardProps) {
-  const getScoreColor = (score: number): string => {
-    if (score >= 90) return 'text-green-600'
-    if (score >= 75) return 'text-blue-600'
-    if (score >= 60) return 'text-yellow-600'
-    return 'text-red-600'
-  }
-
-  const getScoreBgColor = (score: number): string => {
-    if (score >= 90) return 'bg-green-50 border-green-200'
-    if (score >= 75) return 'bg-blue-50 border-blue-200'
-    if (score >= 60) return 'bg-yellow-50 border-yellow-200'
-    return 'bg-red-50 border-red-200'
-  }
-
-  const getTrendIcon = (trend: 'up' | 'down' | 'stable'): string => {
-    switch (trend) {
-      case 'up':
-        return '📈'
-      case 'down':
-        return '📉'
-      case 'stable':
-        return '➡️'
+  const scoreStyles = (score: number) => {
+    if (score >= 90) {
+      return {
+        gradient: 'from-emerald-400/25 to-emerald-500/20',
+        text: 'text-emerald-100',
+        accent: 'border-emerald-300/40',
+      }
+    }
+    if (score >= 75) {
+      return {
+        gradient: 'from-sky-400/25 to-indigo-500/20',
+        text: 'text-sky-100',
+        accent: 'border-sky-300/40',
+      }
+    }
+    if (score >= 60) {
+      return {
+        gradient: 'from-amber-400/25 to-orange-500/20',
+        text: 'text-amber-100',
+        accent: 'border-amber-300/40',
+      }
+    }
+    return {
+      gradient: 'from-rose-500/25 to-red-500/20',
+      text: 'text-rose-100',
+      accent: 'border-rose-300/40',
     }
   }
 
-  const getTrendColor = (trend: 'up' | 'down' | 'stable'): string => {
-    switch (trend) {
-      case 'up':
-        return 'text-green-600'
-      case 'down':
-        return 'text-red-600'
-      case 'stable':
-        return 'text-gray-600'
-    }
-  }
+  const trendConfig = {
+    up: {
+      icon: <ArrowUpRight className="h-4 w-4" />,
+      color: 'text-emerald-200',
+      badge: 'border-emerald-300/40 bg-emerald-500/15',
+      label: 'Improving',
+    },
+    down: {
+      icon: <ArrowDownRight className="h-4 w-4" />,
+      color: 'text-rose-200',
+      badge: 'border-rose-300/40 bg-rose-500/15',
+      label: 'Declining',
+    },
+    stable: {
+      icon: <Minus className="h-4 w-4" />,
+      color: 'text-slate-200',
+      badge: 'border-slate-300/30 bg-white/10',
+      label: 'Stable',
+    },
+  } as const
+
+  const score = scoreStyles(metric.score)
+  const trend = trendConfig[metric.trend]
 
   return (
     <div
-      className={`
-      bg-white border rounded-lg p-4 hover:shadow-md transition-shadow
-      ${metric.alerts > 0 ? 'ring-2 ring-yellow-400' : ''}
-    `}
+      className={`relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 text-slate-100 transition duration-200 hover:border-white/30 hover:bg-white/10 ${metric.alerts > 0 ? 'ring-1 ring-amber-300/50' : ''}`}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-gray-900">{metric.name}</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-base font-semibold tracking-wide">{metric.name}</h3>
         {metric.alerts > 0 && (
-          <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded">
+          <span className="rounded-full border border-amber-300/40 bg-amber-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100">
             {metric.alerts} Alert{metric.alerts !== 1 ? 's' : ''}
           </span>
         )}
       </div>
 
-      {/* Score */}
-      <div className={`${getScoreBgColor(metric.score)} rounded-lg p-3 mb-3 border`}>
-        <div className={`text-3xl font-bold ${getScoreColor(metric.score)}`}>{metric.score}</div>
-        <div className="text-xs text-gray-600 mt-1">Quality Score</div>
+      <div
+        className={`relative mt-4 overflow-hidden rounded-xl border ${score.accent} bg-gradient-to-br ${score.gradient} px-4 py-5`}
+      >
+        <div className={`text-4xl font-black ${score.text}`}>{metric.score}</div>
+        <div className="mt-1 text-xs uppercase tracking-[0.35em] text-white/70">Quality Score</div>
       </div>
 
-      {/* Trend */}
-      <div className="flex items-center justify-between text-sm">
-        <div className={`flex items-center gap-1 ${getTrendColor(metric.trend)}`}>
-          <span>{getTrendIcon(metric.trend)}</span>
-          <span className="font-medium capitalize">{metric.trend}</span>
+      <div className="mt-5 flex items-center justify-between text-xs">
+        <div
+          className={`inline-flex items-center gap-2 rounded-full border ${trend.badge} px-3 py-1 font-medium uppercase tracking-[0.25em] ${trend.color}`}
+        >
+          {trend.icon}
+          {trend.label}
         </div>
-        <div className="text-gray-500 text-xs">
+        <div className="text-slate-400">
           {new Date(metric.lastUpdated).toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',

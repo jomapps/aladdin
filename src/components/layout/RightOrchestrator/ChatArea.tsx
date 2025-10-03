@@ -43,7 +43,7 @@ export default function ChatArea({ mode, onSuggestionClick }: ChatAreaProps) {
           {mode === 'query' && <QueryMode.Welcome onSuggestionClick={onSuggestionClick} />}
           {mode === 'data' && <DataMode.Welcome />}
           {mode === 'task' && <TaskMode.Welcome />}
-          {mode === 'chat' && <ChatMode.Welcome />}
+          {mode === 'chat' && <ChatMode.Welcome onSuggestionClick={onSuggestionClick} />}
         </div>
       )}
 

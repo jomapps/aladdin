@@ -10,13 +10,34 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useProjectRecentActivity } from '@/lib/react-query'
 import { formatDistanceToNow } from 'date-fns'
-import { Loader2 } from 'lucide-react'
+import {
+  BookOpen,
+  Boxes,
+  ChevronDown,
+  ChevronRight,
+  Clapperboard,
+  Film,
+  Loader2,
+  MessageSquare,
+  Package,
+  Palette,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  User2,
+  Users,
+  Waves,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 
 interface Department {
   id: string
   name: string
-  icon: string
+  icon: LucideIcon
   path: string
+  accent: string
 }
 
 interface ContentItem {
@@ -34,13 +55,13 @@ interface ProjectSidebarProps {
 }
 
 const DEPARTMENTS: Department[] = [
-  { id: 'story', name: 'Story', icon: '📖', path: '/story' },
-  { id: 'character', name: 'Character', icon: '👤', path: '/character' },
-  { id: 'visual', name: 'Visual', icon: '🎨', path: '/visual' },
-  { id: 'video', name: 'Video', icon: '🎬', path: '/video' },
-  { id: 'audio', name: 'Audio', icon: '🔊', path: '/audio' },
-  { id: 'image-quality', name: 'Image Quality', icon: '✨', path: '/image-quality' },
-  { id: 'production', name: 'Production', icon: '🎯', path: '/production' },
+  { id: 'story', name: 'Story', icon: BookOpen, path: '/story', accent: 'from-sky-400/40 to-indigo-400/20' },
+  { id: 'character', name: 'Character', icon: User2, path: '/character', accent: 'from-emerald-400/45 to-sky-400/20' },
+  { id: 'visual', name: 'Visual', icon: Palette, path: '/visual', accent: 'from-fuchsia-400/45 to-amber-300/20' },
+  { id: 'video', name: 'Video', icon: Clapperboard, path: '/video', accent: 'from-purple-400/45 to-sky-400/20' },
+  { id: 'audio', name: 'Audio', icon: Waves, path: '/audio', accent: 'from-emerald-400/40 to-cyan-400/20' },
+  { id: 'image-quality', name: 'Image Quality', icon: Sparkles, path: '/image-quality', accent: 'from-amber-300/50 to-rose-300/20' },
+  { id: 'production', name: 'Production', icon: Target, path: '/production', accent: 'from-indigo-400/40 to-rose-300/20' },
 ]
 
 export default function ProjectSidebar({
@@ -102,65 +123,84 @@ export default function ProjectSidebar({
   return (
     <>
       {/* Overlay for mobile */}
-      {isOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onToggle} />}
+      {isOpen && <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden" onClick={onToggle} />}
 
       {/* Sidebar */}
       <aside
         className={`
-          fixed lg:sticky top-0 left-0 h-screen
-          w-64 bg-white border-r border-gray-200
-          transform transition-transform duration-300 ease-in-out
-          z-50 lg:z-0
+          fixed left-0 top-0 h-screen w-72 overflow-y-auto
+          border-r border-white/10 bg-white/5 backdrop-blur-2xl
+          shadow-[0_60px_160px_-100px_rgba(59,130,246,0.65)] transition-transform duration-300 ease-in-out
+          z-50 lg:z-0 lg:sticky
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          overflow-y-auto
         `}
       >
         {/* Project Info */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="border-b border-white/10 px-5 py-5">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-gray-900 truncate">{projectName}</h2>
-            <button onClick={onToggle} className="lg:hidden p-1 hover:bg-gray-100 rounded">
-              ✕
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                Project
+              </p>
+              <h2 className="mt-2 line-clamp-2 text-lg font-semibold text-slate-100">
+                {projectName}
+              </h2>
+            </div>
+            <button
+              onClick={onToggle}
+              className="lg:hidden rounded-xl border border-white/10 bg-white/10 p-1.5 text-slate-100"
+              aria-label="Close navigation"
+            >
+              <X className="h-4 w-4" />
             </button>
           </div>
-          <Link href={basePath} className="text-sm text-blue-600 hover:text-blue-700 mt-1 block">
-            ← Back to Overview
+          <Link
+            href={basePath}
+            className="mt-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-400 hover:text-slate-200"
+          >
+            Overview
           </Link>
         </div>
 
         {/* Navigation Sections */}
-        <nav className="p-2">
+        <nav className="space-y-6 px-4 py-5 text-slate-100">
           {/* Departments */}
-          <div className="mb-4">
+          <div>
             <button
               onClick={() => toggleSection('departments')}
-              className="w-full flex items-center justify-between p-2 hover:bg-gray-50 rounded text-left"
+              className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-left text-sm font-semibold uppercase tracking-[0.3em] text-slate-300 hover:border-white/30 hover:bg-white/10"
             >
-              <span className="font-medium text-gray-900">Departments</span>
-              <span className="text-gray-500">
-                {expandedSections.has('departments') ? '▼' : '▶'}
-              </span>
+              <span>Departments</span>
+              {expandedSections.has('departments') ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
             </button>
             {expandedSections.has('departments') && (
-              <div className="mt-1 space-y-1 pl-2">
+              <div className="mt-3 space-y-2">
                 {DEPARTMENTS.map((dept) => {
                   const isActive = pathname.includes(dept.path)
+                  const Icon = dept.icon
                   return (
                     <Link
                       key={dept.id}
                       href={`${basePath}${dept.path}`}
                       className={`
-                        flex items-center gap-2 px-3 py-2 rounded text-sm
-                        transition-colors
+                        group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-white/10 px-4 py-3 text-sm transition
                         ${
                           isActive
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-gray-700 hover:bg-gray-50'
+                            ? 'border-white/30 bg-white/10'
+                            : 'bg-white/5 hover:border-white/20 hover:bg-white/10'
                         }
                       `}
                     >
-                      <span>{dept.icon}</span>
-                      <span>{dept.name}</span>
+                      <span
+                        className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-gradient-to-br ${dept.accent}`}
+                      >
+                        <Icon className="h-4 w-4 text-slate-100" />
+                      </span>
+                      <span className="font-medium tracking-wide text-slate-200">{dept.name}</span>
                     </Link>
                   )
                 })}
@@ -169,66 +209,82 @@ export default function ProjectSidebar({
           </div>
 
           {/* Content Browser */}
-          <div className="mb-4">
+          <div>
             <button
               onClick={() => toggleSection('content')}
-              className="w-full flex items-center justify-between p-2 hover:bg-gray-50 rounded text-left"
+              className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-left text-sm font-semibold uppercase tracking-[0.3em] text-slate-300 hover:border-white/30 hover:bg-white/10"
             >
-              <span className="font-medium text-gray-900">Content</span>
-              <span className="text-gray-500">{expandedSections.has('content') ? '▼' : '▶'}</span>
+              <span>Content</span>
+              {expandedSections.has('content') ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
             </button>
             {expandedSections.has('content') && (
-              <div className="mt-1 space-y-1 pl-2">
+              <div className="mt-3 space-y-2">
                 <Link
                   href={`${basePath}/scenes`}
-                  className="flex items-center gap-2 px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50"
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:border-white/30 hover:bg-white/10"
                 >
-                  <span>🎬</span>
-                  <span>Scenes</span>
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/10">
+                    <Film className="h-4 w-4" />
+                  </span>
+                  <span className="font-medium tracking-wide">Scenes</span>
                 </Link>
                 <Link
                   href={`${basePath}/characters`}
-                  className="flex items-center gap-2 px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50"
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:border-white/30 hover:bg-white/10"
                 >
-                  <span>👤</span>
-                  <span>Characters</span>
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/10">
+                    <Users className="h-4 w-4" />
+                  </span>
+                  <span className="font-medium tracking-wide">Characters</span>
                 </Link>
                 <Link
                   href={`${basePath}/assets`}
-                  className="flex items-center gap-2 px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50"
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:border-white/30 hover:bg-white/10"
                 >
-                  <span>📁</span>
-                  <span>Assets</span>
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/10">
+                    <Boxes className="h-4 w-4" />
+                  </span>
+                  <span className="font-medium tracking-wide">Assets</span>
                 </Link>
               </div>
             )}
           </div>
 
           {/* Recent Activity */}
-          <div className="mb-4">
+          <div>
             <button
               onClick={() => toggleSection('recent')}
-              className="w-full flex items-center justify-between p-2 hover:bg-gray-50 rounded text-left"
+              className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-left text-sm font-semibold uppercase tracking-[0.3em] text-slate-300 hover:border-white/30 hover:bg-white/10"
             >
-              <span className="font-medium text-gray-900">Recent</span>
-              <span className="text-gray-500">{expandedSections.has('recent') ? '▼' : '▶'}</span>
+              <span>Recent</span>
+              {expandedSections.has('recent') ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
             </button>
             {expandedSections.has('recent') && (
-              <div className="mt-1 space-y-1 pl-2">
+              <div className="mt-3 space-y-2">
                 {isLoadingActivity ? (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                  <div className="flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 py-6">
+                    <Loader2 className="h-4 w-4 animate-spin text-slate-300" />
                   </div>
                 ) : !recentActivity || recentActivity.length === 0 ? (
-                  <p className="px-3 py-2 text-sm text-gray-500">No recent activity</p>
+                  <p className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-6 text-sm text-slate-400">
+                    No recent activity yet.
+                  </p>
                 ) : (
                   recentActivity.map((item) => (
                     <div
                       key={item.id}
-                      className="px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50"
+                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:border-white/30 hover:bg-white/10"
                     >
-                      <div className="font-medium">{item.entityName}</div>
-                      <div className="text-xs text-gray-500">
+                      <div className="font-medium text-slate-100">{item.entityName}</div>
+                      <div className="text-xs text-slate-400">
                         {item.action} •{' '}
                         {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
                       </div>
@@ -240,24 +296,25 @@ export default function ProjectSidebar({
           </div>
 
           {/* Quick Actions */}
-          <div className="border-t border-gray-200 pt-4 mt-4">
+          <div className="space-y-2 border-t border-white/10 pt-5">
             {/* Gather Link - Top Position */}
             <Link
               href={`${basePath}/gather`}
               className={`
-                flex items-center gap-2 px-3 py-2 rounded text-sm
-                transition-colors w-full
+                flex items-center gap-3 rounded-2xl border border-white/10 px-4 py-3 text-sm transition-colors
                 ${
                   pathname.includes('/gather')
-                    ? 'bg-blue-50 text-blue-700 font-medium'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'border-white/30 bg-white/10 text-slate-100'
+                    : 'bg-white/5 text-slate-200 hover:border-white/20 hover:bg-white/10'
                 }
               `}
             >
-              <span>📦</span>
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/10">
+                <Package className="h-4 w-4" />
+              </span>
               <span>Gather</span>
               {gatherCount > 0 && (
-                <span className="ml-auto px-2 py-0.5 text-xs bg-gray-200 text-gray-700 rounded-full">
+                <span className="ml-auto rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs text-slate-200">
                   {gatherCount}
                 </span>
               )}
@@ -267,34 +324,39 @@ export default function ProjectSidebar({
             <Link
               href={`${basePath}/project-readiness`}
               className={`
-                flex items-center gap-2 px-3 py-2 rounded text-sm
-                transition-colors w-full
+                flex items-center gap-3 rounded-2xl border border-white/10 px-4 py-3 text-sm transition-colors
                 ${
                   pathname.includes('/project-readiness')
-                    ? 'bg-blue-50 text-blue-700 font-medium'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'border-white/30 bg-white/10 text-slate-100'
+                    : 'bg-white/5 text-slate-200 hover:border-white/20 hover:bg-white/10'
                 }
               `}
             >
-              <span>✅</span>
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/10">
+                <ShieldCheck className="h-4 w-4" />
+              </span>
               <span>Project Readiness</span>
             </Link>
 
             {/* Chat Link */}
             <Link
               href={`${basePath}/chat`}
-              className="flex items-center gap-2 px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50 w-full"
+              className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:border-white/20 hover:bg-white/10"
             >
-              <span>💬</span>
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/10">
+                <MessageSquare className="h-4 w-4" />
+              </span>
               <span>Chat with AI</span>
             </Link>
 
             {/* Settings Link */}
             <Link
               href={`${basePath}/settings`}
-              className="flex items-center gap-2 px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50 w-full"
+              className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:border-white/20 hover:bg-white/10"
             >
-              <span>⚙️</span>
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/10">
+                <Settings className="h-4 w-4" />
+              </span>
               <span>Settings</span>
             </Link>
           </div>

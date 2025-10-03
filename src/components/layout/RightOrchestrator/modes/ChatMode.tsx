@@ -8,7 +8,11 @@
 import { MessageCircle, Sparkles, HelpCircle, Lightbulb } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-function Welcome() {
+interface WelcomeProps {
+  onSuggestionClick?: (text: string) => void
+}
+
+function Welcome({ onSuggestionClick }: WelcomeProps) {
   return (
     <div className="max-w-md mx-auto space-y-6 py-8 px-4">
       {/* Icon */}
@@ -89,6 +93,7 @@ function Welcome() {
           ].map((prompt, index) => (
             <button
               key={index}
+              onClick={() => onSuggestionClick?.(prompt)}
               className="w-full text-left px-4 py-3 rounded-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors text-sm text-zinc-900 dark:text-zinc-100"
             >
               {prompt}

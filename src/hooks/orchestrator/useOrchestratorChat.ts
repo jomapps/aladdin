@@ -73,8 +73,31 @@ export function useOrchestratorChat(options: SendMessageOptions) {
         setConversationId(data.conversationId)
       }
 
-      // Note: Actual assistant message will come via streaming hook
-      // This just ensures we have the conversation ID
+      // Add assistant message with metadata from API response
+      if (data.message) {
+        const assistantMessage: Message = {
+          id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          role: 'assistant',
+          content: data.message,
+          timestamp: new Date(),
+          mode,
+          metadata: {
+            suggestions: data.suggestions,
+            queryResults: data.results,
+            taskProgress: data.progress,
+            dataPreview: data.duplicates ? {
+              fields: [],
+              status: 'valid' as const,
+              errors: [],
+              warnings: data.duplicates.length > 0 ? [`Found ${data.duplicates.length} potential duplicates`] : [],
+            } : undefined,
+          },
+        }
+
+        addMessage(assistantMessage)
+      }
+
+      setIsStreaming(false)
 
     } catch (err) {
       console.error('Failed to send message:', err)

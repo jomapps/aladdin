@@ -1,0 +1,192 @@
+/**
+ * Chat Mode Handler
+ * Handles general AI conversation without project context
+ */
+
+import { getLLMClient, type LLMMessage } from '@/lib/llm/client'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
+
+export interface ChatHandlerOptions {
+  content: string
+  conversationId?: string
+  userId: string
+  model?: string
+  temperature?: number
+  maxTokens?: number
+}
+
+export interface ChatHandlerResult {
+  conversationId: string
+  message: string
+  model: string
+  usage: {
+    promptTokens: number
+    completionTokens: number
+    totalTokens: number
+  }
+  suggestions: string[]
+}
+
+/**
+ * Handle general chat requests
+ */
+export async function handleChat(
+  options: ChatHandlerOptions
+): Promise<ChatHandlerResult> {
+  const {
+    content,
+    conversationId,
+    userId,
+    model,
+    temperature = 0.7,
+    maxTokens = 2000,
+  } = options
+
+  // 1. Initialize clients
+  const llmClient = getLLMClient()
+  const payload = await getPayload({ config: await configPromise })
+
+  // 2. Load or create conversation
+  let actualConversationId = conversationId
+  let conversationHistory: LLMMessage[] = []
+
+  if (conversationId) {
+    try {
+      const conversation = await payload.findByID({
+        collection: 'conversations',
+        id: conversationId,
+      })
+
+      if (conversation && conversation.messages) {
+        conversationHistory = conversation.messages.map((msg: any) => ({
+          role: msg.role as 'user' | 'assistant' | 'system',
+          content: msg.content,
+        }))
+      }
+    } catch (error) {
+      console.error('[ChatHandler] Failed to load conversation:', error)
+      // Continue with empty history
+    }
+  }
+
+  // 3. Create conversation if new
+  if (!actualConversationId) {
+    const newConversation = await payload.create({
+      collection: 'conversations',
+      data: {
+        name: `Chat - ${new Date().toISOString()}`,
+        user: userId,
+        status: 'active',
+        messages: [],
+        createdAt: new Date(),
+      },
+    })
+    actualConversationId = newConversation.id.toString()
+  }
+
+  // 4. Build messages array with system prompt
+  const messages: LLMMessage[] = [
+    {
+      role: 'system',
+      content: `You are a helpful AI assistant for creative professionals. You can help with:
+- Creative writing and storytelling
+- Brainstorming ideas and overcoming writer's block
+- General questions about narrative structure and techniques
+- Providing constructive feedback and suggestions
+
+Provide clear, concise, and helpful responses. Use markdown formatting when appropriate.
+Be encouraging and supportive while maintaining professionalism.`,
+    },
+    ...conversationHistory,
+    {
+      role: 'user',
+      content,
+    },
+  ]
+
+  // 5. Get LLM response
+  const llmResponse = await llmClient.chat(messages, {
+    temperature,
+    maxTokens,
+  })
+
+  console.log('[ChatHandler] LLM response generated:', {
+    tokens: llmResponse.usage.totalTokens,
+    model: llmResponse.model,
+  })
+
+  // 6. Generate contextual suggestions
+  const suggestions = generateChatSuggestions(content, llmResponse.content)
+
+  // 7. Save messages to conversation
+  try {
+    await payload.update({
+      collection: 'conversations',
+      id: actualConversationId,
+      data: {
+        messages: [
+          ...conversationHistory,
+          {
+            id: `msg-${Date.now()}-user`,
+            role: 'user',
+            content,
+            timestamp: new Date(),
+          },
+          {
+            id: `msg-${Date.now()}-assistant`,
+            role: 'assistant',
+            content: llmResponse.content,
+            timestamp: new Date(),
+          },
+        ],
+        lastMessageAt: new Date(),
+        updatedAt: new Date(),
+      },
+    })
+  } catch (saveError) {
+    console.error('[ChatHandler] Failed to save conversation:', saveError)
+    // Continue anyway - don't fail the request
+  }
+
+  // 8. Return result
+  return {
+    conversationId: actualConversationId,
+    message: llmResponse.content,
+    model: llmResponse.model,
+    usage: {
+      promptTokens: llmResponse.usage.promptTokens,
+      completionTokens: llmResponse.usage.completionTokens,
+      totalTokens: llmResponse.usage.totalTokens,
+    },
+    suggestions,
+  }
+}
+
+/**
+ * Generate contextual follow-up suggestions
+ */
+function generateChatSuggestions(
+  userMessage: string,
+  assistantResponse: string
+): string[] {
+  const suggestions: string[] = []
+
+  // Check for code in response
+  if (assistantResponse.includes('```')) {
+    suggestions.push('Can you explain this in more detail?')
+    suggestions.push('Are there any alternative approaches?')
+  }
+
+  // Check for lists or options
+  if (assistantResponse.includes('\n-') || assistantResponse.includes('\n1.')) {
+    suggestions.push('Can you elaborate on the first point?')
+    suggestions.push('Which option would you recommend?')
+  }
+
+  // Generic helpful suggestions
+  suggestions.push('Can you provide an example?')
+  suggestions.push('What are the pros and cons?')
+
+  return suggestions.slice(0, 3)
+}

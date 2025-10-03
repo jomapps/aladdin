@@ -26,19 +26,19 @@ export default function TimelineClip({ scene, duration, isSelected, onClick }: T
   const widthPercent = (scene.duration / duration) * 100
 
   const statusColors = {
-    draft: 'bg-gray-300 border-gray-400',
-    processing: 'bg-yellow-200 border-yellow-400',
-    complete: 'bg-blue-200 border-blue-400',
+    draft: 'from-slate-500/20 to-slate-700/20 border-white/10',
+    processing: 'from-amber-400/30 to-orange-500/20 border-amber-300/30',
+    complete: 'from-sky-400/35 to-indigo-500/25 border-sky-300/30',
   }
 
   return (
     <div
       className={`
-        absolute h-full rounded cursor-pointer transition-all
-        border-2
+        absolute h-full cursor-pointer overflow-hidden rounded-2xl border
+        bg-gradient-to-r shadow-[0_20px_60px_-40px_rgba(56,189,248,0.6)] transition-all
         ${statusColors[scene.status]}
-        ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}
-        hover:brightness-95
+        ${isSelected ? 'ring-2 ring-sky-400' : ''}
+        hover:brightness-110
       `}
       style={{
         left: `${startPercent}%`,
@@ -48,7 +48,7 @@ export default function TimelineClip({ scene, duration, isSelected, onClick }: T
       onClick={onClick}
       title={scene.name}
     >
-      <div className="h-full p-1 flex items-center overflow-hidden">
+      <div className="flex h-full items-center gap-2 overflow-hidden px-3 py-2 text-xs font-semibold text-slate-200">
         {scene.thumbnail && (
           <img
             src={scene.thumbnail}
@@ -56,7 +56,7 @@ export default function TimelineClip({ scene, duration, isSelected, onClick }: T
             className="h-full w-auto object-cover rounded"
           />
         )}
-        <span className="text-xs font-medium text-gray-800 ml-1 truncate">{scene.name}</span>
+        <span className="truncate tracking-wide">{scene.name}</span>
       </div>
     </div>
   )

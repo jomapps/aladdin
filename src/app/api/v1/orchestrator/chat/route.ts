@@ -4,36 +4,67 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
+import { handleChat } from '@/lib/orchestrator/chatHandler'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    const { content, conversationId } = await request.json()
+    // 1. Authenticate user
+    const payload = await getPayload({ config: await configPromise })
+    const { user } = await payload.auth({ req: request as any })
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
+        { status: 401 }
+      )
+    }
+
+    // 2. Parse request
+    const body = await request.json()
+    const { content, conversationId, model, temperature, maxTokens } = body
 
     if (!content) {
       return NextResponse.json(
-        { error: 'Missing content' },
+        { error: 'Missing content', code: 'VALIDATION_ERROR' },
         { status: 400 }
       )
     }
 
-    // TODO: Implement general chat
-    // This would use a general AI model without project context
+    console.log('[Chat API] Processing message:', { conversationId })
 
-    // Generate conversation ID if new
-    const newConversationId = conversationId || `conv-${Date.now()}`
+    // 3. Handle chat
+    const result = await handleChat({
+      content,
+      conversationId,
+      userId: user.id,
+      model,
+      temperature,
+      maxTokens,
+    })
 
-    // Mock response for now
-    const response = {
+    // 4. Return response
+    return NextResponse.json({
       success: true,
-      conversationId: newConversationId,
-      message: 'Chat message received',
-    }
+      conversationId: result.conversationId,
+      message: result.message,
+      model: result.model,
+      usage: result.usage,
+      suggestions: result.suggestions,
+    })
+  } catch (error: any) {
+    console.error('[Chat API] Error:', error)
 
-    return NextResponse.json(response)
-  } catch (error) {
-    console.error('Chat API error:', error)
     return NextResponse.json(
-      { error: 'Failed to process chat' },
+      {
+        error: error.message || 'Internal server error',
+        code: 'CHAT_ERROR',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      },
       { status: 500 }
     )
   }

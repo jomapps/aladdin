@@ -62,19 +62,19 @@ export default function Timeline({
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
-  const currentTimePercent = (currentTime / duration) * 100
+  const currentTimePercent = duration > 0 ? (currentTime / duration) * 100 : 0
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 text-slate-100">
       {/* Controls */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
+      <div className="flex flex-col gap-3 border-b border-white/10 bg-white/5 px-4 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <button
             onClick={handleZoomOut}
-            className="p-2 hover:bg-white rounded border border-gray-300 transition-colors"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/10 transition hover:border-white/30 hover:bg-white/20"
             title="Zoom out"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
             </svg>
           </button>
@@ -83,10 +83,10 @@ export default function Timeline({
           </span>
           <button
             onClick={handleZoomIn}
-            className="p-2 hover:bg-white rounded border border-gray-300 transition-colors"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/10 transition hover:border-white/30 hover:bg-white/20"
             title="Zoom in"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -97,47 +97,36 @@ export default function Timeline({
           </button>
         </div>
 
-        <div className="text-sm font-mono text-gray-700">
+        <div className="text-sm font-mono text-slate-200">
           {formatTime(currentTime)} / {formatTime(duration)}
         </div>
 
-        <div className="flex items-center gap-2">
-          <button className="p-2 hover:bg-white rounded border border-gray-300 transition-colors">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+        <div className="inline-flex items-center gap-2">
+          <button
+            className="inline-flex h-9 items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-4 font-semibold uppercase tracking-[0.3em] text-xs text-slate-200 transition hover:border-white/30 hover:bg-white/20"
+          >
+            Preview
           </button>
         </div>
       </div>
 
       {/* Timeline Track */}
-      <div className="relative p-4 overflow-x-auto">
+      <div className="relative overflow-x-auto px-4 py-6">
         <div
           ref={timelineRef}
-          className="relative h-24 bg-gray-100 rounded cursor-pointer"
+          className="relative h-28 cursor-pointer rounded-2xl border border-white/10 bg-white/5"
           style={{ width: `${100 * zoom}%`, minWidth: '100%' }}
           onClick={handleTimelineClick}
         >
           {/* Time markers */}
-          <div className="absolute inset-x-0 top-0 h-6 border-b border-gray-300">
+          <div className="absolute inset-x-0 top-0 h-7 border-b border-white/10">
             {[0, 0.25, 0.5, 0.75, 1].map((fraction) => (
               <div
                 key={fraction}
-                className="absolute top-0 h-full border-l border-gray-400"
+                className="absolute top-0 h-full border-l border-white/10"
                 style={{ left: `${fraction * 100}%` }}
               >
-                <span className="absolute top-0 left-1 text-xs text-gray-600">
+                <span className="absolute left-2 top-1 text-[10px] font-medium uppercase tracking-[0.3em] text-slate-300">
                   {formatTime(duration * fraction)}
                 </span>
               </div>
@@ -145,7 +134,7 @@ export default function Timeline({
           </div>
 
           {/* Scene clips */}
-          <div className="absolute inset-x-0 top-6 bottom-0 p-2">
+          <div className="absolute inset-x-0 top-7 bottom-0 px-3 py-3">
             {scenes.map((scene) => (
               <TimelineClip
                 key={scene.id}
@@ -159,10 +148,10 @@ export default function Timeline({
 
           {/* Playhead */}
           <div
-            className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10 pointer-events-none"
+            className="pointer-events-none absolute top-0 bottom-0 w-0.5 bg-sky-400"
             style={{ left: `${currentTimePercent}%` }}
           >
-            <div className="absolute -top-1 -left-2 w-4 h-4 bg-red-500 rounded-sm" />
+            <div className="absolute -top-1 -left-2 h-4 w-4 rounded-sm bg-sky-400" />
           </div>
         </div>
       </div>

@@ -1,100 +1,116 @@
 /**
- * Streaming API - Server-Sent Events for Real-time Updates
- * Provides token streaming for LLM responses and progress updates
+ * Streaming API Route
+ * Server-Sent Events (SSE) for real-time LLM token streaming
  */
 
 import { NextRequest } from 'next/server'
+import { createSSEStream, streamLLMTokens } from '@/lib/orchestrator/streaming'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-/**
- * GET endpoint for SSE streaming
- */
-export async function GET(req: NextRequest) {
-  try {
-    // 1. Authenticate user
-    const payload = await getPayload({ config: await configPromise })
-    const { user } = await payload.auth({ req: req as any })
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams
+  const conversationId = searchParams.get('conversationId')
+  const mode = searchParams.get('mode') as 'chat' | 'query' | 'task' | 'data'
 
-    if (!user) {
-      return new Response('Unauthorized', { status: 401 })
-    }
-
-    // 2. Get parameters
-    const { searchParams } = new URL(req.url)
-    const mode = searchParams.get('mode') // 'query', 'chat', etc.
-    const taskId = searchParams.get('taskId')
-    const conversationId = searchParams.get('conversationId')
-
-    console.log('[Stream API] Starting stream:', { mode, taskId })
-
-    // 3. Create readable stream
-    const encoder = new TextEncoder()
-    let isOpen = true
-
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          // Send initial connection event
-          sendEvent(controller, encoder, {
-            type: 'connected',
-            timestamp: new Date(),
-          })
-
-          // For task mode, poll task status
-          if (mode === 'task' && taskId) {
-            await streamTaskProgress(controller, encoder, taskId, payload, () => isOpen)
-          }
-
-          // For query/chat modes, would stream tokens
-          // This would require LLM client to support streaming
-          // Placeholder for now
-          if (mode === 'query' || mode === 'chat') {
-            sendEvent(controller, encoder, {
-              type: 'info',
-              message: 'Streaming support coming soon',
-            })
-          }
-
-          // Send complete event
-          if (isOpen) {
-            sendEvent(controller, encoder, {
-              type: 'complete',
-            })
-          }
-
-          controller.close()
-        } catch (error: any) {
-          console.error('[Stream API] Error:', error)
-          sendEvent(controller, encoder, {
-            type: 'error',
-            error: error.message,
-          })
-          controller.close()
-        }
-      },
-
-      cancel() {
-        console.log('[Stream API] Client disconnected')
-        isOpen = false
-      },
-    })
-
-    // 4. Return SSE response
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
-      },
-    })
-  } catch (error: any) {
-    console.error('[Stream API] Setup error:', error)
-    return new Response('Internal server error', { status: 500 })
+  if (!conversationId || !mode) {
+    return new Response('Missing conversationId or mode', { status: 400 })
   }
+
+  // Create SSE stream
+  const { stream, send, close } = createSSEStream()
+
+  // Set SSE headers
+  const headers = new Headers({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no', // Disable nginx buffering
+  })
+
+  // Start streaming in background
+  ;(async () => {
+    try {
+      const payload = await getPayload({ config: await configPromise })
+
+      // Load conversation
+      const conversation = await payload.findByID({
+        collection: 'conversations',
+        id: conversationId,
+      })
+
+      if (!conversation) {
+        send({
+          type: 'error',
+          data: { message: 'Conversation not found' },
+          timestamp: Date.now(),
+        })
+        close()
+        return
+      }
+
+      // Get messages
+      const messages = conversation.messages || []
+      const lastUserMessage = messages
+        .filter((msg: any) => msg.role === 'user')
+        .pop()
+
+      if (!lastUserMessage) {
+        send({
+          type: 'error',
+          data: { message: 'No user message found' },
+          timestamp: Date.now(),
+        })
+        close()
+        return
+      }
+
+      // Build LLM messages
+      const llmMessages = messages.map((msg: any) => ({
+        role: msg.role,
+        content: msg.content,
+      }))
+
+      // Stream tokens
+      await streamLLMTokens(llmMessages, {
+        onToken: (token) => {
+          send({
+            type: 'token',
+            data: { token },
+            timestamp: Date.now(),
+          })
+        },
+        onComplete: (fullText) => {
+          send({
+            type: 'complete',
+            data: { message: fullText },
+            timestamp: Date.now(),
+          })
+          close()
+        },
+        onError: (error) => {
+          send({
+            type: 'error',
+            data: { message: error.message },
+            timestamp: Date.now(),
+          })
+          close()
+        },
+      })
+    } catch (error: any) {
+      send({
+        type: 'error',
+        data: { message: error.message },
+        timestamp: Date.now(),
+      })
+      close()
+    }
+  })()
+
+  return new Response(stream, { headers })
 }
 
 /**

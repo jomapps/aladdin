@@ -79,7 +79,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
               className="flex items-center gap-2 border-white/20 bg-white/10 text-slate-100 transition duration-200 hover:border-white/40 hover:bg-white/20"
             >
               <LogOut className="h-4 w-4" />
-              <span>{isLoggingOut ? 'Signing out…' : 'Sign Out'}</span>
+              <span>{isLoggingOut ? 'Signing out...' : 'Sign Out'}</span>
             </Button>
           </div>
 
@@ -113,7 +113,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
                   className="w-full border-white/20 bg-white/10 text-slate-100 hover:border-white/40 hover:bg-white/20"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>{isLoggingOut ? 'Signing out…' : 'Sign Out'}</span>
+                  <span>{isLoggingOut ? 'Signing out...' : 'Sign Out'}</span>
                 </Button>
               </div>
             </Card>
