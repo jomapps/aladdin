@@ -148,10 +148,11 @@ export class BrainClient {
 
   /**
    * Search for similar content using query text
-   * This method uses the brain service's /api/v1/search endpoint for hybrid search
+   * Uses semantic search endpoint as fallback if /api/v1/search doesn't exist
    */
   async searchSimilar(query: SearchSimilarQuery): Promise<SearchSimilarResult[]> {
     try {
+      // Try /api/v1/search first (hybrid search endpoint)
       const response = await this.axiosInstance.post('/api/v1/search', {
         query: query.query,
         project_id: query.projectId,
@@ -170,7 +171,18 @@ export class BrainClient {
         properties: item.metadata || {},
         relationships: item.relationships,
       }))
-    } catch (error) {
+    } catch (error: any) {
+      // If 404, fall back to semanticSearch
+      if (error.response?.status === 404) {
+        console.warn('[BrainClient] /api/v1/search not found, using semanticSearch fallback')
+        return this.semanticSearch({
+          projectId: query.projectId,
+          query: query.query,
+          types: query.type ? [query.type] : undefined,
+          limit: query.limit,
+          threshold: query.threshold,
+        })
+      }
       throw this.handleError(error, 'searchSimilar')
     }
   }

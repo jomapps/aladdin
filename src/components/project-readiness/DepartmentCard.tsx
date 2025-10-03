@@ -75,19 +75,19 @@ export function DepartmentCard({
   }
 
   return (
-    <Card className="mb-4">
-      <CardHeader>
+    <Card className="mb-6 border border-slate-800/70 bg-slate-900/70 text-white shadow-[0_24px_80px_-50px_rgba(15,23,42,0.9)]">
+      <CardHeader className="px-6 py-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
-            <span className="text-2xl font-bold text-muted-foreground">
+            <span className="text-3xl font-semibold text-slate-500">
               {department.departmentNumber}.
             </span>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold capitalize">
+              <h3 className="text-lg font-semibold capitalize text-white">
                 {department.departmentName || department.departmentSlug}
               </h3>
               {department.evaluationSummary && (
-                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                <p className="mt-1 line-clamp-2 text-sm text-slate-300">
                   {department.evaluationSummary}
                 </p>
               )}
@@ -97,8 +97,8 @@ export function DepartmentCard({
           <div className="flex items-center gap-4">
             {department.rating !== null && (
               <div className="text-right">
-                <div className="text-3xl font-bold">{department.rating}</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-3xl font-bold text-white">{department.rating}</div>
+                <div className="text-xs text-slate-400">
                   Threshold: {department.threshold}
                 </div>
               </div>
@@ -111,7 +111,10 @@ export function DepartmentCard({
         {/* Progress bar for rating */}
         {department.rating !== null && (
           <div className="mt-3">
-            <Progress value={department.rating} className="h-2">
+            <Progress
+              value={department.rating}
+              className="h-2 overflow-hidden rounded-full border border-slate-800/70 bg-slate-950/60"
+            >
               <div
                 className={`h-full ${getProgressBarColor()} transition-all`}
                 style={{ width: `${department.rating}%` }}

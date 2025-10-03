@@ -155,7 +155,8 @@ Analyze if this content needs enrichment. If yes, provide enhanced version. If n
       return response.content.trim()
     } catch (error) {
       console.error('[GatherAI] Summary generation failed:', error)
-      return 'Content summary unavailable'
+      // Return empty string to trigger outer fallback
+      throw error
     }
   }
 
@@ -186,7 +187,8 @@ Project Context: ${JSON.stringify(projectContext, null, 2)}`,
       return response.content.trim()
     } catch (error) {
       console.error('[GatherAI] Context generation failed:', error)
-      return 'Context generation unavailable'
+      // Throw to trigger outer fallback
+      throw error
     }
   }
 
@@ -265,18 +267,51 @@ Project Context: ${JSON.stringify(projectContext, null, 2)}`,
         // TODO: Fetch from Brain service
       }
 
-      // Step 3: Enrich content
-      const enrichmentResult = await this.enrichContent(enrichedContent, projectContext)
-      enrichedContent = enrichmentResult.enrichedContent
+      // Step 3: Enrich content (with fallback)
+      let enrichmentResult
+      try {
+        enrichmentResult = await this.enrichContent(enrichedContent, projectContext)
+        enrichedContent = enrichmentResult.enrichedContent
+      } catch (error) {
+        console.error('[GatherAI] Enrichment failed, using original content:', error)
+        enrichmentResult = { enrichedContent: content, isComplete: true, iterationCount: 0 }
+      }
 
-      // Step 4: Generate summary
-      const summary = await this.generateSummary(enrichedContent)
+      // Step 4: Generate summary (with fallback)
+      let summary: string
+      try {
+        summary = await this.generateSummary(enrichedContent)
+        if (!summary || typeof summary !== 'string') {
+          throw new Error('Invalid summary returned')
+        }
+      } catch (error) {
+        console.error('[GatherAI] Summary generation failed, using fallback:', error)
+        summary = typeof content === 'string'
+          ? content.substring(0, 100) + (content.length > 100 ? '...' : '')
+          : 'Content summary'
+      }
 
-      // Step 5: Generate context
-      const context = await this.generateContext(enrichedContent, projectContext)
+      // Step 5: Generate context (with fallback)
+      let context: string
+      try {
+        context = await this.generateContext(enrichedContent, projectContext)
+        if (!context || typeof context !== 'string') {
+          throw new Error('Invalid context returned')
+        }
+      } catch (error) {
+        console.error('[GatherAI] Context generation failed, using fallback:', error)
+        context = 'AI processing temporarily unavailable - content stored as-is'
+      }
 
-      // Step 6: Check for duplicates using Brain service
-      const duplicates = await this.checkDuplicates(enrichedContent, summary, projectId)
+      // Step 6: Check for duplicates using Brain service (with fallback)
+      let duplicates: any[] = []
+      try {
+        duplicates = await this.checkDuplicates(enrichedContent, summary, projectId)
+      } catch (error: any) {
+        // Silently skip duplicate check if Brain service unavailable
+        console.warn('[GatherAI] Duplicate check unavailable, skipping:', error.message)
+        duplicates = []
+      }
 
       return {
         summary,
@@ -287,8 +322,23 @@ Project Context: ${JSON.stringify(projectContext, null, 2)}`,
         enrichedContent,
       }
     } catch (error) {
-      console.error('[GatherAI] Processing failed:', error)
-      throw error
+      console.error('[GatherAI] Critical processing error:', error)
+
+      // Return minimal valid response instead of throwing
+      const fallbackSummary = typeof content === 'string'
+        ? content.substring(0, 100) + (content.length > 100 ? '...' : '')
+        : 'Content summary'
+
+      const fallbackContext = 'Error during AI processing - content stored without enhancement'
+
+      return {
+        summary: String(fallbackSummary),  // Ensure string
+        context: String(fallbackContext),  // Ensure string
+        extractedText: extractedText,
+        iterationCount: 0,
+        duplicates: [],
+        enrichedContent: content,
+      }
     }
   }
 }

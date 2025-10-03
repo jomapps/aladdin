@@ -65,39 +65,41 @@ export default function ProjectReadinessPage() {
   // Loading state
   if (departments.length === 0) {
     return (
-      <div className="container mx-auto py-8 max-w-5xl">
-        <Skeleton className="h-12 w-96 mb-4" />
-        <Skeleton className="h-32 w-full mb-6" />
+      <div className="mx-auto max-w-6xl space-y-6 px-6 py-10 text-white">
+        <Skeleton className="mb-4 h-12 w-96 rounded-xl bg-slate-800/60" />
+        <Skeleton className="mb-6 h-32 w-full rounded-3xl bg-slate-800/60" />
         <div className="space-y-4">
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-48 w-full rounded-3xl bg-slate-800/60" />
+          <Skeleton className="h-48 w-full rounded-3xl bg-slate-800/60" />
+          <Skeleton className="h-48 w-full rounded-3xl bg-slate-800/60" />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-5xl">
+    <div className="mx-auto max-w-6xl space-y-10 px-6 py-10 text-white">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">Project Readiness Evaluation</h1>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight text-white">
+            Project Readiness Evaluation
+          </h1>
+          <p className="mt-2 max-w-3xl text-sm text-slate-300/90">
+            Validate each department sequentially to unlock production. Provide supporting context
+            via the AI chat, then trigger evaluations when you are ready.
+          </p>
+        </div>
 
-        <Alert>
+        <Alert className="border-sky-400/40 bg-sky-500/10 text-sky-100">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="space-y-2">
+          <AlertDescription className="space-y-2 text-sm">
             <p>
-              This page will help you ready the project for production. There are{' '}
-              <strong>{gatherLineCount.toLocaleString()}</strong> lines of information
-              available for processing.
+              {gatherLineCount.toLocaleString()} lines of information are available for this
+              project. The more detailed your gather data, the stronger the evaluation results.
             </p>
-            <p>
-              You can provide all the information you want via the chat (right sidebar).
-            </p>
-            <p>
-              When you feel that enough information has been provided, you can run the
-              evaluation for each department sequentially.
-            </p>
+            <p>You can continue to enrich context through the AI chat in the right sidebar.</p>
+            <p>Run the evaluation for each department once its prerequisites are complete.</p>
           </AlertDescription>
         </Alert>
       </div>
@@ -111,7 +113,7 @@ export default function ProjectReadinessPage() {
       )}
 
       {/* Department Cards */}
-      <div className="space-y-4">
+      <div className="space-y-5">
         {departments.map((dept, idx) => (
           <DepartmentCard
             key={dept.departmentId}
@@ -126,11 +128,11 @@ export default function ProjectReadinessPage() {
 
       {/* No gather data warning */}
       {gatherCount === 0 && (
-        <Alert variant="destructive" className="mt-6">
+        <Alert className="border-amber-400/40 bg-amber-500/15 text-amber-100">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            No gather data found for this project. Please add information via the chat
-            or gather page before running evaluations.
+          <AlertDescription className="text-sm">
+            No gather data found for this project. Add information through the chat or Gather page
+            before running evaluations so departments have material to assess.
           </AlertDescription>
         </Alert>
       )}

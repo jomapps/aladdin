@@ -112,18 +112,51 @@ export async function POST(
       projectId,
     })
 
-    // Create gather item
-    const gatherItem = await gatherDB.createGatherItem(projectId, {
-      content: JSON.stringify(processingResult.enrichedContent),
+    // Ensure all required fields are valid strings
+    // Convert enrichedContent to string if it's not already
+    const contentString =
+      typeof processingResult.enrichedContent === 'string'
+        ? processingResult.enrichedContent
+        : JSON.stringify(processingResult.enrichedContent)
+
+    const gatherData = {
+      projectId, // Explicitly add projectId
+      content: contentString,
       imageUrl,
       documentUrl,
-      summary: processingResult.summary,
-      context: processingResult.context,
+      summary: processingResult.summary || 'Content summary',
+      context: processingResult.context || 'Context unavailable',
       extractedText: processingResult.extractedText,
       iterationCount: processingResult.iterationCount,
       duplicateCheckScore: processingResult.duplicates[0]?.similarity,
-      createdBy: user.id,
+      createdBy: String(user.id), // Ensure string
+    }
+
+    console.log('[Gather API] Creating item with data:', {
+      hasSummary: !!gatherData.summary,
+      hasContext: !!gatherData.context,
+      summaryType: typeof gatherData.summary,
+      contextType: typeof gatherData.context,
+      hasContent: !!gatherData.content,
+      contentType: typeof gatherData.content,
+      hasCreatedBy: !!gatherData.createdBy,
+      createdByType: typeof gatherData.createdBy,
+      allFields: Object.keys(gatherData),
     })
+
+    // Create gather item
+    let gatherItem
+    try {
+      gatherItem = await gatherDB.createGatherItem(projectId, gatherData)
+    } catch (dbError: any) {
+      console.error('[Gather API] MongoDB validation error details:', {
+        error: dbError.message,
+        code: dbError.code,
+        errInfo: dbError.errInfo,
+        gatherData,
+      })
+      throw dbError
+    }
 
     // Store in Brain service for semantic search
     let brainSaveSuccess = false

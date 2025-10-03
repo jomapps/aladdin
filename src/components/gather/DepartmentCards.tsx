@@ -176,14 +176,14 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
     return (
       <div className="grid grid-cols-1 gap-4">
         {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-          <Card key={i} className="animate-pulse">
+          <Card key={i} className="animate-pulse rounded-2xl border border-slate-800/70 bg-slate-900/60">
             <CardHeader className="pb-3">
-              <div className="h-8 w-8 bg-muted rounded-full mb-2" />
-              <div className="h-5 bg-muted rounded w-3/4" />
+              <div className="mb-2 h-10 w-10 rounded-xl bg-slate-800/70" />
+              <div className="h-5 w-3/4 rounded bg-slate-800/60" />
             </CardHeader>
             <CardContent>
-              <div className="h-4 bg-muted rounded w-full mb-2" />
-              <div className="h-4 bg-muted rounded w-2/3" />
+              <div className="mb-2 h-4 w-full rounded bg-slate-800/60" />
+              <div className="h-4 w-2/3 rounded bg-slate-800/60" />
             </CardContent>
           </Card>
         ))}
@@ -193,9 +193,9 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-destructive mb-2">Failed to load departments</p>
-        <p className="text-sm text-muted-foreground">{error}</p>
+      <div className="py-12 text-center">
+        <p className="mb-2 text-lg text-rose-300">Failed to load departments</p>
+        <p className="text-sm text-slate-400">{error}</p>
       </div>
     )
   }
