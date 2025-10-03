@@ -335,11 +335,15 @@ animation: pulse 1.5s ease-in-out infinite;
 --z-sticky: 20;           /* Sticky headers */
 --z-sidebar: 40;          /* Sidebars */
 --z-overlay: 45;          /* Sidebar overlays */
+--z-menu-bar: 50;         /* Top menu bar (TopMenuBar) */
 --z-modal: 50;            /* Modals */
+--z-ai-assistant: 60;     /* AI Assistant (RightOrchestrator) - Above menu bar */
 --z-popover: 60;          /* Popovers */
 --z-toast: 70;            /* Toast notifications */
 --z-tooltip: 80;          /* Tooltips */
 ```
+
+**Note**: The AI Assistant (RightOrchestrator) uses `z-[60]` to appear above the top menu bar (`z-50`), ensuring it overlays the entire interface when open.
 
 ---
 

@@ -5,7 +5,7 @@
 
 'use client'
 
-import { Search, Database, Zap, MessageCircle } from 'lucide-react'
+import { Search, Upload, Zap, MessageCircle } from 'lucide-react'
 import { useLayoutStore, OrchestratorMode } from '@/stores/layoutStore'
 import { cn } from '@/lib/utils'
 
@@ -35,9 +35,9 @@ const modes: Array<{
   },
   {
     id: 'data',
-    label: 'Data',
-    icon: Database,
-    description: 'Add or update project data',
+    label: 'Uploads',
+    icon: Upload,
+    description: 'Upload and ingest project data',
   },
 ]
 

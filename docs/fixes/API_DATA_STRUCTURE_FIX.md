@@ -112,10 +112,88 @@ When adding new React Query hooks:
 - [ ] Test with actual data to confirm it displays correctly
 - [ ] Add transformation logic if needed
 
+## Collection Slug Compliance (2025-01-03)
+
+### Problem
+Data Preparation Agent was failing with 500 errors when trying to query non-existent PayloadCMS collections:
+```
+Error [APIError]: The collection with slug characters can't be found.
+Error [APIError]: The collection with slug scenes can't be found.
+Error [APIError]: The collection with slug locations can't be found.
+Error [APIError]: The collection with slug concepts can't be found.
+```
+
+### Root Cause
+The `ContextGatherer` was trying to query collections that exist in **Open MongoDB** (per-project dynamic databases), NOT in PayloadCMS.
+
+**PayloadCMS Collections** (from `src/payload.config.ts`):
+- `users`, `media`, `projects`, `episodes`, `conversations`, `workflows`, `activity-logs`, `export-jobs`, `departments`, `agents`, `custom-tools`, `agent-executions`, `project-readiness`
+
+**Open MongoDB Collections** (dynamic per project in `open_[project-slug]` databases):
+- `characters`, `scenes`, `locations`, `concepts`
+
+### Solution
+Updated `src/lib/agents/data-preparation/context-gatherer.ts`:
+
+1. **`getPayloadContext()`** - Only queries PayloadCMS collections:
+   - `episodes`, `conversations`, `workflows`
+   - Returns empty arrays for `characters`, `scenes`, `locations`, `concepts`
+
+2. **`getOpenDBContext()`** - Queries Open MongoDB collections:
+   - Accepts `projectSlug` instead of `projectId`
+   - Queries `characters`, `scenes`, `locations`, `concepts` from Open MongoDB
+   - Returns actual data from dynamic collections
+
+3. **`gatherAll()`** - Fetches project context first:
+   - Gets project to obtain `slug`
+   - Passes `project.slug` to `getOpenDBContext()`
+
+4. **`getRelatedEntities()`** - Uses correct data source:
+   - Changed from `context.payload?.characters` to `context.opendb?.characters`
+   - Same for scenes, locations
+
+5. **Updated TypeScript types** in `src/lib/agents/data-preparation/types.ts`:
+   - `PayloadContext` now includes `episodes`, `conversations`, `workflows`
+   - `OpenDBContext` now includes `characters`, `scenes`, `locations`, `concepts`
+
+### Key Pattern
+**Always use `getOpenDatabase(projectSlug)` for dynamic collections, never query them via PayloadCMS API.**
+
+## Brain Project ID Strategy (2025-01-03)
+
+### Overview
+Implemented streamlined brain service `project_id` strategy for conversations to enable GLOBAL and project-specific chat contexts.
+
+**See**: [Brain Project ID Strategy Documentation](../brain/BRAIN_PROJECT_ID_STRATEGY.md)
+
+### Key Changes
+
+1. **GLOBAL Chat** (no project selected):
+   - Brain `project_id` = `userId`
+   - UI shows "GLOBAL" label
+   - Example: `67a1b2c3d4e5f6g7h8i9j0k1`
+
+2. **Project Chat** (project selected):
+   - Brain `project_id` = `userId-projectId`
+   - UI shows project name
+   - Example: `67a1b2c3d4e5f6g7h8i9j0k1-68df4dab400c86a6a8cf40c6`
+
+3. **Other Entities** (characters, scenes, etc.):
+   - Brain `project_id` = `projectId` (unchanged)
+   - Example: `68df4dab400c86a6a8cf40c6`
+
+### Implementation Files
+- `src/lib/agents/data-preparation/interceptor.ts` - Added `getConversationBrainProjectId()`
+- `src/lib/agents/data-preparation/payload-hooks.ts` - Allow null projectId for conversations
+- `src/components/layout/RightOrchestrator/index.tsx` - Show "GLOBAL" label
+
 ## Related Files
 
 - `/src/lib/react-query/queries/` - All query files
 - `/src/app/api/v1/` - Custom API routes
 - `/src/app/(payload)/api/` - PayloadCMS generated API routes
 - `/src/collections/` - PayloadCMS collection definitions
+- `/src/lib/agents/data-preparation/` - Data preparation agent
+- `/src/lib/db/openDatabase.ts` - Open MongoDB client
+- `/docs/brain/BRAIN_PROJECT_ID_STRATEGY.md` - Brain project ID strategy
 

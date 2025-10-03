@@ -43,13 +43,16 @@ export async function handleChat(options: ChatHandlerOptions): Promise<ChatHandl
   const brainClient = getBrainClient()
   const payload = await getPayload({ config: await configPromise })
 
-  // Determine if we're using project-specific or global context
-  const effectiveProjectId = projectId || GLOBAL_PROJECT_ID
+  // Determine Brain project_id based on new strategy:
+  // - GLOBAL (no project): userId
+  // - Project-specific: userId-projectId
   const isProjectContext = !!projectId
+  const brainProjectId = isProjectContext ? `${userId}-${projectId}` : userId
 
   console.log('[ChatHandler] Initialized with context:', {
-    projectId: effectiveProjectId,
-    isProjectContext
+    brainProjectId,
+    isProjectContext,
+    actualProjectId: projectId
   })
 
   // 2. Load or create conversation
@@ -111,7 +114,7 @@ export async function handleChat(options: ChatHandlerOptions): Promise<ChatHandl
   try {
     brainResults = await brainClient.searchSimilar({
       query: content,
-      projectId: effectiveProjectId,
+      projectId: brainProjectId, // Use userId or userId-projectId per new strategy
       limit: DEFAULT_SEARCH_LIMIT,
       threshold: DEFAULT_SIMILARITY_THRESHOLD,
     })

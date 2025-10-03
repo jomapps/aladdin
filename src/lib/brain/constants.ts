@@ -4,8 +4,15 @@
  */
 
 /**
- * Special project ID for global (non-project-specific) queries
- * Used when user is in chat mode without a specific project context
+ * DEPRECATED: Use userId instead for GLOBAL context
+ *
+ * Brain project_id strategy:
+ * - GLOBAL (no project): userId
+ * - Project-specific: userId-projectId
+ *
+ * @deprecated This constant is no longer used. Brain service uses:
+ *   - userId for global chat context
+ *   - userId-projectId for project-specific chat context
  */
 export const GLOBAL_PROJECT_ID = 'global'
 

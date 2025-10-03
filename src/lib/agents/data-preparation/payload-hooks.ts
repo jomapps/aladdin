@@ -54,8 +54,15 @@ export function createDataPrepAfterChange(
     // Get project ID
     const projectId = doc[mergedConfig.projectIdField!] || doc.id
 
-    if (!projectId) {
+    // For conversations, projectId can be null (GLOBAL chat)
+    if (!projectId && collectionSlug !== 'conversations') {
       console.warn(`[DataPrepHook] No project ID found for ${collectionSlug}:${doc.id}`)
+      return doc
+    }
+
+    // For conversations, userId is required
+    if (collectionSlug === 'conversations' && !req.user?.id) {
+      console.warn(`[DataPrepHook] No user ID found for conversation:${doc.id}`)
       return doc
     }
 

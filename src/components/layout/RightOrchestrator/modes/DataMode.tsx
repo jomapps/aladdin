@@ -20,9 +20,9 @@ function Welcome() {
 
       {/* Title */}
       <div className="text-center space-y-2">
-        <h3 className="text-xl font-semibold text-gray-900">Data Ingestion Mode</h3>
+        <h3 className="text-xl font-semibold text-gray-900">Upload & Ingest</h3>
         <p className="text-sm text-gray-600">
-          Add or update project data. I&apos;ll validate and structure the information before
+          Upload or describe project data. I&apos;ll validate, enrich, and structure the information before
           ingesting it.
         </p>
       </div>

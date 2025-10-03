@@ -51,17 +51,20 @@ async function checkDuplicates(
   content: any,
   summary: string,
   projectId: string,
+  userId: string,
 ): Promise<Array<{ id: string; similarity: number; suggestion: 'skip' | 'merge' | 'review' }>> {
   try {
     const { getBrainClient } = await import('@/lib/brain/client')
     const brainClient = getBrainClient()
 
-    console.log('[DataHandler] Checking duplicates for:', summary)
+    // Use userId-projectId for conversation context
+    const brainProjectId = `${userId}-${projectId}`
+    console.log('[DataHandler] Checking duplicates for:', summary, 'project_id:', brainProjectId)
 
     // Search for similar content using the summary
     const results = await brainClient.searchSimilar({
       query: summary,
-      projectId,
+      projectId: brainProjectId, // Use userId-projectId for conversation context
       limit: 5,
       threshold: 0.7, // 70% similarity threshold for duplicates
     })
@@ -233,7 +236,7 @@ export async function handleData(options: DataHandlerOptions): Promise<DataHandl
 
   // 5. Check duplicates
   console.log('[DataHandler] Checking duplicates...')
-  const duplicates = await checkDuplicates(enrichedContent, summary, projectId)
+  const duplicates = await checkDuplicates(enrichedContent, summary, projectId, userId)
 
   // 6. Save to Gather MongoDB
   const gatherDb = await getGatherDatabase(projectId)

@@ -117,14 +117,16 @@ export async function handleQuery(options: QueryHandlerOptions): Promise<QueryHa
   }
 
   // 4. Search Brain for relevant entities
-  console.log('[QueryHandler] Searching Brain for:', content)
+  // For conversations: use userId-projectId to scope the search
+  const brainProjectId = `${userId}-${projectId}`
+  console.log('[QueryHandler] Searching Brain for:', content, 'project_id:', brainProjectId)
 
   let brainResults: SearchSimilarResult[] = []
 
   try {
     brainResults = await brainClient.searchSimilar({
       query: content,
-      projectId,
+      projectId: brainProjectId, // Use userId-projectId for conversation context
       type: types?.join(','), // Join multiple types with comma
       limit,
       threshold: 0.6, // 60% similarity threshold

@@ -76,9 +76,9 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
       {/* Desktop Sidebar - Fixed Position */}
       <aside
         className={cn(
-          'hidden lg:flex flex-col fixed top-0 right-0 h-screen z-30',
+          'hidden lg:flex flex-col fixed top-0 right-0 h-screen z-[60]',
           'border-l bg-white dark:bg-zinc-950 transition-all duration-300',
-          isRightOrchestratorOpen ? 'w-[30%] min-w-[350px] max-w-[500px]' : 'w-0 overflow-hidden'
+          isRightOrchestratorOpen ? 'w-[30%] min-w-[350px] max-w-[500px]' : 'w-0 overflow-hidden',
         )}
       >
         {/* Collapse Button */}
@@ -92,7 +92,7 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
               'h-16 w-10 px-1 rounded-l-md rounded-r-none',
               'bg-white dark:bg-zinc-950 border border-r-0 border-zinc-200 dark:border-zinc-800',
               'hover:bg-zinc-50 dark:hover:bg-zinc-900',
-              'shadow-md'
+              'shadow-md',
             )}
             title="Collapse AI Assistant"
           >
@@ -108,11 +108,20 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
               <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                 AI Assistant
               </h2>
-              {projectName && (
-                <div className="text-[11px] leading-tight text-zinc-500 dark:text-zinc-400 text-right whitespace-pre-wrap break-words max-w-[60%]">
-                  {projectName}
-                </div>
-              )}
+              <div className="text-[11px] leading-tight text-right whitespace-pre-wrap break-words max-w-[60%]">
+                {projectName ? (
+                  <span className="font-semibold text-zinc-600 dark:text-zinc-300 animate-pulse">
+                    {projectName}
+                  </span>
+                ) : (
+                  <span className="relative inline-flex items-center">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 animate-ping" />
+                    <span className="relative inline-flex font-bold text-blue-600 dark:text-blue-400 animate-pulse">
+                      GLOBAL
+                    </span>
+                  </span>
+                )}
+              </div>
             </div>
             <ModeSelector />
           </div>
@@ -156,17 +165,13 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
       {isMobileRightOverlay && (
         <>
           <div
-            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-[55] bg-background/80 backdrop-blur-sm lg:hidden"
             onClick={() => setMobileRightOverlay(false)}
           />
-          <aside className="fixed right-0 top-0 bottom-0 z-50 w-[90%] max-w-md bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800 lg:hidden">
+          <aside className="fixed right-0 top-0 bottom-0 z-[60] w-[90%] max-w-md bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800 lg:hidden">
             <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
               <h2 className="text-lg font-semibold">AI Assistant</h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setMobileRightOverlay(false)}
-              >
+              <Button variant="ghost" size="icon" onClick={() => setMobileRightOverlay(false)}>
                 <X className="h-5 w-5" />
               </Button>
             </div>

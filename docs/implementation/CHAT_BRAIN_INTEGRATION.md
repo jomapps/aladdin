@@ -1,8 +1,11 @@
 # Chat Tab Brain Service Integration
 
-**Status**: ✅ Complete
-**Date**: 2025-10-03
+**Status**: ⚠️ OUTDATED - See [Brain Integration Update](../orchestrator/BRAIN_INTEGRATION_UPDATE.md) for current implementation
+**Date**: 2025-10-03 (Original), Updated: 2025-01-03
 **Feature**: Chat tab now queries Brain service for context-aware responses
+
+> **⚠️ IMPORTANT**: This document describes the initial implementation. The Brain project_id strategy has been updated.
+> For current implementation, see [Brain Project ID Strategy](../brain/BRAIN_PROJECT_ID_STRATEGY.md)
 
 ## Overview
 
@@ -12,13 +15,18 @@ The Chat tab in the AI orchestrator now integrates with the Brain knowledge grap
 
 ### 1. Brain Constants (`src/lib/brain/constants.ts`)
 
+> **⚠️ OUTDATED**: `GLOBAL_PROJECT_ID` is now deprecated. See updated strategy below.
+
 ```typescript
+// DEPRECATED - No longer used
 export const GLOBAL_PROJECT_ID = 'global'
 export const DEFAULT_SIMILARITY_THRESHOLD = 0.6
 export const DEFAULT_SEARCH_LIMIT = 10
 ```
 
-**Purpose**: Define shared constants for Brain service integration, including the special "global" project key for non-project queries.
+**Updated Strategy** (2025-01-03):
+- **GLOBAL context**: Uses `userId` as `project_id`
+- **Project context**: Uses `userId-projectId` as `project_id`
 
 ### 2. Chat Handler Enhancement (`src/lib/orchestrator/chatHandler.ts`)
 
@@ -32,15 +40,16 @@ export const DEFAULT_SEARCH_LIMIT = 10
 - Different system prompts for project vs global mode
 - Metadata tracking of Brain results count
 
-**Key Code**:
+**Key Code** (Updated 2025-01-03):
 ```typescript
-const effectiveProjectId = projectId || GLOBAL_PROJECT_ID
+// NEW STRATEGY: userId for GLOBAL, userId-projectId for project
 const isProjectContext = !!projectId
+const brainProjectId = isProjectContext ? `${userId}-${projectId}` : userId
 
 // Query Brain for context
 const brainResults = await brainClient.searchSimilar({
   query: content,
-  projectId: effectiveProjectId,
+  projectId: brainProjectId,  // ← Changed: uses userId or userId-projectId
   limit: DEFAULT_SEARCH_LIMIT,
   threshold: DEFAULT_SIMILARITY_THRESHOLD,
 })
@@ -138,8 +147,9 @@ POST /api/v1/orchestrator/chat
 - Responses are tailored to the specific project
 
 ### Global Mode (no projectId)
-- Uses special `GLOBAL_PROJECT_ID = "global"`
-- Queries general creative knowledge
+- **Updated Strategy**: Uses `userId` as `project_id` (not "global" string)
+- Creates personal knowledge space for the user
+- Queries user's global conversations and context
 - Can be used for non-project-specific questions
 - Future: Can store general storytelling patterns, templates, etc.
 
@@ -192,6 +202,8 @@ POST /api/v1/orchestrator/chat
 
 ## Related Documentation
 
+- **[Brain Integration Update](../orchestrator/BRAIN_INTEGRATION_UPDATE.md)** ← **Current Implementation**
+- **[Brain Project ID Strategy](../brain/BRAIN_PROJECT_ID_STRATEGY.md)** ← **Current Strategy**
 - [Query Mode Brain Integration](./GATHER_BRAIN_INTEGRATION.md)
 - [Brain Service Architecture](../architecture/PHASE3_ARCHITECTURE.md)
 - [Brain API Client](../../src/lib/brain/client.ts)

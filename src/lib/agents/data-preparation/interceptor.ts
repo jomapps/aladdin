@@ -29,6 +29,12 @@ export class BrainServiceInterceptor {
 
     console.log(`[BrainInterceptor] Intercepting store for ${options.entityType}`)
 
+    // For conversations, adjust project_id based on context
+    if (options.entityType === 'conversations') {
+      options.projectId = this.getConversationBrainProjectId(data, options)
+      console.log(`[BrainInterceptor] Conversation brain project_id: ${options.projectId}`)
+    }
+
     // Prepare data through agent
     const brainDocument = await this.agent.prepare(data, options)
 
@@ -37,19 +43,42 @@ export class BrainServiceInterceptor {
   }
 
   /**
+   * Get brain project_id for conversations
+   * - No project: userId (GLOBAL chat)
+   * - With project: userId-projectId (project-specific chat)
+   */
+  private getConversationBrainProjectId(data: any, options: PrepareOptions): string {
+    const userId = options.userId
+    const projectId = data.project || options.projectId
+
+    if (!userId) {
+      throw new Error('userId is required for conversation storage')
+    }
+
+    // If no project or project is the userId itself, use GLOBAL context
+    if (!projectId || projectId === userId) {
+      return userId
+    }
+
+    // Project-specific context
+    return `${userId}-${projectId}`
+  }
+
+  /**
    * Store batch (intercepted)
    */
-  async storeBatch(
-    items: Array<{ data: any; options: PrepareOptions }>
-  ): Promise<any[]> {
+  async storeBatch(items: Array<{ data: any; options: PrepareOptions }>): Promise<any[]> {
     console.log(`[BrainInterceptor] Intercepting batch store for ${items.length} items`)
 
     // Filter out bypassed collections
     const toProcess = items.filter(
-      item => !item.options.sourceCollection || !this.bypassCollections.has(item.options.sourceCollection)
+      (item) =>
+        !item.options.sourceCollection ||
+        !this.bypassCollections.has(item.options.sourceCollection),
     )
     const toBypas = items.filter(
-      item => item.options.sourceCollection && this.bypassCollections.has(item.options.sourceCollection)
+      (item) =>
+        item.options.sourceCollection && this.bypassCollections.has(item.options.sourceCollection),
     )
 
     // Prepare all items through agent
@@ -57,8 +86,8 @@ export class BrainServiceInterceptor {
 
     // Store all in brain service
     const results = await Promise.all([
-      ...prepared.map(doc => this.rawStore(doc)),
-      ...toBypass.map(item => this.rawStore(item.data)),
+      ...prepared.map((doc) => this.rawStore(doc)),
+      ...toBypass.map((item) => this.rawStore(item.data)),
     ])
 
     return results
@@ -86,7 +115,7 @@ export class BrainServiceInterceptor {
 
     // This would call the actual brain service API
     // return await this.brainClient.createNode(...)
-    
+
     return { success: true, id: document.id }
   }
 
@@ -117,4 +146,3 @@ export function getBrainServiceInterceptor(): BrainServiceInterceptor {
   }
   return interceptorInstance
 }
-

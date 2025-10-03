@@ -97,7 +97,7 @@ export default function GatherPageClient({ projectId, projectName }: GatherPageC
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-white">
       {/* Mobile Navigation */}
       <MobileNav onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} projectName={projectName} />
 
@@ -111,29 +111,29 @@ export default function GatherPageClient({ projectId, projectName }: GatherPageC
         />
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto">
-          <div className="flex flex-col h-full">
+        <main className="flex-1 overflow-auto bg-slate-950/60">
+          <div className="flex min-h-full flex-col">
             {/* Header */}
-            <div className="border-b border-border bg-card px-6 py-4">
-              <div className="flex items-center justify-between mb-4">
+            <div className="border-b border-slate-800/70 bg-slate-950/80 px-6 py-5 shadow-[0_24px_80px_-45px_rgba(15,23,42,0.9)]">
+              <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">Gather</h1>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <h1 className="text-3xl font-semibold tracking-tight text-white">Gather</h1>
+                  <p className="mt-1 text-sm text-slate-300/90">
                     Unqualified Content Collection for {projectName}
                   </p>
                 </div>
                 {data && (
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-lg text-muted-foreground">Items:</span>
-                    <span className="text-3xl font-bold text-foreground">{data.total}</span>
+                  <div className="flex items-baseline gap-2 text-slate-200">
+                    <span className="text-lg text-slate-400">Items:</span>
+                    <span className="text-3xl font-bold text-white">{data.total}</span>
                   </div>
                 )}
               </div>
 
               {/* Search and Filters */}
-              <div className="flex items-center gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-slate-400" />
                   <Input
                     type="text"
                     placeholder="Search gather items..."

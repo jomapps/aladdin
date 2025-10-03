@@ -54,10 +54,13 @@ export interface ProjectContext {
 }
 
 export interface PayloadContext {
+  episodes: any[]
+  conversations: any[]
+  workflows: any[]
+  // These are in Open MongoDB, kept for backward compatibility
   characters: any[]
   scenes: any[]
   locations: any[]
-  episodes: any[]
   concepts: any[]
 }
 
@@ -71,6 +74,11 @@ export interface BrainContext {
 export interface OpenDBContext {
   collections: string[]
   stats: Record<string, { count: number }>
+  // Dynamic collections from Open MongoDB
+  characters: any[]
+  scenes: any[]
+  locations: any[]
+  concepts: any[]
   recentDocuments?: any[]
 }
 
@@ -83,11 +91,14 @@ export interface RelatedEntities {
 }
 
 export interface MetadataSchema {
-  fields: Record<string, {
-    type: string
-    description: string
-    required: boolean
-  }>
+  fields: Record<
+    string,
+    {
+      type: string
+      description: string
+      required: boolean
+    }
+  >
   purpose: string
 }
 
@@ -263,4 +274,3 @@ export interface EpisodeMetadata {
   cliffhanger?: boolean
   emotionalTone?: string
 }
-
