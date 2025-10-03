@@ -1,13 +1,12 @@
 /**
  * RightOrchestrator Component
- * Slide-in AI chat modal with fixed height and clean black/white/grey design
+ * Fixed right sidebar AI chat with 30% width and collapse functionality
  */
 
 'use client'
 
 import { useEffect } from 'react'
-import { ChevronLeft, MessageCircle } from 'lucide-react'
-import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet'
+import { ChevronRight, ChevronLeft, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useLayoutStore } from '@/stores/layoutStore'
 import { useOrchestratorStore } from '@/stores/orchestratorStore'
@@ -58,26 +57,84 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
     }
   }
 
-  // Determine if sheet should be open
-  const isOpen = isRightOrchestratorOpen || isMobileRightOverlay
-
-  // Handle close
-  const handleClose = () => {
-    if (isMobileRightOverlay) {
-      setMobileRightOverlay(false)
-    } else {
-      toggleRightOrchestrator()
+  // Add effect to adjust body margin when sidebar opens/closes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const root = document.documentElement
+      if (isRightOrchestratorOpen) {
+        root.style.setProperty('--right-sidebar-width', '30%')
+        root.style.setProperty('--right-sidebar-min-width', '350px')
+      } else {
+        root.style.setProperty('--right-sidebar-width', '0px')
+        root.style.setProperty('--right-sidebar-min-width', '0px')
+      }
     }
-  }
+  }, [isRightOrchestratorOpen])
 
   return (
     <>
-      {/* Floating Toggle Button */}
-      {!isOpen && (
+      {/* Desktop Sidebar - Fixed Position */}
+      <aside
+        className={cn(
+          'hidden lg:flex flex-col fixed top-0 right-0 h-screen z-30',
+          'border-l bg-white dark:bg-zinc-950 transition-all duration-300',
+          isRightOrchestratorOpen ? 'w-[30%] min-w-[350px] max-w-[500px]' : 'w-0 overflow-hidden'
+        )}
+      >
+        {/* Collapse Button */}
+        {isRightOrchestratorOpen && (
+          <Button
+            onClick={toggleRightOrchestrator}
+            size="sm"
+            variant="ghost"
+            className={cn(
+              'absolute -left-10 top-1/2 -translate-y-1/2 z-10',
+              'h-16 w-10 px-1 rounded-l-md rounded-r-none',
+              'bg-white dark:bg-zinc-950 border border-r-0 border-zinc-200 dark:border-zinc-800',
+              'hover:bg-zinc-50 dark:hover:bg-zinc-900',
+              'shadow-md'
+            )}
+            title="Collapse AI Assistant"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        )}
+
+        {/* Fixed height container */}
+        <div className="flex flex-col h-full">
+          {/* Header with mode selector */}
+          <div className="flex-shrink-0 border-b border-zinc-200 dark:border-zinc-800">
+            <div className="px-4 py-3 flex items-start justify-between gap-3">
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                AI Assistant
+              </h2>
+              {projectName && (
+                <div className="text-[11px] leading-tight text-zinc-500 dark:text-zinc-400 text-right whitespace-pre-wrap break-words max-w-[60%]">
+                  {projectName}
+                </div>
+              )}
+            </div>
+            <ModeSelector />
+          </div>
+
+          {/* Scrollable chat area */}
+          <div className="flex-1 overflow-hidden">
+            <ChatArea mode={orchestratorMode} onSuggestionClick={handleSuggestionClick} />
+          </div>
+
+          {/* Fixed input at bottom */}
+          <div className="flex-shrink-0 border-t border-zinc-200 dark:border-zinc-800">
+            <MessageInput onSend={sendMessage} isLoading={isLoading} />
+          </div>
+        </div>
+      </aside>
+
+      {/* Floating Expand Button (when collapsed) */}
+      {!isRightOrchestratorOpen && (
         <Button
-          onClick={() => toggleRightOrchestrator()}
+          onClick={toggleRightOrchestrator}
           className={cn(
-            'fixed right-0 top-1/2 -translate-y-1/2 z-40',
+            'hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-40',
             'rounded-l-full rounded-r-none',
             'h-16 w-12 px-2',
             'bg-zinc-900 dark:bg-zinc-100',
@@ -85,59 +142,48 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
             'hover:bg-zinc-800 dark:hover:bg-zinc-200',
             'shadow-lg',
             'transition-all duration-300',
-            'flex items-center justify-center',
+            'flex-col items-center justify-center gap-1',
             'border-l border-t border-b border-zinc-700 dark:border-zinc-300',
           )}
           title="Open AI Assistant"
         >
-          <div className="flex flex-col items-center gap-1">
-            <ChevronLeft className="h-5 w-5" />
-            <MessageCircle className="h-4 w-4" />
-          </div>
+          <ChevronLeft className="h-5 w-5" />
+          <span className="text-[10px] font-medium">AI</span>
         </Button>
       )}
 
-      {/* Sheet Modal */}
-      <Sheet open={isOpen} onOpenChange={handleClose}>
-        <SheetContent
-          side="right"
-          className="w-full sm:w-[480px] p-0 bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800"
-        >
-          {/* Accessibility */}
-          <SheetTitle className="sr-only">AI Assistant</SheetTitle>
-          <SheetDescription className="sr-only">
-            AI-powered assistant for your project with Query, Data, Task, and Chat modes
-          </SheetDescription>
-
-          {/* Fixed height container */}
-          <div className="flex flex-col h-full">
-            {/* Header with mode selector */}
-            <div className="flex-shrink-0 border-b border-zinc-200 dark:border-zinc-800">
-              <div className="px-4 py-3 flex items-start justify-between gap-3">
-                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                  AI Assistant
-                </h2>
-                {projectName && (
-                  <div className="text-[11px] leading-tight text-zinc-500 dark:text-zinc-400 text-right whitespace-pre-wrap break-words max-w-[60%]">
-                    {projectName}
-                  </div>
-                )}
+      {/* Mobile Overlay */}
+      {isMobileRightOverlay && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
+            onClick={() => setMobileRightOverlay(false)}
+          />
+          <aside className="fixed right-0 top-0 bottom-0 z-50 w-[90%] max-w-md bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800 lg:hidden">
+            <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
+              <h2 className="text-lg font-semibold">AI Assistant</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobileRightOverlay(false)}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            <div className="flex flex-col h-[calc(100%-4rem)]">
+              <div className="flex-shrink-0 border-b border-zinc-200 dark:border-zinc-800">
+                <ModeSelector />
               </div>
-              <ModeSelector />
+              <div className="flex-1 overflow-hidden">
+                <ChatArea mode={orchestratorMode} onSuggestionClick={handleSuggestionClick} />
+              </div>
+              <div className="flex-shrink-0 border-t border-zinc-200 dark:border-zinc-800">
+                <MessageInput onSend={sendMessage} isLoading={isLoading} />
+              </div>
             </div>
-
-            {/* Scrollable chat area */}
-            <div className="flex-1 overflow-hidden">
-              <ChatArea mode={orchestratorMode} onSuggestionClick={handleSuggestionClick} />
-            </div>
-
-            {/* Fixed input at bottom */}
-            <div className="flex-shrink-0 border-t border-zinc-200 dark:border-zinc-800">
-              <MessageInput onSend={sendMessage} isLoading={isLoading} />
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
+          </aside>
+        </>
+      )}
     </>
   )
 }

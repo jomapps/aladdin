@@ -22,7 +22,7 @@ export default function LeftSidebar() {
       <aside
         className={cn(
           'hidden lg:flex flex-col border-r bg-background transition-all duration-300',
-          isLeftSidebarOpen ? 'w-64' : 'w-0 overflow-hidden'
+          isLeftSidebarOpen ? 'w-1/5 min-w-[250px] max-w-[300px]' : 'w-0 overflow-hidden'
         )}
       >
         <div className="flex-1 overflow-y-auto p-4 space-y-6">

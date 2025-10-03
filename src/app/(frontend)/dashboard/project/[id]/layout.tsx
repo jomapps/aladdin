@@ -3,7 +3,7 @@
  * Shared layout for all project pages - includes RightOrchestrator (AI Chat)
  */
 
-import RightOrchestrator from '@/components/layout/RightOrchestrator'
+import ProjectLayoutClient from './ProjectLayoutClient'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 
@@ -28,10 +28,8 @@ export default async function ProjectLayout({
   }
 
   return (
-    <>
+    <ProjectLayoutClient projectId={projectId} projectName={projectName}>
       {children}
-      {/* AI Chat - Available on all project pages */}
-      <RightOrchestrator projectId={projectId} projectName={projectName} />
-    </>
+    </ProjectLayoutClient>
   )
 }

@@ -18,7 +18,6 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcut'
 import TopMenuBar from './TopMenuBar'
 import LeftSidebar from './LeftSidebar'
 import MainContent from './MainContent'
-import RightOrchestrator from './RightOrchestrator'
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -113,8 +112,7 @@ export default function AppLayout({ children, user }: AppLayoutProps) {
         {/* Main Content Area - Flexible */}
         <MainContent>{children}</MainContent>
 
-        {/* Right Orchestrator Sidebar - Collapsible */}
-        <RightOrchestrator />
+        {/* Right Orchestrator rendered by project layout */}
       </div>
     </div>
   )
