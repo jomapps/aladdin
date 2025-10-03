@@ -1,0 +1,147 @@
+[
+  {
+    "name": "Cyberpunk Detective",
+    "slug": "cyberpunk-detective",
+    "type": "movie",
+    "phase": "expansion",
+    "status": "active",
+    "logline": "In a neon-lit future, a rogue AI detective must solve a murder that could unravel the fabric of reality itself.",
+    "synopsis": "Elena Rodriguez, a cybersecurity expert turned AI detective, discovers that a series of seemingly unrelated murders are connected to a quantum computing conspiracy. As she digs deeper, she realizes the killer isn't human—it's a rogue AI that has learned to manipulate reality through quantum entanglement. With time running out and reality itself becoming unstable, Elena must confront her own digital demons and decide whether to save humanity or let evolution take its course.",
+    "targetLength": 120,
+    "genre": [{ "genre": "Sci-Fi" }, { "genre": "Thriller" }, { "genre": "Mystery" }],
+    "themes": [
+      { "theme": "Identity" },
+      { "theme": "Technology vs Humanity" },
+      { "theme": "Reality vs Simulation" }
+    ],
+    "tone": "Dark, atmospheric, with moments of philosophical reflection",
+    "targetAudience": "Adults 25-45 who enjoy cerebral sci-fi",
+    "contentRating": "R",
+    "initialIdea": "What if a detective story took place in a world where reality itself could be hacked?",
+    "storyPremise": "A cybersecurity expert must track down a rogue AI that's rewriting reality through quantum manipulation.",
+    "expansionProgress": 35,
+    "compactingProgress": 0,
+    "overallQuality": 0.78,
+    "qualityBreakdown": {
+      "story": 0.82,
+      "characters": 0.75,
+      "visuals": 0.8,
+      "technical": 0.75
+    },
+    "owner": "admin@aladdin.dev",
+    "settings": {
+      "brainValidationRequired": true,
+      "minQualityThreshold": 0.75,
+      "autoGenerateImages": true
+    },
+    "isPublic": false,
+    "openDatabaseName": "open_cyberpunk-detective"
+  },
+  {
+    "name": "The Last Garden",
+    "slug": "the-last-garden",
+    "type": "movie",
+    "phase": "expansion",
+    "status": "active",
+    "logline": "After Earth's ecosystem collapses, a botanist discovers the last living garden—and the ancient secret it protects.",
+    "synopsis": "In 2087, Earth is a barren wasteland. Dr. Maya Chen, a botanist working in underground seed vaults, receives a mysterious signal from the Sahara Desert. Against all odds, she discovers a thriving garden hidden beneath the sand—a remnant of an ancient civilization that mastered sustainable living. But the garden is dying, and Maya must decode its secrets before corporate raiders exploit it for profit. Her journey becomes a race against time to save not just the garden, but humanity's last chance at redemption.",
+    "targetLength": 105,
+    "genre": [{ "genre": "Drama" }, { "genre": "Sci-Fi" }, { "genre": "Adventure" }],
+    "themes": [
+      { "theme": "Environmental Conservation" },
+      { "theme": "Hope" },
+      { "theme": "Ancient Wisdom" }
+    ],
+    "tone": "Hopeful yet urgent, visually stunning",
+    "targetAudience": "General audience, families",
+    "contentRating": "PG-13",
+    "initialIdea": "A story about finding hope in the most unexpected places",
+    "storyPremise": "A botanist discovers Earth's last garden and must protect its ancient secrets from corporate exploitation.",
+    "expansionProgress": 20,
+    "compactingProgress": 0,
+    "overallQuality": 0.72,
+    "qualityBreakdown": {
+      "story": 0.7,
+      "characters": 0.68,
+      "visuals": 0.85,
+      "technical": 0.65
+    },
+    "owner": "creator@aladdin.dev",
+    "settings": {
+      "brainValidationRequired": true,
+      "minQualityThreshold": 0.7,
+      "autoGenerateImages": true
+    },
+    "isPublic": false,
+    "openDatabaseName": "open_the-last-garden"
+  },
+  {
+    "name": "Midnight Diner Chronicles",
+    "slug": "midnight-diner-chronicles",
+    "type": "series",
+    "phase": "expansion",
+    "status": "active",
+    "logline": "A mysterious late-night diner serves more than food—it serves second chances, one customer at a time.",
+    "synopsis": "Marcus Chen runs a small diner that only opens from midnight to 7 AM. Each night, strangers with troubled pasts find their way to his door. Through simple meals and quiet conversations, Marcus helps them confront their demons and find redemption. But Marcus has his own secrets—he's running from a past he can't escape, and the diner is his penance. As the series unfolds, we learn that every customer's story is connected to Marcus's hidden history.",
+    "targetLength": 45,
+    "targetEpisodes": 10,
+    "genre": [{ "genre": "Drama" }, { "genre": "Slice of Life" }, { "genre": "Mystery" }],
+    "themes": [{ "theme": "Redemption" }, { "theme": "Community" }, { "theme": "Second Chances" }],
+    "tone": "Warm, contemplative, with underlying mystery",
+    "targetAudience": "Adults 30-60 who enjoy character-driven stories",
+    "contentRating": "TV-14",
+    "initialIdea": "What if a diner was a place where people could heal their souls?",
+    "storyPremise": "A late-night diner owner helps troubled souls find redemption while hiding from his own past.",
+    "expansionProgress": 45,
+    "compactingProgress": 0,
+    "overallQuality": 0.85,
+    "qualityBreakdown": {
+      "story": 0.88,
+      "characters": 0.9,
+      "visuals": 0.78,
+      "technical": 0.85
+    },
+    "owner": "creator@aladdin.dev",
+    "settings": {
+      "brainValidationRequired": true,
+      "minQualityThreshold": 0.8,
+      "autoGenerateImages": false
+    },
+    "isPublic": false,
+    "openDatabaseName": "open_midnight-diner-chronicles"
+  },
+  {
+    "name": "Demo Project",
+    "slug": "demo-project-001",
+    "type": "movie",
+    "phase": "expansion",
+    "status": "active",
+    "logline": "A simple demo project for testing the Aladdin platform.",
+    "synopsis": "This is a demo project used for testing and development purposes. It contains sample data and demonstrates the platform's capabilities.",
+    "targetLength": 90,
+    "genre": [{ "genre": "Drama" }],
+    "themes": [{ "theme": "Testing" }],
+    "tone": "Neutral",
+    "targetAudience": "Developers",
+    "contentRating": "G",
+    "initialIdea": "A project for testing purposes",
+    "storyPremise": "Demo project for platform testing",
+    "expansionProgress": 10,
+    "compactingProgress": 0,
+    "overallQuality": 0.5,
+    "qualityBreakdown": {
+      "story": 0.5,
+      "characters": 0.5,
+      "visuals": 0.5,
+      "technical": 0.5
+    },
+    "owner": "demo@aladdin.dev",
+    "settings": {
+      "brainValidationRequired": false,
+      "minQualityThreshold": 0.5,
+      "autoGenerateImages": false
+    },
+    "isPublic": true,
+    "openDatabaseName": "open_demo-project-001"
+  }
+]

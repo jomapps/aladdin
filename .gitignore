@@ -42,7 +42,7 @@ next-env.d.ts
 
 /media
 /backups
-/seeds
+# /seeds
 
 # Playwright
 node_modules/

@@ -1,0 +1,18 @@
+[
+  {
+    "email": "admin@aladdin.dev",
+    "password": "admin123",
+    "name": "Admin User"
+  },
+  {
+    "email": "creator@aladdin.dev",
+    "password": "creator123",
+    "name": "Content Creator"
+  },
+  {
+    "email": "demo@aladdin.dev",
+    "password": "demo123",
+    "name": "Demo User"
+  }
+]
+

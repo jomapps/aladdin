@@ -12,10 +12,10 @@ import { calculateProjectReadinessScore } from '@/lib/evaluation/score-calculato
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { projectId: string } },
+  { params }: { params: Promise<{ projectId: string }> },
 ) {
   try {
-    const { projectId } = params
+    const { projectId } = await params
     const payload = await getPayload({ config })
 
     // Get all core departments in order
@@ -33,18 +33,14 @@ export async function GET(
         const evaluation = await payload.find({
           collection: 'project-readiness',
           where: {
-            and: [
-              { projectId: { equals: projectId } },
-              { departmentId: { equals: dept.id } },
-            ],
+            and: [{ projectId: { equals: projectId } }, { departmentId: { equals: dept.id } }],
           },
           limit: 1,
           sort: '-lastEvaluatedAt',
         })
 
         const evalData = evaluation.docs[0]
-        const threshold =
-          (dept.coordinationSettings as any)?.minQualityThreshold || 80
+        const threshold = (dept.coordinationSettings as any)?.minQualityThreshold || 80
 
         return {
           departmentId: dept.id,

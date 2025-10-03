@@ -45,12 +45,25 @@ pnpm db:seed --clean
 **Seed File Structure:**
 ```
 seeds/
-├── departments.json      # Department data
+├── users.json           # ✅ User accounts (3 default users)
+├── departments.json     # Department data
 ├── agents.json          # Agent data
 ├── custom-tools.json    # Custom tools
-├── users.json           # User accounts
-└── projects.json        # Project data
+└── projects.json        # ✅ Project data (4 sample projects)
 ```
+
+**Included Seed Data:**
+
+📦 **users.json** - 3 development users ready to use:
+- `admin@aladdin.dev` (password: `admin123`)
+- `creator@aladdin.dev` (password: `creator123`)
+- `demo@aladdin.dev` (password: `demo123`)
+
+📦 **projects.json** - 4 sample projects with complete metadata:
+- Cyberpunk Detective (Movie, Sci-Fi Thriller)
+- The Last Garden (Movie, Environmental Drama)
+- Midnight Diner Chronicles (Series, 10 episodes)
+- Demo Project (Testing project)
 
 **Example seed file (seeds/departments.json):**
 ```json
@@ -145,11 +158,15 @@ pnpm db:restore --confirm
 
 ## 🔄 Common Workflows
 
-### Fresh Start
+### Fresh Start (Recommended for Development)
 ```bash
 # Clean everything and seed fresh data
-pnpm db:clean --confirm
-pnpm db:seed
+pnpm db:clean --confirm && pnpm db:seed
+
+# This gives you:
+# ✅ 3 test users to log in with
+# ✅ 4 sample projects to work with
+# ✅ All departments and agents configured
 ```
 
 ### Before Major Changes

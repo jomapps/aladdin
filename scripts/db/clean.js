@@ -34,7 +34,7 @@ const PAYLOAD_COLLECTIONS = [
   'payload-migrations',
 ]
 
-async function askConfirmation(): Promise<boolean> {
+async function askConfirmation() {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -54,7 +54,7 @@ async function askConfirmation(): Promise<boolean> {
   })
 }
 
-async function cleanPayloadDatabase(client: MongoClient): Promise<void> {
+async function cleanPayloadDatabase(client) {
   console.log('\n🧹 Cleaning PayloadCMS database...')
 
   const db = client.db()
@@ -79,14 +79,14 @@ async function cleanPayloadDatabase(client: MongoClient): Promise<void> {
   console.log(`\n✅ PayloadCMS database cleaned (${cleaned} collections)`)
 }
 
-async function cleanOpenDatabases(client: MongoClient): Promise<void> {
+async function cleanOpenDatabases(client) {
   console.log('\n🧹 Cleaning Open MongoDB databases...')
 
   const adminDb = client.db('admin')
   const { databases } = await adminDb.admin().listDatabases()
 
   // Find all databases starting with 'open_'
-  const openDatabases = databases.filter((db: any) => db.name.startsWith('open_'))
+  const openDatabases = databases.filter((db) => db.name.startsWith('open_'))
 
   if (openDatabases.length === 0) {
     console.log('  ℹ️  No open databases found')
@@ -120,10 +120,12 @@ async function main() {
       console.log('\n❌ Operation cancelled')
       process.exit(0)
     }
+  } else {
+    console.log('\n✅ Confirmation skipped (--confirm flag provided)')
   }
 
-  let payloadClient: MongoClient | null = null
-  let openClient: MongoClient | null = null
+  let payloadClient = null
+  let openClient = null
 
   try {
     // Connect to PayloadCMS database

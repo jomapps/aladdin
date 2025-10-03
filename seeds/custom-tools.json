@@ -1,0 +1,934 @@
+[
+  {
+    "toolName": "fetch-character-profile",
+    "displayName": "Fetch Character Profile",
+    "description": "Retrieves complete character profile including personality, background, traits, and development arc. Essential for maintaining character consistency.",
+    "category": "data-retrieval",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "characterId": {
+          "type": "string",
+          "description": "Character ID or name to fetch"
+        },
+        "includeRelationships": {
+          "type": "boolean",
+          "description": "Include character relationships",
+          "default": true
+        }
+      },
+      "required": [
+        "characterId"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "type": "object"
+        },
+        "arc": {
+          "type": "object"
+        },
+        "relationships": {
+          "type": "array"
+        },
+        "continuityNotes": {
+          "type": "array"
+        }
+      }
+    },
+    "executeFunction": "async ({ characterId, includeRelationships = true }, { payload }) => {\n  // Fetch character from database\n  const character = await payload.findByID({\n    collection: 'characters',\n    id: characterId,\n  });\n\n  if (!character) {\n    throw new Error(`Character ${characterId} not found`);\n  }\n\n  const result = {\n    profile: {\n      name: character.name,\n      age: character.age,\n      personality: character.personality,\n      background: character.background,\n      traits: character.traits,\n    },\n    arc: character.developmentArc,\n    continuityNotes: character.continuityNotes || [],\n  };\n\n  if (includeRelationships) {\n    result.relationships = character.relationships || [];\n  }\n\n  return result;\n}",
+    "setupCode": "// No setup required - uses PayloadCMS directly",
+    "isGlobal": false,
+    "isActive": true,
+    "version": "1.0.0",
+    "exampleInputs": [
+      {
+        "example": {
+          "characterId": "char-001",
+          "includeRelationships": true
+        }
+      }
+    ],
+    "testCases": [
+      {
+        "name": "Fetch existing character",
+        "input": {
+          "characterId": "char-001",
+          "includeRelationships": true
+        },
+        "shouldFail": false
+      }
+    ],
+    "performanceMetrics": {
+      "totalCalls": 450,
+      "successfulCalls": 438,
+      "failedCalls": 12,
+      "averageExecutionTime": 120
+    },
+    "documentation": {
+      "usage": "Use this tool whenever you need character information to maintain consistency in dialogue, actions, or development.",
+      "examples": "await fetchCharacterProfile({ characterId: \"protagonist-001\", includeRelationships: true })",
+      "limitations": "Character must exist in database. Does not create or modify characters."
+    },
+    "tags": [
+      {
+        "tag": "character"
+      },
+      {
+        "tag": "data-retrieval"
+      },
+      {
+        "tag": "consistency"
+      }
+    ]
+  },
+  {
+    "toolName": "check-character-consistency",
+    "displayName": "Character Consistency Checker",
+    "description": "Analyzes character actions, dialogue, and decisions against established profile to ensure consistency. Flags contradictions.",
+    "category": "validation",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "characterId": {
+          "type": "string",
+          "description": "Character ID to check"
+        },
+        "content": {
+          "type": "string",
+          "description": "New content (dialogue, action, scene) to validate"
+        },
+        "context": {
+          "type": "string",
+          "description": "Scene or situation context"
+        }
+      },
+      "required": [
+        "characterId",
+        "content"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "isConsistent": {
+          "type": "boolean"
+        },
+        "score": {
+          "type": "number"
+        },
+        "issues": {
+          "type": "array"
+        },
+        "suggestions": {
+          "type": "array"
+        }
+      }
+    },
+    "executeFunction": "async ({ characterId, content, context }, { payload }) => {\n  // Fetch character profile\n  const character = await payload.findByID({\n    collection: 'characters',\n    id: characterId,\n  });\n\n  if (!character) {\n    throw new Error(`Character ${characterId} not found`);\n  }\n\n  const issues = [];\n  let score = 100;\n\n  // Check against personality traits\n  const personality = character.personality || {};\n  const traits = character.traits || [];\n\n  // Simple consistency checks (in production, use AI for deeper analysis)\n  if (content.toLowerCase().includes('angry') && personality.temperament === 'calm') {\n    issues.push({\n      type: 'personality',\n      message: 'Character displays anger inconsistent with calm temperament',\n      severity: 'medium',\n    });\n    score -= 15;\n  }\n\n  if (content.toLowerCase().includes('forgot') && traits.includes('perfect-memory')) {\n    issues.push({\n      type: 'trait',\n      message: 'Character forgetting contradicts \"perfect memory\" trait',\n      severity: 'high',\n    });\n    score -= 25;\n  }\n\n  const isConsistent = score >= 75;\n\n  return {\n    isConsistent,\n    score,\n    issues,\n    suggestions: issues.map(i => `Consider revising to align with ${i.type}`),\n  };\n}",
+    "setupCode": "// No setup required",
+    "isGlobal": false,
+    "isActive": true,
+    "version": "1.0.0",
+    "exampleInputs": [
+      {
+        "example": {
+          "characterId": "char-001",
+          "content": "Character angrily slams door",
+          "context": "After receiving bad news"
+        }
+      }
+    ],
+    "testCases": [
+      {
+        "name": "Check consistent action",
+        "input": {
+          "characterId": "char-001",
+          "content": "Character calmly assesses the situation"
+        },
+        "shouldFail": false
+      }
+    ],
+    "performanceMetrics": {
+      "totalCalls": 380,
+      "successfulCalls": 371,
+      "failedCalls": 9,
+      "averageExecutionTime": 250
+    },
+    "documentation": {
+      "usage": "Run this tool before finalizing any character content to ensure consistency with established profile.",
+      "examples": "await checkCharacterConsistency({ characterId: \"hero\", content: \"dialogue line\", context: \"confrontation scene\" })",
+      "limitations": "Basic rule-based checking. For deep analysis, consider using AI-powered validation."
+    },
+    "tags": [
+      {
+        "tag": "character"
+      },
+      {
+        "tag": "validation"
+      },
+      {
+        "tag": "consistency"
+      }
+    ]
+  },
+  {
+    "toolName": "map-character-relationships",
+    "displayName": "Character Relationship Mapper",
+    "description": "Generates visual relationship map showing connections, dynamics, and conflicts between characters.",
+    "category": "analysis",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "characterIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of character IDs to map"
+        },
+        "includeHistory": {
+          "type": "boolean",
+          "description": "Include relationship history and evolution",
+          "default": false
+        }
+      },
+      "required": [
+        "characterIds"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "type": "array"
+        },
+        "edges": {
+          "type": "array"
+        },
+        "dynamics": {
+          "type": "object"
+        }
+      }
+    },
+    "executeFunction": "async ({ characterIds, includeHistory = false }, { payload }) => {\n  const nodes = [];\n  const edges = [];\n  const dynamics = {};\n\n  for (const id of characterIds) {\n    const char = await payload.findByID({\n      collection: 'characters',\n      id,\n    });\n\n    if (char) {\n      nodes.push({\n        id: char.id,\n        name: char.name,\n        type: char.role,\n      });\n\n      // Map relationships\n      if (char.relationships) {\n        char.relationships.forEach(rel => {\n          edges.push({\n            from: char.id,\n            to: rel.characterId,\n            type: rel.type,\n            strength: rel.strength,\n          });\n        });\n      }\n    }\n  }\n\n  return { nodes, edges, dynamics };\n}",
+    "setupCode": "// No setup required",
+    "isGlobal": false,
+    "isActive": true,
+    "version": "1.0.0",
+    "exampleInputs": [
+      {
+        "example": {
+          "characterIds": [
+            "char-001",
+            "char-002",
+            "char-003"
+          ],
+          "includeHistory": true
+        }
+      }
+    ],
+    "testCases": [
+      {
+        "name": "Map multiple characters",
+        "input": {
+          "characterIds": [
+            "char-001",
+            "char-002"
+          ],
+          "includeHistory": false
+        },
+        "shouldFail": false
+      }
+    ],
+    "performanceMetrics": {
+      "totalCalls": 220,
+      "successfulCalls": 215,
+      "failedCalls": 5,
+      "averageExecutionTime": 350
+    },
+    "documentation": {
+      "usage": "Use to visualize and analyze character relationships. Helpful for ensuring relationship consistency.",
+      "examples": "await mapCharacterRelationships({ characterIds: [\"hero\", \"villain\", \"sidekick\"], includeHistory: true })",
+      "limitations": "Requires characters to have relationship data defined. Does not infer unstated relationships."
+    },
+    "tags": [
+      {
+        "tag": "character"
+      },
+      {
+        "tag": "analysis"
+      },
+      {
+        "tag": "relationships"
+      }
+    ]
+  },
+  {
+    "toolName": "validate-plot-structure",
+    "displayName": "Plot Structure Validator",
+    "description": "Validates story structure against standard frameworks (three-act, hero's journey). Identifies missing elements and pacing issues.",
+    "category": "validation",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plotData": {
+          "type": "object",
+          "description": "Plot structure data with acts, beats, turning points"
+        },
+        "framework": {
+          "type": "string",
+          "enum": [
+            "three-act",
+            "heros-journey",
+            "save-the-cat"
+          ],
+          "description": "Story structure framework to validate against",
+          "default": "three-act"
+        }
+      },
+      "required": [
+        "plotData"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "isValid": {
+          "type": "boolean"
+        },
+        "score": {
+          "type": "number"
+        },
+        "missingElements": {
+          "type": "array"
+        },
+        "recommendations": {
+          "type": "array"
+        }
+      }
+    },
+    "executeFunction": "async ({ plotData, framework = 'three-act' }) => {\n  const missingElements = [];\n  let score = 100;\n\n  // Validate three-act structure\n  if (framework === 'three-act') {\n    const required = ['inciting-incident', 'midpoint', 'climax', 'resolution'];\n\n    required.forEach(element => {\n      if (!plotData.beats?.includes(element)) {\n        missingElements.push({\n          element,\n          description: `Missing ${element} in plot structure`,\n        });\n        score -= 20;\n      }\n    });\n\n    // Check act balance\n    if (plotData.acts) {\n      const actRatios = plotData.acts.map(act => act.length);\n      const total = actRatios.reduce((a, b) => a + b, 0);\n      const ratios = actRatios.map(r => r / total);\n\n      // Ideal: 25%, 50%, 25%\n      if (Math.abs(ratios[0] - 0.25) > 0.1) {\n        missingElements.push({\n          element: 'act-balance',\n          description: 'Act 1 length deviates from ideal 25%',\n        });\n        score -= 10;\n      }\n    }\n  }\n\n  return {\n    isValid: score >= 70,\n    score,\n    missingElements,\n    recommendations: missingElements.map(e => `Add or refine ${e.element}`),\n  };\n}",
+    "setupCode": "// No setup required",
+    "isGlobal": false,
+    "isActive": true,
+    "version": "1.0.0",
+    "exampleInputs": [
+      {
+        "example": {
+          "plotData": {
+            "acts": [
+              {
+                "length": 25
+              },
+              {
+                "length": 50
+              },
+              {
+                "length": 25
+              }
+            ],
+            "beats": [
+              "inciting-incident",
+              "midpoint",
+              "climax",
+              "resolution"
+            ]
+          },
+          "framework": "three-act"
+        }
+      }
+    ],
+    "testCases": [
+      {
+        "name": "Valid three-act structure",
+        "input": {
+          "plotData": {
+            "acts": [
+              {
+                "length": 25
+              },
+              {
+                "length": 50
+              },
+              {
+                "length": 25
+              }
+            ],
+            "beats": [
+              "inciting-incident",
+              "midpoint",
+              "climax",
+              "resolution"
+            ]
+          },
+          "framework": "three-act"
+        },
+        "shouldFail": false
+      }
+    ],
+    "performanceMetrics": {
+      "totalCalls": 310,
+      "successfulCalls": 302,
+      "failedCalls": 8,
+      "averageExecutionTime": 180
+    },
+    "documentation": {
+      "usage": "Use to validate story structure before finalizing plot. Ensures all critical story beats are present.",
+      "examples": "await validatePlotStructure({ plotData: {...}, framework: \"three-act\" })",
+      "limitations": "Rule-based validation. Cannot assess quality or emotional impact of story elements."
+    },
+    "tags": [
+      {
+        "tag": "story"
+      },
+      {
+        "tag": "validation"
+      },
+      {
+        "tag": "plot"
+      }
+    ]
+  },
+  {
+    "toolName": "analyze-dialogue-authenticity",
+    "displayName": "Dialogue Authenticity Analyzer",
+    "description": "Analyzes dialogue for natural speech patterns, character voice consistency, and subtext. Provides improvement suggestions.",
+    "category": "analysis",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "dialogue": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "character": {
+                "type": "string"
+              },
+              "line": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Array of dialogue lines to analyze"
+        },
+        "context": {
+          "type": "string",
+          "description": "Scene context for dialogue"
+        }
+      },
+      "required": [
+        "dialogue"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "authenticityScore": {
+          "type": "number"
+        },
+        "issues": {
+          "type": "array"
+        },
+        "improvements": {
+          "type": "array"
+        },
+        "voiceConsistency": {
+          "type": "object"
+        }
+      }
+    },
+    "executeFunction": "async ({ dialogue, context }) => {\n  const issues = [];\n  let authenticityScore = 100;\n\n  for (const line of dialogue) {\n    // Check for exposition dumps\n    if (line.line.length > 200 && line.line.includes('because') && line.line.includes('and')) {\n      issues.push({\n        character: line.character,\n        issue: 'potential-exposition-dump',\n        line: line.line.substring(0, 50) + '...',\n        severity: 'medium',\n      });\n      authenticityScore -= 10;\n    }\n\n    // Check for overly formal speech\n    if (line.line.includes('furthermore') || line.line.includes('therefore')) {\n      issues.push({\n        character: line.character,\n        issue: 'overly-formal',\n        line: line.line.substring(0, 50) + '...',\n        severity: 'low',\n      });\n      authenticityScore -= 5;\n    }\n\n    // Check for contractions (natural speech)\n    const hasContractions = /\\b(don't|won't|can't|shouldn't|wouldn't|couldn't)\\b/.test(line.line);\n    if (!hasContractions && line.line.split(' ').length > 10) {\n      issues.push({\n        character: line.character,\n        issue: 'lacks-natural-contractions',\n        line: line.line.substring(0, 50) + '...',\n        severity: 'low',\n      });\n      authenticityScore -= 3;\n    }\n  }\n\n  return {\n    authenticityScore: Math.max(0, authenticityScore),\n    issues,\n    improvements: issues.map(i => ({\n      issue: i.issue,\n      suggestion: `Revise ${i.character}'s dialogue for more natural speech`,\n    })),\n    voiceConsistency: {\n      score: authenticityScore,\n      analysis: 'Basic authenticity check completed',\n    },\n  };\n}",
+    "setupCode": "// No setup required",
+    "isGlobal": false,
+    "isActive": true,
+    "version": "1.0.0",
+    "exampleInputs": [
+      {
+        "example": {
+          "dialogue": [
+            {
+              "character": "Hero",
+              "line": "I don't think we can trust him."
+            },
+            {
+              "character": "Sidekick",
+              "line": "You're right. He's been lying all along."
+            }
+          ],
+          "context": "Confrontation scene"
+        }
+      }
+    ],
+    "testCases": [
+      {
+        "name": "Natural dialogue",
+        "input": {
+          "dialogue": [
+            {
+              "character": "Hero",
+              "line": "We need to go now!"
+            }
+          ]
+        },
+        "shouldFail": false
+      }
+    ],
+    "performanceMetrics": {
+      "totalCalls": 420,
+      "successfulCalls": 412,
+      "failedCalls": 8,
+      "averageExecutionTime": 200
+    },
+    "documentation": {
+      "usage": "Use to improve dialogue quality and ensure natural speech patterns before finalization.",
+      "examples": "await analyzeDialogueAuthenticity({ dialogue: [...], context: \"action scene\" })",
+      "limitations": "Basic pattern matching. For deep analysis, use AI-powered review."
+    },
+    "tags": [
+      {
+        "tag": "story"
+      },
+      {
+        "tag": "analysis"
+      },
+      {
+        "tag": "dialogue"
+      }
+    ]
+  },
+  {
+    "toolName": "calculate-scene-pacing",
+    "displayName": "Scene Pacing Calculator",
+    "description": "Calculates optimal scene pacing based on story structure, emotional beats, and genre conventions.",
+    "category": "analysis",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "scenes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "duration": {
+                "type": "number"
+              },
+              "intensity": {
+                "type": "number"
+              },
+              "type": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Array of scenes with duration and intensity"
+        },
+        "genre": {
+          "type": "string",
+          "description": "Story genre (affects pacing expectations)"
+        }
+      },
+      "required": [
+        "scenes"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "overallPacing": {
+          "type": "string"
+        },
+        "pacingCurve": {
+          "type": "array"
+        },
+        "recommendations": {
+          "type": "array"
+        },
+        "targetDurations": {
+          "type": "object"
+        }
+      }
+    },
+    "executeFunction": "async ({ scenes, genre = 'drama' }) => {\n  const totalDuration = scenes.reduce((sum, s) => sum + s.duration, 0);\n  const avgIntensity = scenes.reduce((sum, s) => sum + s.intensity, 0) / scenes.length;\n\n  const recommendations = [];\n\n  // Check for pacing variety\n  const intensities = scenes.map(s => s.intensity);\n  const hasVariety = Math.max(...intensities) - Math.min(...intensities) >= 3;\n\n  if (!hasVariety) {\n    recommendations.push({\n      type: 'variety',\n      message: 'Scenes lack intensity variation. Add quieter and more intense moments.',\n    });\n  }\n\n  // Check scene length distribution\n  const longScenes = scenes.filter(s => s.duration > totalDuration * 0.15).length;\n  if (longScenes > scenes.length * 0.3) {\n    recommendations.push({\n      type: 'length',\n      message: 'Too many long scenes. Consider breaking up or shortening some.',\n    });\n  }\n\n  return {\n    overallPacing: avgIntensity > 7 ? 'fast' : avgIntensity > 4 ? 'moderate' : 'slow',\n    pacingCurve: scenes.map((s, i) => ({ scene: i + 1, intensity: s.intensity })),\n    recommendations,\n    targetDurations: {\n      average: Math.round(totalDuration / scenes.length),\n      min: Math.min(...scenes.map(s => s.duration)),\n      max: Math.max(...scenes.map(s => s.duration)),\n    },\n  };\n}",
+    "setupCode": "// No setup required",
+    "isGlobal": false,
+    "isActive": true,
+    "version": "1.0.0",
+    "exampleInputs": [
+      {
+        "example": {
+          "scenes": [
+            {
+              "id": "scene-1",
+              "duration": 120,
+              "intensity": 3,
+              "type": "setup"
+            },
+            {
+              "id": "scene-2",
+              "duration": 180,
+              "intensity": 7,
+              "type": "action"
+            },
+            {
+              "id": "scene-3",
+              "duration": 90,
+              "intensity": 5,
+              "type": "dialogue"
+            }
+          ],
+          "genre": "action"
+        }
+      }
+    ],
+    "testCases": [
+      {
+        "name": "Calculate pacing for multiple scenes",
+        "input": {
+          "scenes": [
+            {
+              "id": "scene-1",
+              "duration": 120,
+              "intensity": 5,
+              "type": "setup"
+            },
+            {
+              "id": "scene-2",
+              "duration": 150,
+              "intensity": 8,
+              "type": "action"
+            }
+          ],
+          "genre": "thriller"
+        },
+        "shouldFail": false
+      }
+    ],
+    "performanceMetrics": {
+      "totalCalls": 280,
+      "successfulCalls": 275,
+      "failedCalls": 5,
+      "averageExecutionTime": 150
+    },
+    "documentation": {
+      "usage": "Use to analyze and optimize scene pacing before editing. Ensures proper rhythm and flow.",
+      "examples": "await calculateScenePacing({ scenes: [...], genre: \"thriller\" })",
+      "limitations": "Algorithmic analysis. Does not account for subjective emotional impact."
+    },
+    "tags": [
+      {
+        "tag": "story"
+      },
+      {
+        "tag": "analysis"
+      },
+      {
+        "tag": "pacing"
+      }
+    ]
+  },
+  {
+    "toolName": "track-theme-consistency",
+    "displayName": "Theme Consistency Tracker",
+    "description": "Tracks thematic elements throughout story to ensure consistency. Identifies where themes are reinforced or contradicted.",
+    "category": "validation",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "themes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Main themes to track"
+        },
+        "content": {
+          "type": "string",
+          "description": "Story content to analyze for themes"
+        }
+      },
+      "required": [
+        "themes",
+        "content"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "themeStrength": {
+          "type": "object"
+        },
+        "consistencyScore": {
+          "type": "number"
+        },
+        "contradictions": {
+          "type": "array"
+        },
+        "reinforcements": {
+          "type": "array"
+        }
+      }
+    },
+    "executeFunction": "async ({ themes, content }) => {\n  const themeStrength = {};\n  const contradictions = [];\n  const reinforcements = [];\n\n  themes.forEach(theme => {\n    const themeKeywords = getThemeKeywords(theme);\n    const mentions = countKeywordMentions(content, themeKeywords);\n\n    themeStrength[theme] = {\n      mentions,\n      strength: mentions > 5 ? 'strong' : mentions > 2 ? 'moderate' : 'weak',\n    };\n\n    if (mentions > 2) {\n      reinforcements.push({\n        theme,\n        count: mentions,\n        message: `Theme \"${theme}\" is well-represented`,\n      });\n    } else {\n      contradictions.push({\n        theme,\n        count: mentions,\n        message: `Theme \"${theme}\" is underrepresented`,\n      });\n    }\n  });\n\n  const totalMentions = Object.values(themeStrength).reduce((sum, t) => sum + t.mentions, 0);\n  const avgMentions = totalMentions / themes.length;\n  const consistencyScore = Math.min(100, (avgMentions / 5) * 100);\n\n  return {\n    themeStrength,\n    consistencyScore: Math.round(consistencyScore),\n    contradictions,\n    reinforcements,\n  };\n\n  function getThemeKeywords(theme) {\n    const keywordMap = {\n      'redemption': ['redemption', 'forgiveness', 'second chance', 'atone'],\n      'love': ['love', 'romance', 'affection', 'care'],\n      'power': ['power', 'control', 'dominance', 'authority'],\n      'freedom': ['freedom', 'liberty', 'independence', 'escape'],\n    };\n    return keywordMap[theme.toLowerCase()] || [theme];\n  }\n\n  function countKeywordMentions(text, keywords) {\n    const lowerText = text.toLowerCase();\n    return keywords.reduce((count, keyword) => {\n      const regex = new RegExp(`\\\\b${keyword}\\\\b`, 'gi');\n      const matches = lowerText.match(regex);\n      return count + (matches ? matches.length : 0);\n    }, 0);\n  }\n}",
+    "setupCode": "// No setup required",
+    "isGlobal": false,
+    "isActive": true,
+    "version": "1.0.0",
+    "exampleInputs": [
+      {
+        "example": {
+          "themes": [
+            "redemption",
+            "love",
+            "sacrifice"
+          ],
+          "content": "The hero seeks redemption for past mistakes. Love drives their actions as they sacrifice everything for others."
+        }
+      }
+    ],
+    "testCases": [
+      {
+        "name": "Track multiple themes",
+        "input": {
+          "themes": [
+            "power",
+            "freedom"
+          ],
+          "content": "The struggle for power leads to the loss of freedom."
+        },
+        "shouldFail": false
+      }
+    ],
+    "performanceMetrics": {
+      "totalCalls": 260,
+      "successfulCalls": 254,
+      "failedCalls": 6,
+      "averageExecutionTime": 220
+    },
+    "documentation": {
+      "usage": "Use throughout story development to ensure themes are consistently represented.",
+      "examples": "await trackThemeConsistency({ themes: [\"redemption\"], content: \"...\" })",
+      "limitations": "Keyword-based tracking. May miss subtle thematic elements."
+    },
+    "tags": [
+      {
+        "tag": "story"
+      },
+      {
+        "tag": "validation"
+      },
+      {
+        "tag": "theme"
+      }
+    ]
+  },
+  {
+    "toolName": "generate-visual-style-guide",
+    "displayName": "Visual Style Guide Generator",
+    "description": "Generates comprehensive visual style guide including color palettes, composition rules, and aesthetic direction.",
+    "category": "generation",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "mood": {
+          "type": "string",
+          "description": "Overall mood (dark, light, dramatic, whimsical)"
+        },
+        "genre": {
+          "type": "string",
+          "description": "Genre (fantasy, sci-fi, drama, comedy)"
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Visual reference inspirations"
+        }
+      },
+      "required": [
+        "mood",
+        "genre"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "colorPalette": {
+          "type": "object"
+        },
+        "compositionRules": {
+          "type": "array"
+        },
+        "lightingStyle": {
+          "type": "string"
+        },
+        "aestheticDirection": {
+          "type": "string"
+        }
+      }
+    },
+    "executeFunction": "async ({ mood, genre, references = [] }) => {\n  // Generate color palette based on mood\n  const colorPalettes = {\n    dark: { primary: '#1a1a2e', secondary: '#16213e', accent: '#e94560' },\n    light: { primary: '#f4f4f9', secondary: '#e8e8e8', accent: '#4a90e2' },\n    dramatic: { primary: '#0f0f0f', secondary: '#8b0000', accent: '#ffd700' },\n    whimsical: { primary: '#ff6b9d', secondary: '#c44569', accent: '#feca57' },\n  };\n\n  const compositionRules = [\n    'Use rule of thirds for key subject placement',\n    'Create depth with foreground, midground, background',\n    'Guide viewer attention with leading lines',\n    `Maintain ${mood} atmosphere throughout`,\n  ];\n\n  return {\n    colorPalette: colorPalettes[mood] || colorPalettes.light,\n    compositionRules,\n    lightingStyle: mood === 'dark' ? 'low-key, high contrast' : 'natural, soft lighting',\n    aestheticDirection: `${genre} visual style with ${mood} tone. ${references.length ? 'Inspired by: ' + references.join(', ') : ''}`,\n  };\n}",
+    "setupCode": "// No setup required",
+    "isGlobal": false,
+    "isActive": true,
+    "version": "1.0.0",
+    "exampleInputs": [
+      {
+        "example": {
+          "mood": "dark",
+          "genre": "sci-fi",
+          "references": [
+            "Blade Runner",
+            "The Matrix"
+          ]
+        }
+      }
+    ],
+    "testCases": [
+      {
+        "name": "Generate style guide",
+        "input": {
+          "mood": "light",
+          "genre": "fantasy",
+          "references": []
+        },
+        "shouldFail": false
+      }
+    ],
+    "performanceMetrics": {
+      "totalCalls": 190,
+      "successfulCalls": 186,
+      "failedCalls": 4,
+      "averageExecutionTime": 180
+    },
+    "documentation": {
+      "usage": "Use at project start to establish visual direction. Reference throughout production.",
+      "examples": "await generateVisualStyleGuide({ mood: \"dramatic\", genre: \"thriller\" })",
+      "limitations": "Provides starting point. Requires refinement by visual artists."
+    },
+    "tags": [
+      {
+        "tag": "visual"
+      },
+      {
+        "tag": "generation"
+      },
+      {
+        "tag": "style"
+      }
+    ]
+  },
+  {
+    "toolName": "assess-content-quality",
+    "displayName": "Content Quality Assessor",
+    "description": "Comprehensive quality assessment tool that evaluates content across multiple dimensions: coherence, originality, technical quality.",
+    "category": "validation",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": "Content to assess"
+        },
+        "contentType": {
+          "type": "string",
+          "enum": [
+            "story",
+            "character",
+            "dialogue",
+            "visual",
+            "audio"
+          ],
+          "description": "Type of content being assessed"
+        },
+        "criteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Specific criteria to assess"
+        }
+      },
+      "required": [
+        "content",
+        "contentType"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "overallScore": {
+          "type": "number"
+        },
+        "dimensionScores": {
+          "type": "object"
+        },
+        "strengths": {
+          "type": "array"
+        },
+        "weaknesses": {
+          "type": "array"
+        },
+        "recommendations": {
+          "type": "array"
+        }
+      }
+    },
+    "executeFunction": "async ({ content, contentType, criteria = [] }) => {\n  const scores = {};\n  const strengths = [];\n  const weaknesses = [];\n\n  // Assess coherence\n  const wordCount = content.split(/\\s+/).length;\n  const sentenceCount = content.split(/[.!?]+/).length;\n  const avgWordsPerSentence = wordCount / sentenceCount;\n\n  scores.coherence = avgWordsPerSentence > 15 && avgWordsPerSentence < 25 ? 90 : 70;\n\n  if (scores.coherence >= 85) {\n    strengths.push('Well-structured sentences with good flow');\n  } else {\n    weaknesses.push('Sentence structure could be improved');\n  }\n\n  // Assess completeness\n  scores.completeness = content.length > 500 ? 90 : content.length > 200 ? 75 : 60;\n\n  // Assess technical quality (basic checks)\n  const hasTypos = /\\b(teh|adn|taht)\\b/.test(content);\n  scores.technical = hasTypos ? 70 : 95;\n\n  // Calculate overall score\n  const overallScore = Math.round(\n    Object.values(scores).reduce((sum, s) => sum + s, 0) / Object.keys(scores).length\n  );\n\n  return {\n    overallScore,\n    dimensionScores: scores,\n    strengths,\n    weaknesses,\n    recommendations: weaknesses.map(w => `Improve: ${w}`),\n  };\n}",
+    "setupCode": "// No setup required",
+    "isGlobal": true,
+    "isActive": true,
+    "version": "1.0.0",
+    "exampleInputs": [
+      {
+        "example": {
+          "content": "Sample content for quality assessment...",
+          "contentType": "story",
+          "criteria": [
+            "coherence",
+            "originality"
+          ]
+        }
+      }
+    ],
+    "testCases": [
+      {
+        "name": "Assess story content",
+        "input": {
+          "content": "Once upon a time in a land far away, there lived a hero who embarked on an epic journey.",
+          "contentType": "story"
+        },
+        "shouldFail": false
+      }
+    ],
+    "performanceMetrics": {
+      "totalCalls": 550,
+      "successfulCalls": 542,
+      "failedCalls": 8,
+      "averageExecutionTime": 190
+    },
+    "documentation": {
+      "usage": "Use for final quality check before content approval. Provides objective assessment.",
+      "examples": "await assessContentQuality({ content: \"...\", contentType: \"dialogue\" })",
+      "limitations": "Automated assessment. Human review recommended for final approval."
+    },
+    "tags": [
+      {
+        "tag": "quality"
+      },
+      {
+        "tag": "validation"
+      },
+      {
+        "tag": "global"
+      }
+    ]
+  }
+]

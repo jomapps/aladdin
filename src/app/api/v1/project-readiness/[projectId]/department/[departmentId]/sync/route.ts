@@ -12,20 +12,17 @@ import { taskService } from '@/lib/task-service/client'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { projectId: string; departmentId: string } },
+  { params }: { params: Promise<{ projectId: string; departmentId: string }> },
 ) {
   try {
-    const { projectId, departmentId } = params
+    const { projectId, departmentId } = await params
     const payload = await getPayload({ config })
 
     // Get current evaluation record
     const evaluation = await payload.find({
       collection: 'project-readiness',
       where: {
-        and: [
-          { projectId: { equals: projectId } },
-          { departmentId: { equals: departmentId } },
-        ],
+        and: [{ projectId: { equals: projectId } }, { departmentId: { equals: departmentId } }],
       },
       limit: 1,
       sort: '-updatedAt',
@@ -55,8 +52,7 @@ export async function POST(
           evaluationResult: taskStatus.result.evaluation_result,
           evaluationSummary: taskStatus.result.evaluation_summary,
           issues: taskStatus.result.issues?.map((i) => ({ issue: i })) || [],
-          suggestions:
-            taskStatus.result.suggestions?.map((s) => ({ suggestion: s })) || [],
+          suggestions: taskStatus.result.suggestions?.map((s) => ({ suggestion: s })) || [],
           evaluationDuration: taskStatus.result.processing_time,
           iterationCount: taskStatus.result.iteration_count,
           lastEvaluatedAt: new Date().toISOString(),

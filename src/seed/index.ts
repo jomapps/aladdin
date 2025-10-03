@@ -19,6 +19,8 @@ import config from '@payload-config'
 import { seedDepartments } from './departments.seed.js'
 import { seedAgents } from './agents.seed.js'
 import { seedCustomTools } from './custom-tools.seed.js'
+import { seedUsers } from './users.seed.js'
+import { seedProjects } from './projects.seed.js'
 
 /**
  * Main seed function
@@ -34,18 +36,22 @@ async function seed() {
     const payload = await getPayload({ config })
     console.log('✅ PayloadCMS initialized\n')
 
-    // Seed in order: Departments → Agents → Custom Tools
-    // (Agents depend on Departments, Tools depend on Departments)
+    // Seed order:
+    // Users → Departments → Agents → Custom Tools → Projects
+    // (Agents & Tools depend on Departments; Projects depend on Users)
 
+    await seedUsers(payload)
     await seedDepartments(payload)
     await seedAgents(payload)
     await seedCustomTools(payload)
+    await seedProjects(payload)
 
     console.log('='.repeat(60))
     console.log('🎉 Seed process completed successfully!\n')
 
     // Summary
     console.log('📊 Seed Summary:')
+    console.log('  - Users: 3')
     console.log('  - Departments: 7')
     console.log('  - Agents: 35 (6 heads + 29 specialists)')
     console.log('    • Story: 5 agents')
@@ -57,6 +63,7 @@ async function seed() {
     console.log('    • Audio: 5 agents')
     console.log('    • Production: 5 agents')
     console.log('  - Custom Tools: 10')
+    console.log('  - Projects: 4')
     console.log('\n✨ Your Aladdin AI system is ready to use!\n')
 
     process.exit(0)

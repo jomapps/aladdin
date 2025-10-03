@@ -103,10 +103,7 @@ export async function GET(request: NextRequest) {
 
     // Build options from query params
     const options: AuditQueryOptions = {
-      limit: Math.min(
-        parseInt(searchParams.get('limit') || '50'),
-        500
-      ),
+      limit: Math.min(parseInt(searchParams.get('limit') || '50'), 500),
       offset: parseInt(searchParams.get('offset') || '0'),
       sortBy: (searchParams.get('sortBy') as any) || 'startedAt',
       sortOrder: (searchParams.get('sortOrder') as any) || 'desc',
@@ -132,7 +129,7 @@ export async function GET(request: NextRequest) {
         success: false,
         error: error.message || 'Failed to query audit trail',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -143,15 +140,16 @@ export async function GET(request: NextRequest) {
  */
 export async function GET_BY_ID(
   request: NextRequest,
-  { params }: { params: { executionId: string } }
+  { params }: { params: Promise<{ executionId: string }> },
 ) {
   try {
+    const { executionId } = await params
     const searchParams = request.nextUrl.searchParams
     const includeEvents = searchParams.get('includeEvents') === 'true'
     const includeToolCalls = searchParams.get('includeToolCalls') !== 'false'
 
     const query = getAuditQuery()
-    const execution = await query.findById(params.executionId, {
+    const execution = await query.findById(executionId, {
       includeEvents,
       includeToolCalls,
     })
@@ -162,7 +160,7 @@ export async function GET_BY_ID(
           success: false,
           error: 'Execution not found',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -177,7 +175,7 @@ export async function GET_BY_ID(
         success: false,
         error: error.message || 'Failed to fetch execution',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

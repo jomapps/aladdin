@@ -10,10 +10,10 @@ import { taskService } from '@/lib/task-service/client'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { projectId: string; taskId: string } },
+  { params }: { params: Promise<{ projectId: string; taskId: string }> },
 ) {
   try {
-    const { taskId } = params
+    const { taskId } = await params
 
     // Get task status from task service
     const status = await taskService.getTaskStatus(taskId)

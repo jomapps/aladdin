@@ -10,10 +10,10 @@ import { sequentialEvaluator } from '@/lib/evaluation/sequential-evaluator'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { projectId: string } },
+  { params }: { params: Promise<{ projectId: string }> },
 ) {
   try {
-    const { projectId } = params
+    const { projectId } = await params
     const body = await request.json()
     const { departmentNumber } = body
 
@@ -25,10 +25,7 @@ export async function POST(
     }
 
     // Submit evaluation
-    const result = await sequentialEvaluator.evaluateDepartment(
-      projectId,
-      departmentNumber,
-    )
+    const result = await sequentialEvaluator.evaluateDepartment(projectId, departmentNumber)
 
     return NextResponse.json({
       taskId: result.taskId,

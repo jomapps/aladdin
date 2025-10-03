@@ -12,10 +12,10 @@ import config from '@/payload.config'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { projectId: string; taskId: string } },
+  { params }: { params: Promise<{ projectId: string; taskId: string }> },
 ) {
   try {
-    const { taskId, projectId } = params
+    const { taskId, projectId } = await params
 
     // Cancel task in task service
     await taskService.cancelTask(taskId)
@@ -26,10 +26,7 @@ export async function DELETE(
     const evaluation = await payload.find({
       collection: 'project-readiness',
       where: {
-        and: [
-          { taskId: { equals: taskId } },
-          { projectId: { equals: projectId } },
-        ],
+        and: [{ taskId: { equals: taskId } }, { projectId: { equals: projectId } }],
       },
       limit: 1,
     })
