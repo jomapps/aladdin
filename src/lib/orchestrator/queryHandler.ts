@@ -8,6 +8,7 @@ import { getBrainClient } from '@/lib/brain/client'
 import type { SearchSimilarResult } from '@/lib/brain/types'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
+import { isValidObjectId, validateObjectId } from '@/lib/auth/devAuth'
 
 export interface QueryResult {
   id: string
@@ -71,9 +72,6 @@ export async function handleQuery(options: QueryHandlerOptions): Promise<QueryHa
   let conversationHistory: LLMMessage[] = []
   let conversationExists = false
 
-  // Validate conversationId format (MongoDB ObjectId is 24 hex chars)
-  const isValidObjectId = (id: string) => /^[0-9a-fA-F]{24}$/.test(id)
-
   if (conversationId && isValidObjectId(conversationId)) {
     try {
       const conversation = await payload.findByID({
@@ -103,12 +101,16 @@ export async function handleQuery(options: QueryHandlerOptions): Promise<QueryHa
 
   // 3. Create conversation if new or not found
   if (!actualConversationId || !conversationExists) {
+    // Validate IDs before creating conversation (relationships require valid ObjectIds)
+    const validProjectId = validateObjectId(projectId, 'projectId')
+    const validUserId = validateObjectId(userId, 'userId')
+
     const newConversation = await payload.create({
       collection: 'conversations',
       data: {
         name: `Query - ${new Date().toISOString()}`,
-        project: projectId,
-        user: userId,
+        project: validProjectId,
+        user: validUserId,
         status: 'active',
         messages: [],
         createdAt: new Date(),

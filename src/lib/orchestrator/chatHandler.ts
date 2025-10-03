@@ -6,6 +6,7 @@
 import { getLLMClient, type LLMMessage } from '@/lib/llm/client'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
+import { validateObjectId } from '@/lib/auth/devAuth'
 
 export interface ChatHandlerOptions {
   content: string
@@ -75,11 +76,14 @@ export async function handleChat(options: ChatHandlerOptions): Promise<ChatHandl
 
   // 3. Create conversation if new
   if (!actualConversationId) {
+    // Validate userId for relationship (may be null in dev mode)
+    const validUserId = validateObjectId(userId, 'userId')
+
     const newConversation = await payload.create({
       collection: 'conversations',
       data: {
         name: `Chat - ${new Date().toISOString()}`,
-        user: userId,
+        user: validUserId,
         status: 'active',
         messages: [],
         createdAt: new Date(),

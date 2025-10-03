@@ -7,6 +7,7 @@ import { getLLMClient } from '@/lib/llm/client'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { MongoClient, ObjectId } from 'mongodb'
+import { validateObjectId } from '@/lib/auth/devAuth'
 
 export interface DataHandlerOptions {
   content: string | object
@@ -50,7 +51,7 @@ async function getGatherDatabase(projectId: string) {
 async function checkDuplicates(
   content: any,
   summary: string,
-  projectId: string
+  projectId: string,
 ): Promise<Array<{ id: string; similarity: number; suggestion: 'skip' | 'merge' | 'review' }>> {
   try {
     const { getBrainClient } = await import('@/lib/brain/client')
@@ -99,7 +100,7 @@ async function checkDuplicates(
 async function enrichContent(
   content: any,
   projectId: string,
-  maxIterations: number = 3
+  maxIterations: number = 3,
 ): Promise<{ enrichedContent: any; iterationCount: number }> {
   const llmClient = getLLMClient()
   let currentContent = content
@@ -108,9 +109,8 @@ async function enrichContent(
   for (let i = 0; i < maxIterations; i++) {
     iterationCount++
 
-    const contentStr = typeof currentContent === 'string'
-      ? currentContent
-      : JSON.stringify(currentContent)
+    const contentStr =
+      typeof currentContent === 'string' ? currentContent : JSON.stringify(currentContent)
 
     const prompt = `Analyze this content and determine if it needs enrichment:
 
@@ -152,9 +152,7 @@ Your response must be valid JSON.`
 async function generateSummary(content: any): Promise<string> {
   const llmClient = getLLMClient()
 
-  const contentStr = typeof content === 'string'
-    ? content
-    : JSON.stringify(content)
+  const contentStr = typeof content === 'string' ? content : JSON.stringify(content)
 
   const prompt = `Generate a concise summary (~100 characters) of this content:
 
@@ -173,15 +171,10 @@ Return ONLY the summary text, no explanations.`
 /**
  * Generate context paragraph
  */
-async function generateContext(
-  content: any,
-  projectId: string
-): Promise<string> {
+async function generateContext(content: any, projectId: string): Promise<string> {
   const llmClient = getLLMClient()
 
-  const contentStr = typeof content === 'string'
-    ? content
-    : JSON.stringify(content)
+  const contentStr = typeof content === 'string' ? content : JSON.stringify(content)
 
   // TODO: Get project context from Brain
   const projectContext = 'Movie production project'
@@ -204,17 +197,8 @@ Provide a comprehensive paragraph (2-3 sentences) explaining the relevance and r
 /**
  * Handle data ingestion
  */
-export async function handleData(
-  options: DataHandlerOptions
-): Promise<DataHandlerResult> {
-  const {
-    content,
-    projectId,
-    conversationId,
-    userId,
-    imageUrl,
-    documentUrl,
-  } = options
+export async function handleData(options: DataHandlerOptions): Promise<DataHandlerResult> {
+  const { content, projectId, conversationId, userId, imageUrl, documentUrl } = options
 
   const payload = await getPayload({ config: await configPromise })
 
@@ -222,12 +206,16 @@ export async function handleData(
   let actualConversationId = conversationId
 
   if (!actualConversationId) {
+    // Validate IDs for relationships (may be null/undefined in dev mode)
+    const validProjectId = validateObjectId(projectId, 'projectId')
+    const validUserId = validateObjectId(userId, 'userId')
+
     const newConversation = await payload.create({
       collection: 'conversations',
       data: {
         name: `Data - ${new Date().toISOString()}`,
-        project: projectId,
-        user: userId,
+        project: validProjectId,
+        user: validUserId,
         status: 'active',
         messages: [],
         createdAt: new Date(),
@@ -238,10 +226,7 @@ export async function handleData(
 
   // 2. Enrich content
   console.log('[DataHandler] Enriching content...')
-  const { enrichedContent, iterationCount } = await enrichContent(
-    content,
-    projectId
-  )
+  const { enrichedContent, iterationCount } = await enrichContent(content, projectId)
 
   // 3. Generate summary
   console.log('[DataHandler] Generating summary...')
@@ -280,9 +265,10 @@ export async function handleData(
   console.log('[DataHandler] Saved to Gather:', gatherItemId)
 
   // 7. Format response message
-  const message = duplicates.length > 0
-    ? `Data ingested with ${duplicates.length} potential duplicates found. Review recommended.`
-    : `Data successfully ingested and enriched (${iterationCount} iterations).`
+  const message =
+    duplicates.length > 0
+      ? `Data ingested with ${duplicates.length} potential duplicates found. Review recommended.`
+      : `Data successfully ingested and enriched (${iterationCount} iterations).`
 
   // 8. Save to conversation
   try {

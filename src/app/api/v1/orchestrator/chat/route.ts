@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { handleChat } from '@/lib/orchestrator/chatHandler'
+import { authenticateRequest } from '@/lib/auth/devAuth'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -15,16 +16,11 @@ export async function POST(request: NextRequest) {
   try {
     // 1. Authenticate user (bypass in development)
     const payload = await getPayload({ config: await configPromise })
-    let userId: string | null = null
+    const { userId, isDevMode } = await authenticateRequest(request, payload)
 
-    if (process.env.NODE_ENV === 'development') {
-      userId = 'dev-user'
-    } else {
-      const { user } = await payload.auth({ req: request as any })
-      if (!user) {
-        return NextResponse.json({ error: 'Unauthorized', code: 'AUTH_REQUIRED' }, { status: 401 })
-      }
-      userId = user.id
+    // In production, require authentication
+    if (!isDevMode && !userId) {
+      return NextResponse.json({ error: 'Unauthorized', code: 'AUTH_REQUIRED' }, { status: 401 })
     }
 
     // 2. Parse request
