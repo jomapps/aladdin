@@ -126,6 +126,7 @@ export interface GatherCardState {
 export interface SelectionState {
   selectionMode: boolean
   selectedCards: string[]
+  selectedMessages: string[] // For chat message selection
 }
 
 export interface GatherStoreState extends SelectionState {
@@ -134,9 +135,10 @@ export interface GatherStoreState extends SelectionState {
     content: any
   } | null
   cardStates: Record<string, GatherCardState>
-  
+
   // Actions
   toggleSelection: (cardId: string) => void
+  toggleMessageSelection: (messageId: string) => void
   setEditMode: (cardId: string, content: any) => void
   saveChanges: () => Promise<void>
   cancelEdit: () => void
@@ -145,4 +147,3 @@ export interface GatherStoreState extends SelectionState {
   exitSelectionMode: () => void
   clearSelection: () => void
 }
-

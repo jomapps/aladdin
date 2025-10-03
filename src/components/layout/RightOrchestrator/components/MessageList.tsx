@@ -20,9 +20,16 @@ export default function MessageList({ messages, mode, className }: MessageListPr
     return null
   }
 
+  // Filter out empty messages
+  const validMessages = messages.filter((message) => message.content && message.content.trim())
+
+  if (validMessages.length === 0) {
+    return null
+  }
+
   return (
     <div className={cn('space-y-4', className)}>
-      {messages.map((message) => (
+      {validMessages.map((message) => (
         <Message key={message.id} message={message} mode={mode} />
       ))}
     </div>

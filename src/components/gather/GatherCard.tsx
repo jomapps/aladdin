@@ -104,16 +104,20 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
     typeof item.lastUpdated === 'string' ? new Date(item.lastUpdated) : item.lastUpdated
 
   return (
-    <Card className="mb-4">
+    <Card className="mb-4 border-slate-800/70 bg-slate-900/70 text-slate-100 shadow-[0_20px_80px_-60px_rgba(15,23,42,0.8)]">
       <CardHeader className="px-6 py-5">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-              <span className="font-mono text-xs">{item._id?.toString().slice(-8)}</span>
+            <div className="mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-slate-400">
+              <span className="font-mono text-[11px] text-slate-300">
+                {item._id?.toString().slice(-8)}
+              </span>
               <span>•</span>
-              <span>{formatDistanceToNow(lastUpdated, { addSuffix: true })}</span>
+              <span className="text-slate-400">
+                {formatDistanceToNow(lastUpdated, { addSuffix: true })}
+              </span>
             </div>
-            <p className="text-base text-gray-700 whitespace-normal break-words">{item.summary}</p>
+            <p className="break-words text-base font-medium text-white">{item.summary}</p>
           </div>
           <div className="flex items-center gap-2 ml-4">
             <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)}>
@@ -133,9 +137,9 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
             {(item.imageUrl || item.documentUrl) && (
               <div className="space-y-2">
                 {item.imageUrl && (
-                  <div className="border rounded p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">📷 Image</span>
+                  <div className="rounded-2xl border border-slate-800/70 bg-slate-950/50 p-4">
+                    <div className="mb-2 flex items-center justify-between text-sm font-medium text-slate-200">
+                      <span>📷 Image</span>
                       <Button variant="ghost" size="sm" onClick={() => handleDeleteFile('image')}>
                         <X className="w-3 h-3" />
                       </Button>
@@ -145,6 +149,7 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
                         variant="outline"
                         size="sm"
                         onClick={() => window.open(item.imageUrl, '_blank')}
+                        className="border-slate-700/70 bg-slate-900/60 text-slate-100 hover:border-sky-400/40 hover:bg-slate-900/80"
                       >
                         <ExternalLink className="w-3 h-3 mr-1" />
                         View
@@ -153,6 +158,7 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
                         variant="outline"
                         size="sm"
                         onClick={() => window.open(item.imageUrl, '_blank')}
+                        className="border-slate-700/70 bg-slate-900/60 text-slate-100 hover:border-sky-400/40 hover:bg-slate-900/80"
                       >
                         <Download className="w-3 h-3 mr-1" />
                         Download
@@ -162,9 +168,9 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
                 )}
 
                 {item.documentUrl && (
-                  <div className="border rounded p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">📄 Document</span>
+                  <div className="rounded-2xl border border-slate-800/70 bg-slate-950/50 p-4">
+                    <div className="mb-2 flex items-center justify-between text-sm font-medium text-slate-200">
+                      <span>📄 Document</span>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -178,6 +184,7 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
                         variant="outline"
                         size="sm"
                         onClick={() => window.open(item.documentUrl, '_blank')}
+                        className="border-slate-700/70 bg-slate-900/60 text-slate-100 hover:border-sky-400/40 hover:bg-slate-900/80"
                       >
                         <ExternalLink className="w-3 h-3 mr-1" />
                         View
@@ -186,6 +193,7 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
                         variant="outline"
                         size="sm"
                         onClick={() => window.open(item.documentUrl, '_blank')}
+                        className="border-slate-700/70 bg-slate-900/60 text-slate-100 hover:border-sky-400/40 hover:bg-slate-900/80"
                       >
                         <Download className="w-3 h-3 mr-1" />
                         Download
@@ -197,9 +205,11 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
             )}
 
             {/* Content Column */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Content:</label>
+                <label className="mb-1 block text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+                  Content
+                </label>
                 {isEditing ? (
                   <Textarea
                     value={editedContent}
@@ -208,25 +218,27 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
                     className="font-mono text-sm"
                   />
                 ) : (
-                  <pre className="text-sm bg-gray-50 p-3 rounded border max-h-64 whitespace-pre-wrap break-words overflow-auto">
+                  <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-slate-800/70 bg-slate-950/50 p-4 text-sm text-slate-100">
                     {item.content}
                   </pre>
                 )}
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Context:</label>
-                <p className="text-sm text-gray-600 whitespace-normal break-words">
+                <label className="mb-1 block text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+                  Context
+                </label>
+                <p className="whitespace-normal break-words text-sm text-slate-200">
                   {item.context}
                 </p>
               </div>
 
               {item.extractedText && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1">
-                    Extracted Text:
+                  <label className="mb-1 block text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+                    Extracted Text
                   </label>
-                  <p className="text-sm text-gray-600 whitespace-normal break-words">
+                  <p className="whitespace-normal break-words text-sm text-slate-200">
                     {item.extractedText}
                   </p>
                 </div>
@@ -235,20 +247,35 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
           </div>
 
           {/* Actions */}
-          <div className="flex gap-2 mt-4 pt-4 border-t">
+          <div className="mt-5 flex gap-2 border-t border-slate-800/70 pt-4">
             {isEditing ? (
               <>
-                <Button onClick={handleSave} disabled={isSaving} size="sm">
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  size="sm"
+                  className="border-sky-400/40 bg-sky-500/20 text-white hover:border-sky-400/60 hover:bg-sky-500/30"
+                >
                   <Save className="w-4 h-4 mr-1" />
                   {isSaving ? 'Saving...' : 'Save'}
                 </Button>
-                <Button onClick={handleCancel} variant="outline" size="sm">
+                <Button
+                  onClick={handleCancel}
+                  variant="outline"
+                  size="sm"
+                  className="border-slate-700/70 bg-slate-900/60 text-white hover:border-sky-400/40 hover:bg-slate-900/80"
+                >
                   Cancel
                 </Button>
               </>
             ) : (
               <>
-                <Button onClick={handleEdit} variant="outline" size="sm">
+                <Button
+                  onClick={handleEdit}
+                  variant="outline"
+                  size="sm"
+                  className="border-slate-700/70 bg-slate-900/60 text-white hover:border-sky-400/40 hover:bg-slate-900/80"
+                >
                   <Edit className="w-4 h-4 mr-1" />
                   Edit
                 </Button>

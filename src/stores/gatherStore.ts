@@ -10,6 +10,7 @@ export const useGatherStore = create<GatherStoreState>((set, get) => ({
   // Selection state
   selectionMode: false,
   selectedCards: [],
+  selectedMessages: [],
 
   // Editing state
   editingCard: null,
@@ -23,6 +24,15 @@ export const useGatherStore = create<GatherStoreState>((set, get) => ({
       selectedCards: state.selectedCards.includes(cardId)
         ? state.selectedCards.filter((id) => id !== cardId)
         : [...state.selectedCards, cardId],
+    }))
+  },
+
+  // Toggle selection for a message
+  toggleMessageSelection: (messageId: string) => {
+    set((state) => ({
+      selectedMessages: state.selectedMessages.includes(messageId)
+        ? state.selectedMessages.filter((id) => id !== messageId)
+        : [...state.selectedMessages, messageId],
     }))
   },
 
@@ -63,6 +73,7 @@ export const useGatherStore = create<GatherStoreState>((set, get) => ({
     set({
       selectionMode: true,
       selectedCards: [],
+      selectedMessages: [],
     })
   },
 
@@ -71,12 +82,12 @@ export const useGatherStore = create<GatherStoreState>((set, get) => ({
     set({
       selectionMode: false,
       selectedCards: [],
+      selectedMessages: [],
     })
   },
 
   // Clear selection
   clearSelection: () => {
-    set({ selectedCards: [] })
+    set({ selectedCards: [], selectedMessages: [] })
   },
 }))
-

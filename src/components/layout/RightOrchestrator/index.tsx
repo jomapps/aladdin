@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 import ModeSelector from './ModeSelector'
 import ChatArea from './ChatArea'
 import MessageInput from './MessageInput'
+import GatherButtons from './GatherButtons'
 
 interface RightOrchestratorProps {
   projectId: string
@@ -150,6 +151,9 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
             <ChatArea mode={orchestratorMode} onSuggestionClick={handleSuggestionClick} />
           </div>
 
+          {/* Gather Buttons - Conditional on route */}
+          <GatherButtons projectId={projectId} />
+
           {/* Fixed input at bottom */}
           <div className="flex-shrink-0 border-t border-zinc-200 dark:border-zinc-800">
             <MessageInput onSend={sendMessage} isLoading={isLoading} />
@@ -201,6 +205,8 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
               <div className="flex-1 overflow-hidden">
                 <ChatArea mode={orchestratorMode} onSuggestionClick={handleSuggestionClick} />
               </div>
+              {/* Gather Buttons - Conditional on route */}
+              <GatherButtons projectId={projectId} />
               <div className="flex-shrink-0 border-t border-zinc-200 dark:border-zinc-800">
                 <MessageInput onSend={sendMessage} isLoading={isLoading} />
               </div>

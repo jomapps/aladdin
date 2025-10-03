@@ -210,14 +210,46 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
 
   return (
     <div className="grid grid-cols-1 gap-4">
-      {departments.map((dept) => {
+      {departments.map((dept, index) => {
         const evaluation = evaluations.get(dept.id)
         const isEvaluating = evaluation?.status === 'in_progress'
+
+        // First department is always evaluable
+        const isFirstDepartment = index === 0
+
+        // Check if previous department has crossed threshold
+        let previousDeptMetThreshold = false
+        let previousDeptName = ''
+        if (index > 0) {
+          const previousDept = departments[index - 1]
+          previousDeptName = previousDept.name
+          const previousEval = evaluations.get(previousDept.id)
+          previousDeptMetThreshold = previousEval?.rating !== null &&
+                                     previousEval.rating >= previousEval.threshold &&
+                                     previousEval.status === 'completed'
+
+          // Debug logging
+          console.log(`[DepartmentCards] Dept: ${dept.name} (${index})`, {
+            previousDept: previousDeptName,
+            previousEval: previousEval ? {
+              rating: previousEval.rating,
+              threshold: previousEval.threshold,
+              status: previousEval.status,
+              meetsThreshold: previousDeptMetThreshold
+            } : 'No evaluation',
+            canEvaluate: isFirstDepartment || previousDeptMetThreshold
+          })
+        }
+
+        // Evaluate button is enabled if:
+        // 1. It's the first department, OR
+        // 2. Previous department has crossed threshold
+        const canEvaluate = isFirstDepartment || previousDeptMetThreshold
 
         return (
           <Card
             key={dept.id}
-            className="transition-all hover:shadow-lg border-l-4 flex flex-col min-h-[200px]"
+            className={`transition-all hover:shadow-lg border-l-4 flex flex-col min-h-[200px] ${!canEvaluate ? 'opacity-60' : ''}`}
             style={{ borderLeftColor: dept.color || '#6b7280' }}
           >
             <CardHeader
@@ -292,9 +324,20 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
                 </Alert>
               )}
 
+              {/* Warning if previous department hasn't met threshold */}
+              {!canEvaluate && !isFirstDepartment && (
+                <Alert className="w-full bg-yellow-500/10 border-yellow-500/50">
+                  <AlertCircle className="h-4 w-4 text-yellow-500" />
+                  <AlertTitle className="text-yellow-500 text-sm">Previous Department Required</AlertTitle>
+                  <AlertDescription className="text-yellow-500/90 text-xs">
+                    Complete <strong>{previousDeptName}</strong> department and meet its threshold first to unlock evaluation.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <Button
                 onClick={(e) => handleEvaluateClick(e, dept.slug, dept.codeDepNumber)}
-                disabled={isEvaluating || (evaluation?.rating !== null && evaluation.rating < evaluation.threshold && evaluation.status === 'completed')}
+                disabled={isEvaluating || !canEvaluate}
                 variant={evaluation?.status === 'completed' && evaluation.rating !== null && evaluation.rating >= evaluation.threshold ? 'outline' : 'default'}
                 className="w-full"
                 size="sm"
@@ -303,6 +346,11 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Evaluating...
+                  </>
+                ) : !canEvaluate ? (
+                  <>
+                    <Clock className="mr-2 h-4 w-4" />
+                    Locked
                   </>
                 ) : evaluation?.status === 'completed' && evaluation.rating !== null && evaluation.rating >= evaluation.threshold ? (
                   <>

@@ -162,7 +162,7 @@ export default function GatherPageClient({ projectId, projectName }: GatherPageC
                   }
                 >
                   <SelectTrigger className="w-40">
-                    <Filter className="w-4 h-4 mr-2" />
+                    <Filter className="mr-2 h-4 w-4" />
                     <SelectValue placeholder="Filter" />
                   </SelectTrigger>
                   <SelectContent>
@@ -176,33 +176,36 @@ export default function GatherPageClient({ projectId, projectName }: GatherPageC
 
             {/* Content */}
             <div className="flex-1 overflow-auto p-6">
-              <div className="space-y-8">
+              <div className="space-y-10">
                 {/* Department Cards Section */}
                 <div>
-                  <h2 className="text-xl font-bold text-foreground mb-4">Core Departments</h2>
+                  <h2 className="mb-4 text-xl font-semibold text-white">Core Departments</h2>
                   <DepartmentCards projectId={projectId} onEvaluate={handleEvaluate} />
                 </div>
 
                 {/* Gather Items Section */}
                 <div>
-                  <h2 className="text-xl font-bold text-foreground mb-4">Gathered Content</h2>
+                  <h2 className="mb-4 text-xl font-semibold text-white">Gathered Content</h2>
                   {isLoading ? (
                     <div className="space-y-4">
                       {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="h-24 bg-muted animate-pulse rounded" />
+                        <div key={i} className="h-24 animate-pulse rounded-xl border border-slate-800/60 bg-slate-900/50" />
                       ))}
                     </div>
                   ) : error ? (
                     <div className="text-center py-12">
-                      <p className="text-destructive">Failed to load gather items</p>
-                      <Button onClick={() => refetch()} className="mt-4">
+                      <p className="text-lg text-rose-300">Failed to load gather items</p>
+                      <Button
+                        onClick={() => refetch()}
+                        className="mt-4 border-slate-700/70 bg-slate-900/60 text-white hover:border-sky-400/40 hover:bg-slate-900/80"
+                      >
                         Retry
                       </Button>
                     </div>
                   ) : data && data.items.length === 0 ? (
                     <div className="text-center py-12">
-                      <p className="text-muted-foreground">No gather items found</p>
-                      <p className="text-sm text-muted-foreground mt-2">
+                      <p className="text-slate-300">No gather items found</p>
+                      <p className="mt-2 text-sm text-slate-400">
                         Start collecting content using the AI chat
                       </p>
                     </div>

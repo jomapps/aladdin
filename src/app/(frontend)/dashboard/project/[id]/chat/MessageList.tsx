@@ -25,7 +25,7 @@ export default function MessageList({ messages }: MessageListProps) {
     return (
       <div className="flex items-center justify-center h-full text-gray-500">
         <div className="text-center">
-          <p className="text-lg font-medium mb-2">Start a conversation</p>
+          <p className="text-base font-medium mb-2">Start a conversation</p>
           <p className="text-sm">
             Ask the AI agents to help develop your project
           </p>
@@ -35,7 +35,7 @@ export default function MessageList({ messages }: MessageListProps) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-6 px-4 space-y-6">
+    <div className="max-w-4xl mx-auto py-4 px-4 space-y-3">
       {messages.map((message) => (
         <MessageBubble key={message.id} message={message} />
       ))}
@@ -52,7 +52,7 @@ function MessageBubble({ message }: { message: Message }) {
   if (isSystem) {
     return (
       <div className="flex justify-center">
-        <div className="bg-blue-50 text-blue-700 text-sm px-4 py-2 rounded-full border border-blue-200">
+        <div className="bg-blue-50 text-blue-700 text-[10px] px-3 py-1.5 rounded-full border border-blue-200">
           {message.content}
         </div>
       </div>
@@ -72,17 +72,17 @@ function MessageBubble({ message }: { message: Message }) {
 
         {/* Message bubble */}
         <div
-          className={`rounded-2xl px-4 py-3 ${
+          className={`rounded-2xl px-3 py-2 ${
             isUser
               ? 'bg-blue-600 text-white'
               : 'bg-white text-gray-900 border border-gray-200'
           }`}
         >
-          <p className="whitespace-pre-wrap">{message.content}</p>
+          <p className="text-xs whitespace-pre-wrap leading-relaxed">{message.content}</p>
 
           {/* Timestamp */}
           <div
-            className={`text-xs mt-2 ${
+            className={`text-[10px] mt-1 ${
               isUser ? 'text-blue-200' : 'text-gray-500'
             }`}
           >
