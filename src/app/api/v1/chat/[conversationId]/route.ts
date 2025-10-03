@@ -28,6 +28,12 @@ export async function POST(
       return NextResponse.json({ error: 'Content and project slug are required' }, { status: 400 })
     }
 
+    // Validate conversationId format (MongoDB ObjectId is 24 hex chars)
+    const isValidObjectId = (id: string) => /^[0-9a-fA-F]{24}$/.test(id)
+    if (!isValidObjectId(conversationId)) {
+      return NextResponse.json({ error: 'Invalid conversation ID format' }, { status: 400 })
+    }
+
     // Get conversation
     const conversation = await payload.findByID({
       collection: 'conversations',

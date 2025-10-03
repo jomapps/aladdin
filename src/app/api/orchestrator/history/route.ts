@@ -35,6 +35,15 @@ export async function GET(req: NextRequest) {
 
     // 3. If conversationId provided, get specific conversation
     if (conversationId) {
+      // Validate conversationId format (MongoDB ObjectId is 24 hex chars)
+      const isValidObjectId = (id: string) => /^[0-9a-fA-F]{24}$/.test(id)
+      if (!isValidObjectId(conversationId)) {
+        return NextResponse.json(
+          { error: 'Invalid conversation ID format', code: 'VALIDATION_ERROR' },
+          { status: 400 },
+        )
+      }
+
       const conversation = await payload.findByID({
         collection: 'conversations',
         id: conversationId,
@@ -163,6 +172,15 @@ export async function POST(req: NextRequest) {
 
     // 3. Create or update conversation
     if (conversationId) {
+      // Validate conversationId format (MongoDB ObjectId is 24 hex chars)
+      const isValidObjectId = (id: string) => /^[0-9a-fA-F]{24}$/.test(id)
+      if (!isValidObjectId(conversationId)) {
+        return NextResponse.json(
+          { error: 'Invalid conversation ID format', code: 'VALIDATION_ERROR' },
+          { status: 400 },
+        )
+      }
+
       // Update existing conversation
       const conversation = await payload.findByID({
         collection: 'conversations',

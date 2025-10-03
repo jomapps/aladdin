@@ -20,6 +20,12 @@ export async function GET(
 
   const { conversationId } = await params
 
+  // Validate conversationId format (MongoDB ObjectId is 24 hex chars)
+  const isValidObjectId = (id: string) => /^[0-9a-fA-F]{24}$/.test(id)
+  if (!isValidObjectId(conversationId)) {
+    return new Response('Invalid conversation ID format', { status: 400 })
+  }
+
   // Verify conversation exists and user has access
   const conversation = await payload.findByID({
     collection: 'conversations',

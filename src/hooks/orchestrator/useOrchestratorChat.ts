@@ -42,6 +42,17 @@ export function useOrchestratorChat(options: SendMessageOptions) {
       setIsStreaming(true)
 
       try {
+        // Validate conversationId format (MongoDB ObjectId is 24 hex chars)
+        const isValidObjectId = (id: string) => /^[0-9a-fA-F]{24}$/.test(id)
+        const validConversationId =
+          conversationId && isValidObjectId(conversationId) ? conversationId : undefined
+
+        // Clear invalid conversationId from store
+        if (conversationId && !validConversationId) {
+          console.warn('[useOrchestratorChat] Clearing invalid conversationId:', conversationId)
+          setConversationId('')
+        }
+
         // Route to appropriate endpoint based on mode
         const endpoint = `/api/v1/orchestrator/${mode}`
 
@@ -53,7 +64,7 @@ export function useOrchestratorChat(options: SendMessageOptions) {
           body: JSON.stringify({
             content,
             projectId: options.projectId,
-            conversationId,
+            conversationId: validConversationId,
             mode,
           }),
         })

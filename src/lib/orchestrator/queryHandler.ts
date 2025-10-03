@@ -56,17 +56,8 @@ function transformBrainResult(result: SearchSimilarResult): QueryResult {
 /**
  * Handle query requests with Brain search
  */
-export async function handleQuery(
-  options: QueryHandlerOptions
-): Promise<QueryHandlerResult> {
-  const {
-    content,
-    projectId,
-    conversationId,
-    userId,
-    limit = 10,
-    types,
-  } = options
+export async function handleQuery(options: QueryHandlerOptions): Promise<QueryHandlerResult> {
+  const { content, projectId, conversationId, userId, limit = 10, types } = options
 
   // 1. Initialize clients
   const llmClient = getLLMClient()
@@ -78,8 +69,12 @@ export async function handleQuery(
   // 2. Load or create conversation
   let actualConversationId = conversationId
   let conversationHistory: LLMMessage[] = []
+  let conversationExists = false
 
-  if (conversationId) {
+  // Validate conversationId format (MongoDB ObjectId is 24 hex chars)
+  const isValidObjectId = (id: string) => /^[0-9a-fA-F]{24}$/.test(id)
+
+  if (conversationId && isValidObjectId(conversationId)) {
     try {
       const conversation = await payload.findByID({
         collection: 'conversations',
@@ -87,20 +82,27 @@ export async function handleQuery(
       })
 
       if (conversation && conversation.messages) {
+        conversationExists = true
         conversationHistory = conversation.messages
           .filter((msg: any) => msg.role !== 'system')
           .map((msg: any) => ({
             role: msg.role as 'user' | 'assistant',
             content: msg.content,
           }))
+        console.log('[QueryHandler] Loaded existing conversation:', conversationId)
       }
     } catch (error) {
-      console.error('[QueryHandler] Failed to load conversation:', error)
+      console.warn('[QueryHandler] Failed to load conversation:', error)
+      // If conversation doesn't exist, we'll create a new one below
+      actualConversationId = undefined
     }
+  } else if (conversationId) {
+    console.warn('[QueryHandler] Invalid conversationId format:', conversationId)
+    actualConversationId = undefined
   }
 
-  // 3. Create conversation if new
-  if (!actualConversationId) {
+  // 3. Create conversation if new or not found
+  if (!actualConversationId || !conversationExists) {
     const newConversation = await payload.create({
       collection: 'conversations',
       data: {
@@ -113,6 +115,7 @@ export async function handleQuery(
       },
     })
     actualConversationId = newConversation.id.toString()
+    console.log('[QueryHandler] Created new conversation:', actualConversationId)
   }
 
   // 4. Search Brain for relevant entities
@@ -131,39 +134,41 @@ export async function handleQuery(
 
     console.log('[QueryHandler] Brain results:', brainResults.length)
   } catch (brainError: any) {
-    console.error('[QueryHandler] Brain search failed:', brainError.message)
-    // Continue with empty results - don't fail the entire request
+    console.warn('[QueryHandler] Brain search not available:', brainError.message)
+    // Continue with empty results - Brain service may not have search endpoint yet
+    // This is expected until the Brain service implements REST search endpoints
   }
 
   // 5. Transform Brain results to QueryResults
   const queryResults: QueryResult[] = brainResults.map(transformBrainResult)
 
   // 6. Build context for LLM
-  const brainContext = queryResults.length > 0
-    ? `Found ${queryResults.length} relevant entities:\n\n${queryResults
-        .map(
-          (r, i) =>
-            `${i + 1}. ${r.type.toUpperCase()}: ${r.title} (${Math.round(r.relevance * 100)}% relevant)\n${r.content.substring(0, 200)}...`
-        )
-        .join('\n\n')}`
-    : 'No relevant entities found in the project Brain.'
+  const brainContext =
+    queryResults.length > 0
+      ? `Found ${queryResults.length} relevant entities:\n\n${queryResults
+          .map(
+            (r, i) =>
+              `${i + 1}. ${r.type.toUpperCase()}: ${r.title} (${Math.round(r.relevance * 100)}% relevant)\n${r.content.substring(0, 200)}...`,
+          )
+          .join('\n\n')}`
+      : 'The project knowledge base (Brain) is currently being built. I can still help answer questions about the project structure and workflow.'
 
   // 7. Build messages for LLM
   const messages: LLMMessage[] = [
     {
       role: 'system',
-      content: `You are a helpful AI assistant that searches and retrieves information from a movie production project's knowledge base (Brain).
+      content: `You are a helpful AI assistant for a movie production project.
 
 Your role:
-- Help users find characters, scenes, locations, and other project entities
-- Provide clear, concise summaries of search results
-- Highlight the most relevant information
-- Suggest follow-up queries
+- Help users understand the movie production workflow
+- Answer questions about project structure, departments, and processes
+- Provide guidance on using the system
+- When the Brain knowledge base has data, help search for characters, scenes, locations, and other entities
 
 Project Context:
 ${brainContext}
 
-Always cite which entity you're referring to when answering questions.`,
+Be friendly, helpful, and guide users through the movie production process.`,
     },
     ...conversationHistory,
     {
@@ -232,7 +237,7 @@ Always cite which entity you're referring to when answering questions.`,
  * Map Brain entity type to QueryResult type
  */
 function mapBrainTypeToQueryType(
-  brainType: string
+  brainType: string,
 ): 'character' | 'scene' | 'location' | 'prop' | 'other' {
   const typeMap: Record<string, 'character' | 'scene' | 'location' | 'prop' | 'other'> = {
     character: 'character',

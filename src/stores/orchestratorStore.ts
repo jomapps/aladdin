@@ -121,14 +121,11 @@ export const useOrchestratorStore = create<OrchestratorState>()(
           isStreaming: false,
         })),
 
-      updateStreamingMessage: (content) =>
-        set({ currentStreamingMessage: content }),
+      updateStreamingMessage: (content) => set({ currentStreamingMessage: content }),
 
-      setIsStreaming: (streaming) =>
-        set({ isStreaming: streaming }),
+      setIsStreaming: (streaming) => set({ isStreaming: streaming }),
 
-      setCurrentTask: (task) =>
-        set({ currentTask: task }),
+      setCurrentTask: (task) => set({ currentTask: task }),
 
       clearMessages: () =>
         set({
@@ -138,11 +135,17 @@ export const useOrchestratorStore = create<OrchestratorState>()(
           conversationId: null,
         }),
 
-      setConversationId: (id) =>
-        set({ conversationId: id }),
+      setConversationId: (id) => {
+        // Validate MongoDB ObjectId format (24 hex chars) or allow null/empty
+        const isValidObjectId = (str: string) => /^[0-9a-fA-F]{24}$/.test(str)
+        if (id && !isValidObjectId(id)) {
+          console.warn('[OrchestratorStore] Invalid conversationId format, ignoring:', id)
+          return
+        }
+        set({ conversationId: id || null })
+      },
 
-      setPanelOpen: (open) =>
-        set({ isPanelOpen: open }),
+      setPanelOpen: (open) => set({ isPanelOpen: open }),
 
       // Helper actions
       getMessagesByMode: (mode) => {
@@ -151,7 +154,7 @@ export const useOrchestratorStore = create<OrchestratorState>()(
 
       getLastAssistantMessage: (mode) => {
         const modeMessages = get().messages.filter(
-          (msg) => msg.mode === mode && msg.role === 'assistant'
+          (msg) => msg.mode === mode && msg.role === 'assistant',
         )
         return modeMessages.length > 0 ? modeMessages[modeMessages.length - 1] : null
       },
@@ -165,6 +168,6 @@ export const useOrchestratorStore = create<OrchestratorState>()(
         messages: state.messages.slice(-100),
         isPanelOpen: state.isPanelOpen,
       }),
-    }
-  )
+    },
+  ),
 )
