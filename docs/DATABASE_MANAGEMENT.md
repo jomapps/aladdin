@@ -33,7 +33,7 @@ Aladdin uses two MongoDB database systems:
 | Script | Purpose | Destructive | Requires Confirmation |
 |--------|---------|-------------|----------------------|
 | `db:clean` | Remove all data | ✅ Yes | ✅ Yes |
-| `db:seed` | Load data from JSON | ❌ No | ❌ No |
+| `db:seed` | Reset databases and programmatically seed core data | ✅ Yes | ❌ No |
 | `db:backup` | Create backup | ❌ No | ❌ No |
 | `db:restore` | Restore from backup | ✅ Yes | ✅ Yes |
 
@@ -115,92 +115,23 @@ Are you sure you want to continue? (yes/no): yes
 
 **Command**: `pnpm db:seed`
 
-Loads data from JSON files in the `seeds/` directory.
+Drops Payload and gather databases, then programmatically seeds core data from `src/seed/index.ts`.
 
 ### Usage
 
 ```bash
-# Seed all collections
 pnpm db:seed
-
-# Seed specific collection
-pnpm db:seed --collection departments
-
-# Clean before seeding
-pnpm db:seed --clean
 ```
 
-### Seed File Structure
+### Seeding Source
 
-Create JSON files in the `seeds/` directory:
+Programmatic seeders live under `src/seed/`. Extend these if you need additional default data for development.
 
-```
-seeds/
-├── departments.json
-├── agents.json
-├── custom-tools.json
-├── users.json
-└── projects.json
-```
 
-### Example Seed File
 
-**seeds/departments.json:**
-```json
-[
-  {
-    "slug": "story",
-    "name": "Story Department",
-    "description": "Narrative development and plot structure",
-    "icon": "📖",
-    "color": "#8B5CF6",
-    "priority": 1,
-    "isActive": true,
-    "defaultModel": "anthropic/claude-sonnet-4.5",
-    "maxAgentSteps": 25
-  },
-  {
-    "slug": "character",
-    "name": "Character Department",
-    "description": "Character creation and development",
-    "icon": "👤",
-    "color": "#EC4899",
-    "priority": 2,
-    "isActive": true,
-    "defaultModel": "anthropic/claude-sonnet-4.5",
-    "maxAgentSteps": 25
-  }
-]
-```
+### Seeding Logic
 
-### Seeding Order
-
-Collections are seeded in dependency order:
-
-1. users
-2. departments
-3. agents
-4. custom-tools
-5. projects
-6. episodes
-7. conversations
-8. workflows
-9. activity-logs
-10. export-jobs
-11. media
-
-### Duplicate Handling
-
-The seed script checks unique fields to avoid duplicates:
-
-- **users**: `email`
-- **departments**: `slug`
-- **agents**: `agentId`
-- **custom-tools**: `toolName`
-- **projects**: `slug`
-- **episodes**: `slug`
-
-Existing items are skipped automatically.
+Order and duplicate handling are implemented in the programmatic seeders (`src/seed/index.ts` and related files).
 
 ---
 

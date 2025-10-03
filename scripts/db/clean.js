@@ -85,16 +85,18 @@ async function cleanOpenDatabases(client) {
   const adminDb = client.db('admin')
   const { databases } = await adminDb.admin().listDatabases()
 
-  // Find all databases starting with 'open_'
-  const openDatabases = databases.filter((db) => db.name.startsWith('open_'))
+  // Find all project-scoped databases to drop: open_* and aladdin-gather-*
+  const candidateDatabases = databases.filter(
+    (db) => db.name.startsWith('open_') || db.name.startsWith('aladdin-gather-'),
+  )
 
-  if (openDatabases.length === 0) {
-    console.log('  ℹ️  No open databases found')
+  if (candidateDatabases.length === 0) {
+    console.log('  ℹ️  No open or gather databases found')
     return
   }
 
   let dropped = 0
-  for (const database of openDatabases) {
+  for (const database of candidateDatabases) {
     try {
       await client.db(database.name).dropDatabase()
       console.log(`  ✅ Dropped: ${database.name}`)
@@ -104,7 +106,7 @@ async function cleanOpenDatabases(client) {
     }
   }
 
-  console.log(`\n✅ Open databases cleaned (${dropped} databases dropped)`)
+  console.log(`\n✅ Open/Gather databases cleaned (${dropped} databases dropped)`)
 }
 
 async function main() {
@@ -134,8 +136,13 @@ async function main() {
     await payloadClient.connect()
     console.log('✅ Connected to PayloadCMS database')
 
-    // Clean PayloadCMS database
-    await cleanPayloadDatabase(payloadClient)
+    // Clean or drop PayloadCMS database
+    if (process.argv.includes('--drop-db') || process.argv.includes('--drop')) {
+      await payloadClient.db().dropDatabase()
+      console.log('✅ Dropped PayloadCMS database')
+    } else {
+      await cleanPayloadDatabase(payloadClient)
+    }
 
     // Connect to Open MongoDB (if different)
     if (OPEN_DB_URI !== PAYLOAD_DB_URI) {

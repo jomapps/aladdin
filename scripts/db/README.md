@@ -2,6 +2,9 @@
 
 Comprehensive database management tools for Aladdin's PayloadCMS and Open MongoDB databases.
 
+> Note: `pnpm db:seed` now resets databases (drops Payload + `open_*` + `aladdin-gather-*`) and programmatically seeds core data from `src/seed/index.ts`. Legacy JSON-based seeding via `scripts/db/seed.js` is deprecated and has been removed from scripts.
+
+
 ## 📋 Available Scripts
 
 ### 1. `pnpm db:clean` - Clean All Databases
@@ -26,23 +29,16 @@ pnpm db:clean --confirm
 
 ---
 
-### 2. `pnpm db:seed` - Seed from JSON Files
+### 2. `pnpm db:seed` - Reset and Programmatically Seed Core Data
 
-Seeds data from JSON files in the `seeds/` directory.
+Drops Payload and gather databases, then seeds core data from `src/seed/index.ts`.
 
 **Usage:**
 ```bash
-# Seed all collections
 pnpm db:seed
-
-# Seed specific collection
-pnpm db:seed --collection departments
-
-# Clean before seeding
-pnpm db:seed --clean
 ```
 
-**Seed File Structure:**
+**Deprecated: Legacy Seed File Structure (no longer used by db:seed):**
 ```
 seeds/
 ├── users.json           # ✅ User accounts (3 default users)

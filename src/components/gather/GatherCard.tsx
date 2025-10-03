@@ -100,13 +100,12 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
     }
   }
 
-  const lastUpdated = typeof item.lastUpdated === 'string' 
-    ? new Date(item.lastUpdated) 
-    : item.lastUpdated
+  const lastUpdated =
+    typeof item.lastUpdated === 'string' ? new Date(item.lastUpdated) : item.lastUpdated
 
   return (
     <Card className="mb-4">
-      <CardHeader className="pb-3">
+      <CardHeader className="px-6 py-5">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
@@ -114,26 +113,13 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
               <span>•</span>
               <span>{formatDistanceToNow(lastUpdated, { addSuffix: true })}</span>
             </div>
-            <p className="text-sm text-gray-700 line-clamp-2">{item.summary}</p>
+            <p className="text-base text-gray-700 whitespace-normal break-words">{item.summary}</p>
           </div>
           <div className="flex items-center gap-2 ml-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              {isExpanded ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
+            <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)}>
+              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
+            <Button variant="ghost" size="sm" onClick={handleDelete} disabled={isDeleting}>
               <X className="w-4 h-4" />
             </Button>
           </div>
@@ -141,7 +127,7 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
       </CardHeader>
 
       {isExpanded && (
-        <CardContent>
+        <CardContent className="px-6 pb-6">
           <div className={item.imageUrl || item.documentUrl ? 'grid grid-cols-2 gap-4' : ''}>
             {/* Media Column */}
             {(item.imageUrl || item.documentUrl) && (
@@ -150,11 +136,7 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
                   <div className="border rounded p-3">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium">📷 Image</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteFile('image')}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteFile('image')}>
                         <X className="w-3 h-3" />
                       </Button>
                     </div>
@@ -217,9 +199,7 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
             {/* Content Column */}
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">
-                  Content:
-                </label>
+                <label className="text-sm font-medium text-gray-700 block mb-1">Content:</label>
                 {isEditing ? (
                   <Textarea
                     value={editedContent}
@@ -228,17 +208,17 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
                     className="font-mono text-sm"
                   />
                 ) : (
-                  <pre className="text-sm bg-gray-50 p-3 rounded border overflow-auto max-h-64">
+                  <pre className="text-sm bg-gray-50 p-3 rounded border max-h-64 whitespace-pre-wrap break-words overflow-auto">
                     {item.content}
                   </pre>
                 )}
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">
-                  Context:
-                </label>
-                <p className="text-sm text-gray-600">{item.context}</p>
+                <label className="text-sm font-medium text-gray-700 block mb-1">Context:</label>
+                <p className="text-sm text-gray-600 whitespace-normal break-words">
+                  {item.context}
+                </p>
               </div>
 
               {item.extractedText && (
@@ -246,7 +226,9 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
                   <label className="text-sm font-medium text-gray-700 block mb-1">
                     Extracted Text:
                   </label>
-                  <p className="text-sm text-gray-600">{item.extractedText}</p>
+                  <p className="text-sm text-gray-600 whitespace-normal break-words">
+                    {item.extractedText}
+                  </p>
                 </div>
               )}
             </div>
@@ -287,4 +269,3 @@ export default function GatherCard({ item, projectId, onUpdate }: GatherCardProp
     </Card>
   )
 }
-

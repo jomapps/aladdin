@@ -16,16 +16,16 @@ const modes: Array<{
   description: string
 }> = [
   {
+    id: 'chat',
+    label: 'Chat',
+    icon: MessageCircle,
+    description: 'General conversation',
+  },
+  {
     id: 'query',
     label: 'Query',
     icon: Search,
     description: 'Ask questions about your project',
-  },
-  {
-    id: 'data',
-    label: 'Data',
-    icon: Database,
-    description: 'Add or update project data',
   },
   {
     id: 'task',
@@ -34,10 +34,10 @@ const modes: Array<{
     description: 'Execute project tasks',
   },
   {
-    id: 'chat',
-    label: 'Chat',
-    icon: MessageCircle,
-    description: 'General conversation',
+    id: 'data',
+    label: 'Data',
+    icon: Database,
+    description: 'Add or update project data',
   },
 ]
 

@@ -10,7 +10,7 @@ Quick reference for Aladdin's database management commands.
 # Clean all databases (removes all data)
 pnpm db:clean
 
-# Seed from JSON files in seeds/ directory
+# Reset databases and seed core data (drops Payload + gather DBs)
 pnpm db:seed
 
 # Create a backup
@@ -18,9 +18,6 @@ pnpm db:backup
 
 # Restore latest backup
 pnpm db:restore
-
-# Seed initial agents and departments (from src/seed/)
-pnpm seed
 ```
 
 ---
@@ -29,7 +26,7 @@ pnpm seed
 
 ### Fresh Start
 ```bash
-pnpm db:clean --confirm && pnpm seed
+pnpm db:seed
 ```
 
 ### Before Major Changes
@@ -73,18 +70,13 @@ aladdin/
 
 ## 🔑 Key Differences
 
-### `pnpm seed` vs `pnpm db:seed`
+Use a single command for a fresh start:
 
-| Command | Source | Purpose |
-|---------|--------|---------|
-| `pnpm seed` | `src/seed/` | Initial setup (35 agents, 6 departments) |
-| `pnpm db:seed` | `seeds/` | Custom data from JSON files |
-
-**Use both:**
 ```bash
-pnpm seed      # Seed agents and departments
-pnpm db:seed   # Seed your custom data
+pnpm db:seed
 ```
+
+This drops Payload and gather databases and programmatically seeds core data from `src/seed/index.ts`.
 
 ---
 

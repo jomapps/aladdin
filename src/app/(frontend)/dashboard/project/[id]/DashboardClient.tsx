@@ -37,11 +37,11 @@ export default function DashboardClient({
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-transparent text-slate-100">
       {/* Mobile Navigation */}
       <MobileNav onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} projectName={projectName} />
 
-      <div className="flex h-screen">
+      <div className="flex h-screen overflow-hidden">
         {/* Sidebar */}
         <ProjectSidebar
           projectId={projectId}
@@ -51,47 +51,53 @@ export default function DashboardClient({
         />
 
         {/* Main Content */}
-        <main className="flex-1 p-6 lg:p-8 overflow-auto">
-          <div className="max-w-7xl mx-auto">
-            <div className="space-y-6">
-              {/* Quality Dashboard */}
-              <Suspense fallback={<div className="h-64 bg-muted animate-pulse rounded-lg" />}>
-                <QualityDashboard projectId={projectId} />
-              </Suspense>
+        <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-10">
+          <div className="mx-auto flex max-w-6xl flex-col gap-8 pb-12">
+            {/* Quality Dashboard */}
+            <Suspense fallback={<div className="h-64 animate-pulse rounded-3xl border border-white/10 bg-white/5" />}>
+              <QualityDashboard projectId={projectId} />
+            </Suspense>
 
-              {/* Timeline */}
-              <Suspense fallback={<div className="h-48 bg-muted animate-pulse rounded-lg" />}>
-                <div>
-                  <h2 className="text-xl font-bold text-foreground mb-4">Project Timeline</h2>
-                  <Timeline scenes={scenes} duration={19} currentTime={7} />
-                </div>
-              </Suspense>
+            {/* Timeline */}
+            <Suspense fallback={<div className="h-48 animate-pulse rounded-3xl border border-white/10 bg-white/5" />}>
+              <section className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl shadow-[0_40px_120px_-60px_rgba(124,58,237,0.6)]">
+                <h2 className="mb-4 text-xl font-semibold uppercase tracking-[0.3em] text-slate-300">
+                  Project Timeline
+                </h2>
+                <Timeline scenes={scenes} duration={Math.max(totalDuration, 19)} currentTime={7} />
+              </section>
+            </Suspense>
 
-              {/* Project Overview */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-card border border-border rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-2">Scenes</h3>
-                  <div className="text-3xl font-bold text-primary">{scenes.length}</div>
-                  <p className="text-sm text-muted-foreground mt-1">Total scenes in project</p>
-                </div>
-
-                <div className="bg-card border border-border rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-2">Characters</h3>
-                  <div className="text-3xl font-bold text-primary">{charactersCount}</div>
-                  <p className="text-sm text-muted-foreground mt-1">Active characters</p>
-                </div>
-
-                <div className="bg-card border border-border rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-2">Duration</h3>
-                  <div className="text-3xl font-bold text-primary">
-                    {totalDuration > 0
-                      ? `${Math.floor(totalDuration / 60)}m ${totalDuration % 60}s`
-                      : '0s'}
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">Total video length</p>
-                </div>
+            {/* Project Overview */}
+            <section className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="glass-panel rounded-3xl border-white/10 bg-white/5 p-6 text-slate-100 shadow-[0_30px_100px_-70px_rgba(56,189,248,0.8)]">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-300">
+                  Scenes
+                </h3>
+                <div className="mt-4 text-4xl font-bold text-sky-200">{scenes.length}</div>
+                <p className="mt-2 text-sm text-slate-400">Total scenes scripted for this production.</p>
               </div>
-            </div>
+
+              <div className="glass-panel rounded-3xl border-white/10 bg-white/5 p-6 text-slate-100 shadow-[0_30px_100px_-70px_rgba(34,211,238,0.65)]">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-300">
+                  Characters
+                </h3>
+                <div className="mt-4 text-4xl font-bold text-emerald-200">{charactersCount}</div>
+                <p className="mt-2 text-sm text-slate-400">Active characters ready for casting and development.</p>
+              </div>
+
+              <div className="glass-panel rounded-3xl border-white/10 bg-white/5 p-6 text-slate-100 shadow-[0_30px_100px_-70px_rgba(99,102,241,0.55)]">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-300">
+                  Runtime
+                </h3>
+                <div className="mt-4 text-4xl font-bold text-indigo-200">
+                  {totalDuration > 0
+                    ? `${Math.floor(totalDuration / 60)}m ${totalDuration % 60}s`
+                    : '0s'}
+                </div>
+                <p className="mt-2 text-sm text-slate-400">Aggregate duration across all finished scenes.</p>
+              </div>
+            </section>
           </div>
         </main>
       </div>

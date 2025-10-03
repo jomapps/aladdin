@@ -155,7 +155,7 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {[1, 2, 3, 4, 5, 6, 7].map((i) => (
           <Card key={i} className="animate-pulse">
             <CardHeader className="pb-3">
@@ -190,7 +190,7 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 gap-4">
       {departments.map((dept) => {
         const evaluation = evaluations.get(dept.id)
         const isEvaluating = evaluation?.status === 'in_progress'
@@ -198,11 +198,11 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
         return (
           <Card
             key={dept.id}
-            className="transition-all hover:shadow-lg border-l-4 flex flex-col"
+            className="transition-all hover:shadow-lg border-l-4 flex flex-col min-h-[200px]"
             style={{ borderLeftColor: dept.color || '#6b7280' }}
           >
             <CardHeader
-              className="pb-3 cursor-pointer"
+              className="px-6 py-5 cursor-pointer"
               onClick={() => handleDepartmentClick(dept.slug)}
             >
               <div className="flex items-start justify-between gap-3">
@@ -216,7 +216,9 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-foreground truncate">{dept.name}</h3>
+                    <h3 className="text-xl font-semibold text-foreground break-words">
+                      {dept.name}
+                    </h3>
                     <p className="text-xs text-muted-foreground">Department {dept.codeDepNumber}</p>
                   </div>
                 </div>
@@ -225,10 +227,12 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
             </CardHeader>
 
             <CardContent
-              className="flex-1 cursor-pointer"
+              className="flex-1 cursor-pointer px-6 pb-5"
               onClick={() => handleDepartmentClick(dept.slug)}
             >
-              <p className="text-sm text-muted-foreground line-clamp-2">{dept.description}</p>
+              <p className="text-sm text-muted-foreground whitespace-normal break-words">
+                {dept.description}
+              </p>
 
               {/* Evaluation Stats */}
               {evaluation?.rating !== null && (
@@ -249,7 +253,7 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
               )}
             </CardContent>
 
-            <CardFooter className="pt-3">
+            <CardFooter className="pt-4 px-6 pb-6">
               <Button
                 onClick={(e) => handleEvaluateClick(e, dept.slug, dept.codeDepNumber)}
                 disabled={isEvaluating}

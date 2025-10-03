@@ -74,26 +74,32 @@ export default function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">
+    <Card className="glass-panel w-full max-w-md border-white/10 bg-white/5 p-1 text-slate-100 shadow-[0_40px_120px_-60px_rgba(59,130,246,0.8)]">
+      <CardHeader className="space-y-3 text-center">
+        <span className="inline-flex items-center justify-center gap-2 self-center rounded-full border border-white/10 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200">
+          <span className="inline-flex h-2 w-2 rounded-full bg-sky-300" />
+          Secure Access
+        </span>
+        <CardTitle className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-indigo-200 to-purple-300">
           Welcome to Aladdin
         </CardTitle>
-        <CardDescription className="text-center">
-          AI Movie Production Platform
+        <CardDescription className="text-sm text-slate-300">
+          Craft cinematic universes with AI-guided production workflows.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
-            <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-md">
+            <div className="flex items-center gap-2 rounded-lg border border-red-200/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">
               <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">{error.message}</span>
+              <span>{error.message}</span>
             </div>
           )}
-          
+
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wide text-slate-200">
+              Email
+            </Label>
             <Input
               id="email"
               name="email"
@@ -103,11 +109,14 @@ export default function LoginForm() {
               onChange={handleInputChange}
               required
               disabled={isLoading}
+              className="h-11 rounded-lg border-white/10 bg-white/10 text-slate-100 placeholder:text-slate-400 focus-visible:border-sky-300 focus-visible:ring-sky-400/30"
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wide text-slate-200">
+              Password
+            </Label>
             <Input
               id="password"
               name="password"
@@ -117,18 +126,19 @@ export default function LoginForm() {
               onChange={handleInputChange}
               required
               disabled={isLoading}
+              className="h-11 rounded-lg border-white/10 bg-white/10 text-slate-100 placeholder:text-slate-400 focus-visible:border-sky-300 focus-visible:ring-sky-400/30"
             />
           </div>
-          
-          <Button 
-            type="submit" 
-            className="w-full" 
+
+          <Button
+            type="submit"
+            className="w-full rounded-lg bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-500 text-slate-950 shadow-[0_20px_60px_-30px_rgba(59,130,246,0.8)] transition duration-200 hover:brightness-110"
             disabled={isLoading}
           >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing in...
+                Signing in…
               </>
             ) : (
               'Sign In'
