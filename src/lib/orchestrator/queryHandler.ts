@@ -8,7 +8,7 @@ import { getBrainClient } from '@/lib/brain/client'
 import type { SearchSimilarResult } from '@/lib/brain/types'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
-import { isValidObjectId, validateObjectId } from '@/lib/auth/devAuth'
+import { isValidObjectId } from '@/lib/auth/devAuth'
 
 export interface QueryResult {
   id: string
@@ -101,16 +101,12 @@ export async function handleQuery(options: QueryHandlerOptions): Promise<QueryHa
 
   // 3. Create conversation if new or not found
   if (!actualConversationId || !conversationExists) {
-    // Validate IDs before creating conversation (relationships require valid ObjectIds)
-    const validProjectId = validateObjectId(projectId, 'projectId')
-    const validUserId = validateObjectId(userId, 'userId')
-
     const newConversation = await payload.create({
       collection: 'conversations',
       data: {
         name: `Query - ${new Date().toISOString()}`,
-        project: validProjectId,
-        user: validUserId,
+        project: projectId,
+        user: userId,
         status: 'active',
         messages: [],
         createdAt: new Date(),

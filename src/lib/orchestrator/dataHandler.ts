@@ -7,7 +7,6 @@ import { getLLMClient } from '@/lib/llm/client'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { MongoClient, ObjectId } from 'mongodb'
-import { validateObjectId } from '@/lib/auth/devAuth'
 
 export interface DataHandlerOptions {
   content: string | object
@@ -206,16 +205,12 @@ export async function handleData(options: DataHandlerOptions): Promise<DataHandl
   let actualConversationId = conversationId
 
   if (!actualConversationId) {
-    // Validate IDs for relationships (may be null/undefined in dev mode)
-    const validProjectId = validateObjectId(projectId, 'projectId')
-    const validUserId = validateObjectId(userId, 'userId')
-
     const newConversation = await payload.create({
       collection: 'conversations',
       data: {
         name: `Data - ${new Date().toISOString()}`,
-        project: validProjectId,
-        user: validUserId,
+        project: projectId,
+        user: userId,
         status: 'active',
         messages: [],
         createdAt: new Date(),
