@@ -1,27 +1,30 @@
-#!/usr/bin/env tsx
 /**
  * Database Seed Script
- * 
+ *
  * Seeds data from JSON files in the seeds/ directory.
  * Supports collection-wise seeding with dependency resolution.
- * 
+ *
  * Usage:
- *   pnpm db:seed                    # Seed all collections
+ *   pnpm db:seed                    # Seed all collections (recommended)
  *   pnpm db:seed --collection users # Seed specific collection
  *   pnpm db:seed --clean            # Clean before seeding
+ *
+ * Note: Uses PayloadCMS best practices with getPayload() pattern
  */
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
+
 import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 
+console.log('🔍 Script starting...')
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const SEEDS_DIR = path.resolve(__dirname, '../../seeds')
-
+console.log('✅ config imported')
 // Collection seeding order (respects dependencies)
 const COLLECTION_ORDER = [
   'users',
@@ -36,29 +39,9 @@ const COLLECTION_ORDER = [
   'export-jobs',
   'media',
 ]
+const SEEDS_DIR = path.join(__dirname, '..', '..', 'seeds')
 
-interface SeedOptions {
-  collection?: string
-  clean?: boolean
-}
-
-function parseArgs(): SeedOptions {
-  const args = process.argv.slice(2)
-  const options: SeedOptions = {}
-
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--collection' && args[i + 1]) {
-      options.collection = args[i + 1]
-      i++
-    } else if (args[i] === '--clean') {
-      options.clean = true
-    }
-  }
-
-  return options
-}
-
-async function loadSeedData(collectionName: string): Promise<any[]> {
+async function loadSeedData(collectionName) {
   const seedFile = path.join(SEEDS_DIR, `${collectionName}.json`)
 
   if (!fs.existsSync(seedFile)) {
@@ -75,7 +58,7 @@ async function loadSeedData(collectionName: string): Promise<any[]> {
   }
 }
 
-async function seedCollection(payload: any, collectionName: string): Promise<number> {
+async function seedCollection(payload, collectionName) {
   console.log(`\n📦 Seeding ${collectionName}...`)
 
   const data = await loadSeedData(collectionName)
@@ -85,6 +68,7 @@ async function seedCollection(payload: any, collectionName: string): Promise<num
   }
 
   let seeded = 0
+
   for (const item of data) {
     try {
       // Check if item already exists (by unique field if available)
@@ -114,7 +98,7 @@ async function seedCollection(payload: any, collectionName: string): Promise<num
       const identifier = item.name || item.title || item.slug || item.email || item.id || 'item'
       console.log(`  ✅ Created: ${identifier}`)
       seeded++
-    } catch (error: any) {
+    } catch (error) {
       console.error(`  ❌ Failed to seed item:`, error.message)
     }
   }
@@ -123,8 +107,8 @@ async function seedCollection(payload: any, collectionName: string): Promise<num
   return seeded
 }
 
-function getUniqueField(collectionName: string): string | null {
-  const uniqueFields: Record<string, string> = {
+function getUniqueField(collectionName) {
+  const uniqueFields = {
     users: 'email',
     departments: 'slug',
     agents: 'agentId',
@@ -136,7 +120,26 @@ function getUniqueField(collectionName: string): string | null {
   return uniqueFields[collectionName] || null
 }
 
-async function cleanCollection(payload: any, collectionName: string): Promise<void> {
+function parseArgs() {
+  const args = process.argv.slice(2)
+  const options = {
+    collection: null,
+    clean: false,
+  }
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--collection' && args[i + 1]) {
+      options.collection = args[i + 1]
+      i++
+    } else if (args[i] === '--clean') {
+      options.clean = true
+    }
+  }
+
+  return options
+}
+
+async function cleanCollection(payload, collectionName) {
   try {
     const items = await payload.find({
       collection: collectionName,
@@ -158,7 +161,7 @@ async function cleanCollection(payload: any, collectionName: string): Promise<vo
 
 async function main() {
   console.log('🌱 Database Seed Script')
-  console.log('=' .repeat(60))
+  console.log('='.repeat(60))
 
   const options = parseArgs()
 
@@ -174,13 +177,35 @@ async function main() {
   try {
     // Initialize PayloadCMS
     console.log('\n📦 Initializing PayloadCMS...')
+    console.log('   Database URI:', process.env.DATABASE_URI || 'NOT SET')
+    console.log('   Payload Secret:', process.env.PAYLOAD_SECRET ? 'SET' : 'NOT SET')
+
+    // Add timeout for initialization with abort capability
+    const initTimeout = setTimeout(() => {
+      console.log('⏳ Still initializing... (this may take a moment on first run)')
+      console.log('   If this hangs, check:')
+      console.log('   - MongoDB is running')
+      console.log('   - R2/S3 credentials are valid')
+      console.log('   - Network connectivity')
+    }, 5000)
+
+    // Add a hard timeout
+    const abortTimeout = setTimeout(() => {
+      console.error('\n❌ Initialization timeout after 60 seconds')
+      console.error('   This usually means:')
+      console.error('   - MongoDB connection is hanging')
+      console.error('   - S3/R2 storage adapter cannot connect')
+      console.error('   - Network issues')
+      process.exit(1)
+    }, 60000)
+
     const payload = await getPayload({ config })
     console.log('✅ PayloadCMS initialized')
+    clearTimeout(initTimeout)
+    clearTimeout(abortTimeout)
 
     // Determine which collections to seed
-    const collectionsToSeed = options.collection
-      ? [options.collection]
-      : COLLECTION_ORDER
+    const collectionsToSeed = options.collection ? [options.collection] : COLLECTION_ORDER
 
     // Clean if requested
     if (options.clean) {
@@ -209,4 +234,3 @@ async function main() {
 
 // Run the script
 main()
-

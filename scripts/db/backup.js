@@ -1,10 +1,9 @@
-#!/usr/bin/env tsx
 /**
  * Database Backup Script
- * 
+ *
  * Creates a backup of all PayloadCMS collections and Open MongoDB databases.
  * Backups are stored in the backups/ directory with timestamps.
- * 
+ *
  * Usage:
  *   pnpm db:backup
  *   pnpm db:backup --name my-backup  # Custom backup name
@@ -19,7 +18,8 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const PAYLOAD_DB_URI = process.env.DATABASE_URI || 'mongodb://localhost:27017/aladdin'
-const OPEN_DB_URI = process.env.DATABASE_URI_OPEN || process.env.DATABASE_URI || 'mongodb://localhost:27017'
+const OPEN_DB_URI =
+  process.env.DATABASE_URI_OPEN || process.env.DATABASE_URI || 'mongodb://localhost:27017'
 const BACKUPS_DIR = path.resolve(__dirname, '../../backups')
 
 // Collections to backup from PayloadCMS
@@ -122,7 +122,9 @@ async function backupOpenDatabases(client: MongoClient, backupDir: string): Prom
         const filePath = path.join(dbDir, `${collectionInfo.name}.json`)
         fs.writeFileSync(filePath, JSON.stringify(documents, null, 2))
 
-        console.log(`  ✅ Backed up: ${database.name}/${collectionInfo.name} (${documents.length} documents)`)
+        console.log(
+          `  ✅ Backed up: ${database.name}/${collectionInfo.name} (${documents.length} documents)`,
+        )
       }
 
       backed++
@@ -149,7 +151,7 @@ async function createBackupMetadata(backupDir: string): Promise<void> {
 
 async function main() {
   console.log('💾 Database Backup Script')
-  console.log('=' .repeat(60))
+  console.log('='.repeat(60))
 
   const options = parseArgs()
   const backupName = getBackupName(options.name)
@@ -212,4 +214,3 @@ async function main() {
 
 // Run the script
 main()
-

@@ -1,10 +1,9 @@
-#!/usr/bin/env tsx
 /**
  * Database Restore Script
- * 
+ *
  * Restores data from a backup in the backups/ directory.
  * If no backup is specified, restores from the latest backup.
- * 
+ *
  * Usage:
  *   pnpm db:restore                           # Restore latest backup
  *   pnpm db:restore --backup backup-2025-01  # Restore specific backup
@@ -21,7 +20,8 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const PAYLOAD_DB_URI = process.env.DATABASE_URI || 'mongodb://localhost:27017/aladdin'
-const OPEN_DB_URI = process.env.DATABASE_URI_OPEN || process.env.DATABASE_URI || 'mongodb://localhost:27017'
+const OPEN_DB_URI =
+  process.env.DATABASE_URI_OPEN || process.env.DATABASE_URI || 'mongodb://localhost:27017'
 const BACKUPS_DIR = path.resolve(__dirname, '../../backups')
 
 interface RestoreOptions {
@@ -133,12 +133,10 @@ async function restoreOpenDatabases(client: MongoClient, backupDir: string): Pro
     return
   }
 
-  const databases = fs
-    .readdirSync(openBackupDir)
-    .filter((name) => {
-      const dbPath = path.join(openBackupDir, name)
-      return fs.statSync(dbPath).isDirectory()
-    })
+  const databases = fs.readdirSync(openBackupDir).filter((name) => {
+    const dbPath = path.join(openBackupDir, name)
+    return fs.statSync(dbPath).isDirectory()
+  })
 
   if (databases.length === 0) {
     console.log('  ℹ️  No open databases in backup')
@@ -180,7 +178,7 @@ async function restoreOpenDatabases(client: MongoClient, backupDir: string): Pro
 
 async function main() {
   console.log('📥 Database Restore Script')
-  console.log('=' .repeat(60))
+  console.log('='.repeat(60))
 
   const options = parseArgs()
 
@@ -271,4 +269,3 @@ async function main() {
 
 // Run the script
 main()
-

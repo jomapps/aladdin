@@ -1,10 +1,9 @@
-#!/usr/bin/env tsx
 /**
  * Database Clean Script
- * 
+ *
  * Removes all collections from both PayloadCMS (protected) and Open MongoDB databases.
  * Use with caution - this will delete ALL data!
- * 
+ *
  * Usage:
  *   pnpm db:clean
  *   pnpm db:clean --confirm  (skip confirmation prompt)
@@ -14,7 +13,8 @@ import { MongoClient } from 'mongodb'
 import * as readline from 'readline'
 
 const PAYLOAD_DB_URI = process.env.DATABASE_URI || 'mongodb://localhost:27017/aladdin'
-const OPEN_DB_URI = process.env.DATABASE_URI_OPEN || process.env.DATABASE_URI || 'mongodb://localhost:27017'
+const OPEN_DB_URI =
+  process.env.DATABASE_URI_OPEN || process.env.DATABASE_URI || 'mongodb://localhost:27017'
 
 // Collections to clean in PayloadCMS database
 const PAYLOAD_COLLECTIONS = [
@@ -109,7 +109,7 @@ async function cleanOpenDatabases(client: MongoClient): Promise<void> {
 
 async function main() {
   console.log('🗑️  Database Clean Script')
-  console.log('=' .repeat(60))
+  console.log('='.repeat(60))
 
   // Check for --confirm flag
   const skipConfirmation = process.argv.includes('--confirm')
@@ -170,4 +170,3 @@ async function main() {
 
 // Run the script
 main()
-

@@ -1,6 +1,8 @@
-# Aladdin Dynamic Agents Seed Data
+# Aladdin Database Seeding System
 
-Complete seed data for the Aladdin AI Movie Production system. This seeds PayloadCMS with departments, agents, and custom tools needed for the hierarchical AI agent workflow.
+This directory contains the database seeding system for the Aladdin AI Movie Production platform using **PayloadCMS 3.0 patterns**.
+
+Complete seed data for departments, agents, and custom tools needed for the hierarchical AI agent workflow.
 
 ## 📦 What Gets Seeded
 
@@ -135,10 +137,22 @@ One per department, coordinates specialists:
 
 ## 🚀 Usage
 
-### Run Seed Script
+### Using PayloadCMS Pattern (Recommended)
 
 ```bash
-# Using npm script (recommended)
+# Run the seed script using Payload's built-in runner
+payload run src/seed/index.ts
+
+# Or use the npm script alias
+npm run db:seed
+
+# Or use pnpm
+pnpm run db:seed
+```
+
+### Using the legacy seed command
+
+```bash
 npm run seed
 
 # Or using tsx directly
@@ -327,6 +341,39 @@ After seeding:
 - Performance metrics are realistic estimates
 - Prompts are production-ready from documentation
 - Custom tools provide working implementations
+
+## 🔄 PayloadCMS 3.0 Migration Notes
+
+This seed system has been migrated from PayloadCMS 2.x to 3.0 patterns:
+
+### Key Changes:
+1. **Import Pattern**: Changed from `payload.config` to `@payload-config`
+2. **Initialization**: Changed from `await payload.init()` to `await getPayload({ config })`
+3. **Execution**: Uses `payload run <script>` instead of `tsx <script>`
+4. **TypeScript**: All seed files use `.ts` extension
+5. **Module System**: Uses ES modules (`import`/`export`) instead of CommonJS
+
+### Before (PayloadCMS 2.x):
+```typescript
+import payload from 'payload'
+import config from './payload.config'
+
+await payload.init({ config })
+```
+
+### After (PayloadCMS 3.0):
+```typescript
+import { getPayload } from 'payload'
+import config from '@payload-config'
+
+const payload = await getPayload({ config })
+```
+
+## 📖 References
+
+- [PayloadCMS External Scripts Documentation](https://payloadcms.com/docs/configuration/external-scripts)
+- [PayloadCMS Collections API](https://payloadcms.com/docs/local-api/collections)
+- [Aladdin AI Agent System Documentation](../../docs/AI_AGENT_INTEGRATION.md)
 
 ---
 

@@ -279,3 +279,46 @@ If `DATABASE_URI_OPEN` is not set, it falls back to `DATABASE_URI`.
 - Database utilities: `src/lib/db/openDatabase.ts`
 - PayloadCMS config: `src/payload.config.ts`
 
+---
+
+## 💡 PayloadCMS Best Practices
+
+All scripts follow PayloadCMS recommended patterns:
+
+### Using `payload run` Command
+Scripts are executed using `payload run` which:
+- ✅ Automatically loads environment variables from `.env`
+- ✅ Handles TypeScript transpilation (tsx/swc)
+- ✅ Provides proper Node.js environment setup
+- ✅ Supports Hot Module Replacement (HMR) in development
+
+### Using `getPayload()` Pattern
+The seed script uses the official PayloadCMS pattern:
+
+```typescript
+import { getPayload, type Payload } from 'payload'
+import config from '@payload-config'
+
+const seed = async () => {
+  // Get a cached Payload instance
+  const payload = await getPayload({ config })
+
+  // Use payload.create(), payload.find(), etc.
+  await payload.create({
+    collection: 'users',
+    data: { email: 'user@example.com' }
+  })
+}
+```
+
+**Key Benefits:**
+- ✅ Payload instance is automatically cached (efficient)
+- ✅ No manual dotenv configuration needed
+- ✅ Proper TypeScript typing with `Payload` type
+- ✅ Works in standalone scripts outside Next.js
+
+### References
+- [PayloadCMS Local API Docs](https://payloadcms.com/docs/local-api/overview)
+- [Using Payload Outside Next.js](https://payloadcms.com/docs/local-api/outside-nextjs)
+- [Payload Run Command](https://payloadcms.com/docs/local-api/outside-nextjs#payload-run)
+

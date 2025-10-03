@@ -2,34 +2,23 @@
  * Master Seed Script for Aladdin Dynamic Agents System
  *
  * Seeds PayloadCMS collections with:
- * - 6 Departments (Story, Character, Visual, Video, Audio, Production)
+ * - 7 Departments (Story, Character, Visual, Image Quality, Video, Audio, Production)
  * - 35 Agents (6 department heads + 29 specialists)
  * - 10 Custom Tools (character analysis, plot validation, etc.)
  *
- * Agent Distribution:
- * - Story: 1 head + 4 specialists = 5 agents
- * - Character: 1 head + 9 specialists = 10 agents (includes Hair Stylist, Costume Designer, etc.)
- * - Visual: 1 head + 4 specialists = 5 agents
- * - Video: 1 head + 4 specialists = 5 agents
- * - Audio: 1 head + 4 specialists = 5 agents
- * - Production: 1 head + 4 specialists = 5 agents
- *
  * Usage:
- *   npm run seed
+ *   payload run src/seed/index.ts
  *   OR
- *   node --loader ts-node/esm src/seed/index.ts
- *   OR
- *   tsx src/seed/index.ts
+ *   npm run db:seed
  *
  * @module seed
  */
 
-import 'dotenv/config'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { seedDepartments } from './departments.seed'
-import { seedAgents } from './agents.seed'
-import { seedCustomTools } from './custom-tools.seed'
+import { seedDepartments } from './departments.seed.js'
+import { seedAgents } from './agents.seed.js'
+import { seedCustomTools } from './custom-tools.seed.js'
 
 /**
  * Main seed function
@@ -57,7 +46,7 @@ async function seed() {
 
     // Summary
     console.log('📊 Seed Summary:')
-    console.log('  - Departments: 6')
+    console.log('  - Departments: 7')
     console.log('  - Agents: 35 (6 heads + 29 specialists)')
     console.log('    • Story: 5 agents')
     console.log(
@@ -82,6 +71,4 @@ async function seed() {
 }
 
 // Execute seed
-seed()
-
-export { seed }
+await seed()
