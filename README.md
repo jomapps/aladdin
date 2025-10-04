@@ -1,67 +1,56 @@
-# Payload Blank Template
+# Aladdin
 
-This template comes configured with the bare minimum to get started on anything you need.
+Aladdin is an AI-assisted movie production platform. It combines a Next.js web app with an AI layer powered by OpenRouter (via the Vercel AI SDK) and a background task-queue service (FastAPI + Celery/Redis) for long-running tasks like video, image, and audio generation.
 
-## Quick start
+This README provides a concise overview and quick start. Full documentation, including architecture, API references, and operations, is available in docs/README.md.
 
-This template can be deployed directly from our Cloud hosting and it will setup MongoDB and cloud S3 object storage for media.
+## Quick Start
 
-## Quick Start - local setup
+Prerequisites:
+- Node.js LTS and pnpm
+- Python 3.11+ (for task-queue service)
+- Redis (via Docker or local install)
 
-To spin up this template locally, follow these steps:
+Environment:
+- OPENROUTER_API_KEY: required for AI access
+- NEXT_PUBLIC_APP_URL: optional, used for HTTP-Referer header
+- OPENROUTER_DEFAULT_MODEL: optional, defaults to anthropic/claude-sonnet-4.5
 
-### Clone
+Install and run the web app:
+- pnpm install
+- pnpm dev
+- Open http://localhost:3000
 
-After you click the `Deploy` button above, you'll want to have standalone copy of this repo on your machine. If you've already cloned this repo, skip to [Development](#development).
+Run services locally (optional outline):
+- cd services/task-queue
+- Create and activate a Python venv
+- pip install -r requirements.txt (if present)
+- Ensure Redis is running
+- Start FastAPI (e.g., uvicorn main:app --reload)
+- Start Celery workers configured to Redis
 
-### Development
+Docker:
+- docker-compose up -d to launch dependencies like Redis
 
-1. First [clone the repo](#clone) if you have not done so already
-2. `cd my-project && cp .env.example .env` to copy the example environment variables. You'll need to add the `MONGODB_URI` from your Cloud project to your `.env` if you want to use S3 storage and the MongoDB database that was created for you.
+## AI Configuration
 
-3. `pnpm install && pnpm dev` to install dependencies and start the dev server
-4. open `http://localhost:3000` to open the app in your browser
+The AI client uses OpenRouter through @openrouter/ai-sdk-provider.
+- Source: src/lib/ai/client.ts
+- Default model: OPENROUTER_DEFAULT_MODEL env var or anthropic/claude-sonnet-4.5
 
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
+## Task Queue APIs
 
-#### Docker (Optional)
+FastAPI endpoints expose task orchestration and worker status.
+- Source: services/task-queue/app/api
+- Submit task: POST /tasks/submit
+- Task status: GET /tasks/{task_id}/status
+- Workers status: GET /workers/status
 
-If you prefer to use Docker for local development instead of a local MongoDB instance, the provided docker-compose.yml file can be used.
+## Documentation
 
-To do so, follow these steps:
-
-- Modify the `MONGODB_URI` in your `.env` file to `mongodb://127.0.0.1/<dbname>`
-- Modify the `docker-compose.yml` file's `MONGODB_URI` to match the above `<dbname>`
-- Run `docker-compose up` to start the database, optionally pass `-d` to run in the background.
-
-## How it works
-
-The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
-
-### Collections
-
-See the [Collections](https://payloadcms.com/docs/configuration/collections) docs for details on how to extend this functionality.
-
-- #### Users (Authentication)
-
-  Users are auth-enabled collections that have access to the admin panel.
-
-  For additional help, see the official [Auth Example](https://github.com/payloadcms/payload/tree/main/examples/auth) or the [Authentication](https://payloadcms.com/docs/authentication/overview#authentication-overview) docs.
-
-- #### Media
-
-  This is the uploads enabled collection. It features pre-configured sizes, focal point and manual resizing to help you manage your pictures.
-
-### Docker
-
-Alternatively, you can use [Docker](https://www.docker.com) to spin up this template locally. To do so, follow these steps:
-
-1. Follow [steps 1 and 2 from above](#development), the docker-compose file will automatically use the `.env` file in your project root
-1. Next run `docker-compose up`
-1. Follow [steps 4 and 5 from above](#development) to login and create your first admin user
-
-That's it! The Docker instance will help you get up and running quickly while also standardizing the development environment across your teams.
-
-## Questions
-
-If you have any issues or questions, reach out to us on [Discord](https://discord.com/invite/payload) or start a [GitHub discussion](https://github.com/payloadcms/payload/discussions).
+Please see docs/README.md for the full documentation, including:
+- Architecture overview
+- Detailed setup and environment variables
+- AI agent execution flow
+- Service API details
+- Testing and operations guidance

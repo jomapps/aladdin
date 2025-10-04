@@ -39,6 +39,7 @@
     "@elevenlabs/elevenlabs-js": "^2.16.0",
     "@fal-ai/serverless-client": "^0.14.0",
     "@hookform/resolvers": "^5.2.2",
+    "@openrouter/ai-sdk-provider": "^1.2.0",
     "@payloadcms/db-mongodb": "3.57.0",
     "@payloadcms/next": "3.57.0",
     "@payloadcms/payload-cloud": "3.57.0",

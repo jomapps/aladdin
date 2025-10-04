@@ -3,21 +3,25 @@
  * Provides OpenRouter integration for accessing all LLM models
  */
 
-import { createOpenAI } from '@ai-sdk/openai'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 
 /**
  * OpenRouter client configured for Vercel AI SDK
- * Uses OpenRouter to access all LLM models (Anthropic, OpenAI, etc.)
+ * Uses the official @openrouter/ai-sdk-provider package
+ * This ensures correct endpoint routing and compatibility
  */
-export const openrouter = createOpenAI({
+export const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY!,
-  baseURL: process.env.OPENROUTER_BASE_URL!, // https://openrouter.ai/api/v1
+  headers: {
+    'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    'X-Title': 'Aladdin Movie Production',
+  },
 })
 
 /**
  * Get model instance by name
  * Supports all OpenRouter models
- * 
+ *
  * @param modelName - Model identifier (e.g., 'anthropic/claude-sonnet-4.5')
  * @returns Model instance for use with generateText/generateObject
  */
@@ -31,4 +35,3 @@ export function getModel(modelName?: string) {
  * Uses OPENROUTER_DEFAULT_MODEL from environment
  */
 export const defaultModel = getModel()
-

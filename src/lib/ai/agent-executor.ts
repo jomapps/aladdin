@@ -13,7 +13,7 @@ export class AIAgentExecutor {
 
   /**
    * Execute an agent from PayloadCMS using Vercel AI SDK
-   * 
+   *
    * @param options - Execution options including agent ID, prompt, context, and tools
    * @returns Execution result with text, usage, and metadata
    */
@@ -55,7 +55,7 @@ export class AIAgentExecutor {
       return result
     } catch (error) {
       // Update execution record with error
-      await this.updateExecutionRecord(execution.id, 'error', null, error)
+      await this.updateExecutionRecord(execution.id, 'failed', null, error)
       throw error
     }
   }
@@ -192,7 +192,7 @@ export class AIAgentExecutor {
    */
   private async updateExecutionRecord(
     executionId: string,
-    status: 'completed' | 'error',
+    status: 'completed' | 'failed',
     result: AIAgentResult | null,
     error?: any,
   ) {
@@ -202,7 +202,8 @@ export class AIAgentExecutor {
     }
 
     if (status === 'completed' && result) {
-      updateData.output = result.text
+      updateData.outputText = result.text // Text output goes to outputText field
+      updateData.output = result.object || {} // Structured output goes to output field
       updateData.tokenUsage = {
         inputTokens: result.usage.promptTokens,
         outputTokens: result.usage.completionTokens,
@@ -211,7 +212,7 @@ export class AIAgentExecutor {
       updateData.executionTime = result.executionTime
     }
 
-    if (status === 'error' && error) {
+    if (status === 'failed' && error) {
       updateData.error = {
         message: error instanceof Error ? error.message : String(error),
         code: error.code,
@@ -238,4 +239,3 @@ export async function getAIAgentExecutor(payload: Payload): Promise<AIAgentExecu
   }
   return executorInstance
 }
-
