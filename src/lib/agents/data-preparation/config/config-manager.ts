@@ -3,49 +3,15 @@
  * Manages entity configurations, prompts, validation rules, and feature flags
  */
 
-import type {
-  EntityRule,
-  ValidationRule,
-  AgentConfig,
-} from '../types'
-
-export interface EntityConfig {
-  type: string
-  requiredFields: string[]
-  contextSources: Array<'payload' | 'brain' | 'opendb' | 'project'>
-  prompts: {
-    analysis: string
-    metadata: string
-    summary: string
-    relationships: string
-  }
-  llmSettings?: {
-    temperature?: number
-    maxTokens?: number
-    model?: string
-  }
-  validationRules: ValidationRule[]
-  relationshipRules: Array<{
-    type: string
-    targetType: string
-    auto: boolean
-    bidirectional?: boolean
-    properties?: Record<string, any>
-  }>
-  enrichmentStrategy: 'minimal' | 'standard' | 'comprehensive'
-  qualityThresholds?: {
-    minTextLength?: number
-    maxTextLength?: number
-    minMetadataFields?: number
-    minRelationships?: number
-  }
-  featureFlags?: {
-    enableCaching?: boolean
-    enableValidation?: boolean
-    enableRelationshipDiscovery?: boolean
-    enableEnrichment?: boolean
-  }
-}
+import type { EntityRule, ValidationRule, AgentConfig } from '../types'
+import type { EntityConfig } from './types'
+import {
+  characterConfig,
+  sceneConfig,
+  locationConfig,
+  episodeConfig,
+  conceptConfig,
+} from './entities'
 
 export interface PromptTemplate {
   name: string
@@ -100,7 +66,7 @@ export class ConfigManager {
   getPrompt(
     entityType: string,
     promptType: 'analysis' | 'metadata' | 'summary' | 'relationships',
-    variables: Record<string, any> = {}
+    variables: Record<string, any> = {},
   ): string {
     const config = this.getEntityConfig(entityType)
     if (!config) {
@@ -158,12 +124,14 @@ export class ConfigManager {
    */
   getQualityThresholds(entityType: string): EntityConfig['qualityThresholds'] {
     const config = this.getEntityConfig(entityType)
-    return config?.qualityThresholds || {
-      minTextLength: 10,
-      maxTextLength: 10000,
-      minMetadataFields: 1,
-      minRelationships: 0,
-    }
+    return (
+      config?.qualityThresholds || {
+        minTextLength: 10,
+        maxTextLength: 10000,
+        minMetadataFields: 1,
+        minRelationships: 0,
+      }
+    )
   }
 
   /**
@@ -171,7 +139,7 @@ export class ConfigManager {
    */
   isFeatureEnabled(
     entityType: string,
-    feature: keyof NonNullable<EntityConfig['featureFlags']>
+    feature: keyof NonNullable<EntityConfig['featureFlags']>,
   ): boolean {
     const config = this.getEntityConfig(entityType)
 
@@ -207,9 +175,7 @@ export class ConfigManager {
   /**
    * Get enrichment strategy for entity type
    */
-  getEnrichmentStrategy(
-    entityType: string
-  ): 'minimal' | 'standard' | 'comprehensive' {
+  getEnrichmentStrategy(entityType: string): 'minimal' | 'standard' | 'comprehensive' {
     const config = this.getEntityConfig(entityType)
     return config?.enrichmentStrategy || 'standard'
   }
@@ -227,21 +193,18 @@ export class ConfigManager {
    * Load entity configurations
    */
   private loadEntityConfigs(): void {
-    // Import entity configurations dynamically
+    // Import entity configurations
     try {
-      const characterConfig = require('./entities/character').characterConfig
-      const sceneConfig = require('./entities/scene').sceneConfig
-      const locationConfig = require('./entities/location').locationConfig
-      const episodeConfig = require('./entities/episode').episodeConfig
-      const conceptConfig = require('./entities/concept').conceptConfig
-
       this.entityConfigs.set('character', characterConfig)
       this.entityConfigs.set('scene', sceneConfig)
       this.entityConfigs.set('location', locationConfig)
       this.entityConfigs.set('episode', episodeConfig)
       this.entityConfigs.set('concept', conceptConfig)
 
-      console.log('[ConfigManager] Loaded entity configurations:', Array.from(this.entityConfigs.keys()))
+      console.log(
+        '[ConfigManager] Loaded entity configurations:',
+        Array.from(this.entityConfigs.keys()),
+      )
     } catch (error) {
       console.warn('[ConfigManager] Failed to load entity configs, using defaults:', error)
     }
@@ -264,9 +227,7 @@ export class ConfigManager {
 
     for (const [key, value] of Object.entries(variables)) {
       const placeholder = new RegExp(`\\{\\{${key}\\}\\}`, 'g')
-      const stringValue = typeof value === 'object'
-        ? JSON.stringify(value, null, 2)
-        : String(value)
+      const stringValue = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)
       result = result.replace(placeholder, stringValue)
     }
 
@@ -303,7 +264,7 @@ export class ConfigManager {
    */
   private getDefaultPrompt(
     promptType: 'analysis' | 'metadata' | 'summary' | 'relationships',
-    variables: Record<string, any> = {}
+    variables: Record<string, any> = {},
   ): string {
     const prompts: Record<string, string> = {
       analysis: 'Analyze this {{entityType}} entity and determine appropriate metadata fields.',

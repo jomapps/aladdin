@@ -3,7 +3,7 @@
  * LLM-based quality assessment with caching
  */
 
-import { LLMClient } from '../../llm/client'
+import { LLMClient, getLLMClient } from '../../llm/client'
 import Redis from 'ioredis'
 import {
   AssessmentInput,
@@ -17,16 +17,8 @@ import {
   buildQuickAssessmentPrompt,
   buildConsistencyCheckPrompt,
 } from './prompts'
-import {
-  getDepartmentWeights,
-  calculateWeightedScore,
-} from './weights'
-import {
-  getQualityDecision,
-  clampScore,
-  validateScore,
-  getRecommendedAction,
-} from './thresholds'
+import { getDepartmentWeights, calculateWeightedScore } from './weights'
+import { getQualityDecision, clampScore, validateScore, getRecommendedAction } from './thresholds'
 
 /**
  * Quality Scorer Configuration
@@ -119,16 +111,17 @@ export class QualityScorer {
       const calculatedOverall = calculateWeightedScore(dimensions, weights)
 
       // Use LLM's overall score if close to calculated, otherwise use calculated
-      const overallScore = Math.abs(response.overallScore - calculatedOverall) < 5
-        ? response.overallScore
-        : calculatedOverall
+      const overallScore =
+        Math.abs(response.overallScore - calculatedOverall) < 5
+          ? response.overallScore
+          : calculatedOverall
 
       // Determine decision
       const decision = this.normalizeDecision(
         response.decision,
         overallScore,
         dimensions.consistency,
-        input.level
+        input.level,
       )
 
       // Build assessment result
@@ -146,7 +139,9 @@ export class QualityScorer {
       return assessment
     } catch (error) {
       console.error('[QualityScorer] Assessment failed:', error)
-      throw new Error(`Quality assessment failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Quality assessment failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     }
   }
 
@@ -155,11 +150,12 @@ export class QualityScorer {
    */
   private extractDimensions(
     response: LLMAssessmentResponse,
-    departmentId: string
+    departmentId: string,
   ): QualityDimensions {
     const department = departmentId.toLowerCase()
     const isCreativeDept = department === 'story' || department === 'character'
-    const isTechnicalDept = department === 'video' || department === 'audio' || department === 'visual'
+    const isTechnicalDept =
+      department === 'video' || department === 'audio' || department === 'visual'
 
     return {
       confidence: clampScore(response.qualityScore || 0),
@@ -178,7 +174,7 @@ export class QualityScorer {
     llmDecision: string,
     overallScore: number,
     consistencyScore: number,
-    level?: string
+    level?: string,
   ) {
     const normalized = llmDecision.toUpperCase()
 
@@ -186,7 +182,7 @@ export class QualityScorer {
     const expectedDecision = getQualityDecision(
       overallScore,
       consistencyScore,
-      (level as any) || 'specialist'
+      (level as any) || 'specialist',
     )
 
     // If LLM decision is within 1 threshold tier of expected, use it
@@ -228,7 +224,7 @@ export class QualityScorer {
   async checkConsistency(
     content: string,
     existingContext: Record<string, any>,
-    departmentId: string
+    departmentId: string,
   ): Promise<number> {
     const prompt = buildConsistencyCheckPrompt(content, existingContext, departmentId)
 
@@ -268,7 +264,7 @@ export class QualityScorer {
     let hash = 0
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
+      hash = (hash << 5) - hash + char
       hash = hash & hash // Convert to 32bit integer
     }
     return Math.abs(hash).toString(36)
@@ -312,11 +308,7 @@ export class QualityScorer {
         expiresAt: new Date(Date.now() + this.config.cacheTTL * 1000),
       }
 
-      await this.redis.setex(
-        cacheKey,
-        this.config.cacheTTL,
-        JSON.stringify(cached)
-      )
+      await this.redis.setex(cacheKey, this.config.cacheTTL, JSON.stringify(cached))
     } catch (error) {
       console.warn('[QualityScorer] Cache storage failed:', error)
     }
@@ -384,7 +376,6 @@ export class QualityScorer {
  * Create quality scorer instance with singleton LLM client
  */
 export function createQualityScorer(config?: QualityScorerConfig): QualityScorer {
-  const { getLLMClient } = require('../../llm/client')
   const llmClient = getLLMClient()
   return new QualityScorer(llmClient, config)
 }

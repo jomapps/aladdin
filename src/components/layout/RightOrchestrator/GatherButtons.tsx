@@ -31,8 +31,21 @@ export default function GatherButtons({ projectId }: GatherButtonsProps) {
     return null
   }
 
-  // Filter out empty messages and get valid messages (both user and AI)
-  const validMessages = messages.filter((m) => m.content && m.content.trim())
+  // Filter out empty messages, error messages, and get valid messages (both user and AI)
+  const validMessages = messages.filter((m) => {
+    if (!m.content || !m.content.trim()) return false
+
+    // Don't save error messages
+    const content = m.content.trim()
+    if (content.startsWith('Error:') ||
+        content.startsWith('Sorry, I encountered an error') ||
+        content.includes('No user message found') ||
+        content.includes('Conversation not found')) {
+      return false
+    }
+
+    return true
+  })
 
   const handleAddAll = async () => {
     if (validMessages.length === 0) {

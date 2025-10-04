@@ -74,25 +74,22 @@ export class GatherAIProcessor {
       for (let i = 0; i < this.maxIterations; i++) {
         iterationCount++
 
-        const response = await this.llmClient.complete({
-          messages: [
-            {
-              role: 'system',
-              content: `You are a content enrichment assistant. Analyze the provided content and determine if it needs additional context or clarification. If yes, enhance it with relevant details. If no, return the content as is.
+        const response = await this.llmClient.chat([
+          {
+            role: 'system',
+            content: `You are a content enrichment assistant. Analyze the provided content and determine if it needs additional context or clarification. If yes, enhance it with relevant details. If no, return the content as is.
 
 Project Context: ${JSON.stringify(projectContext, null, 2)}`,
-            },
-            {
-              role: 'user',
-              content: `Current Content: ${JSON.stringify(enrichedContent, null, 2)}
+          },
+          {
+            role: 'user',
+            content: `Current Content: ${JSON.stringify(enrichedContent, null, 2)}
 
 Analyze if this content needs enrichment. If yes, provide enhanced version. If no, return { "isComplete": true, "content": <current_content> }`,
-            },
-          ],
-          options: {
-            temperature: 0.4,
-            maxTokens: 1500,
           },
+        ], {
+          temperature: 0.4,
+          maxTokens: 1500,
         })
 
         try {
@@ -134,22 +131,19 @@ Analyze if this content needs enrichment. If yes, provide enhanced version. If n
    */
   async generateSummary(content: any): Promise<string> {
     try {
-      const response = await this.llmClient.complete({
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are a concise summarization assistant. Generate brief, informative summaries of approximately 100 characters.',
-          },
-          {
-            role: 'user',
-            content: `Generate a concise summary (~100 characters) of this content:\n\n${JSON.stringify(content, null, 2)}`,
-          },
-        ],
-        options: {
-          temperature: 0.3,
-          maxTokens: 50,
+      const response = await this.llmClient.chat([
+        {
+          role: 'system',
+          content:
+            'You are a concise summarization assistant. Generate brief, informative summaries of approximately 100 characters.',
         },
+        {
+          role: 'user',
+          content: `Generate a concise summary (~100 characters) of this content:\n\n${JSON.stringify(content, null, 2)}`,
+        },
+      ], {
+        temperature: 0.3,
+        maxTokens: 50,
       })
 
       return response.content.trim()
@@ -165,23 +159,20 @@ Analyze if this content needs enrichment. If yes, provide enhanced version. If n
    */
   async generateContext(content: any, projectContext: any): Promise<string> {
     try {
-      const response = await this.llmClient.complete({
-        messages: [
-          {
-            role: 'system',
-            content: `You are a context generation assistant. Generate detailed context paragraphs that explain content in relation to the project.
+      const response = await this.llmClient.chat([
+        {
+          role: 'system',
+          content: `You are a context generation assistant. Generate detailed context paragraphs that explain content in relation to the project.
 
 Project Context: ${JSON.stringify(projectContext, null, 2)}`,
-          },
-          {
-            role: 'user',
-            content: `Generate a detailed context paragraph explaining this content in relation to the project:\n\n${JSON.stringify(content, null, 2)}`,
-          },
-        ],
-        options: {
-          temperature: 0.4,
-          maxTokens: 300,
         },
+        {
+          role: 'user',
+          content: `Generate a detailed context paragraph explaining this content in relation to the project:\n\n${JSON.stringify(content, null, 2)}`,
+        },
+      ], {
+        temperature: 0.4,
+        maxTokens: 300,
       })
 
       return response.content.trim()
