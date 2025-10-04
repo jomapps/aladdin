@@ -423,7 +423,7 @@ Store all reference images in Brain
 
 ### Scene Generation Workflow
 
-8. **Scene Start Image Decision Tree**:
+8. **Scene Start Image Decision Tree**: <<I have explained this above>>
    ```
    Scene Needs Start Image
         ↓
@@ -449,7 +449,13 @@ Store all reference images in Brain
     - Version the references?
     - How does Brain handle multiple reference versions?
 
-### Verification Agent Workflow
+### Verification Agent Workflow 
+There are actually two verication steps. 
+STEP 1: verification agains our own references << When the image is fully composite  and ready as start image for video, we send it for verification. we eun thru each artifact and ask e.g. is aladdin correctly in this shot. is the sword correctly in the shot?>>
+STEP 2: we use env key FAL_VISION_QUERY_MODEL=fal-ai/moondream2/visual-query
+Then we ask thing like "are aladding and jafar correctly in this shot? is aladdin holding the sword correctly? is jafar holding the dagger correctly?" and we will get the answer.
+
+**IMMPORTANT** this is the final step of the verification process and step before video production. Image generation is much cheaper than video generation. so we want to ensure that the image is correct before we generate the video.
 
 11. **Verification Query Generation**:
     - When agent writes "Is face of Jackson correct?", what triggers this?
@@ -465,16 +471,271 @@ Store all reference images in Brain
     - How many verification attempts before stopping?
 
 ### Cost & Performance
-
-13. **Generation Order Optimization**:
+**DO NOT WORRY ABOUT COSTS !!!**
+13. **Generation Order Optimization**: <<YES>>
     - Should 360° references be generated all at once (batch) or on-demand?
     - Cost implications of generating all 360° views upfront vs as needed?
     - Should unused reference angles be generated?
 
 14. **Stitching Service Timing**:
-    - When does stitching happen?
-      - After all scene videos generated?
-      - Progressive stitching (stitch as scenes complete)?
-      - On-demand when user requests?
+    
+      - After all scene videos generated? YES
+      - Progressive stitching (stitch as scenes complete)? No
+      - On-demand when user requests? Yes. this would be a regenration case. 
 
-**Please answer these 14 questions to close all loopholes in the character reference and scene generation system.**
+---
+
+## LOOPHOLES RESOLVED - FINAL ANSWERS
+
+### 1. Composite Image Generation - Complete Flow ✅
+
+**Agent Decision**: Shot agent decides composite flow
+**Constraints**:
+- Max 3 reference images per request
+- As many iterations as required to reach composite shot
+- MAX 20 iterations (emergency break)
+
+**Failure Handling**:
+- **fal.ai generation fails** → STOP immediately, show error
+- **Our verification fails** → Try up to 5 regeneration attempts
+- **After 5 failed attempts** → Flag error, STOP entire process
+
+**Webhook Integration**:
+- Provide webhook to fal.ai for async image delivery
+- Use in conjunction with `tasks.ft.tc` for task orchestration
+- Webhook receives generated image → triggers next step
+
+**Example Flow**:
+```
+Iteration 1: Warehouse evening (1 ref) → Generate → Verify
+Iteration 2: Warehouse + Aladdin + Jafar (3 refs total) → Generate → Verify
+Iteration 3: Add sword + dagger (2 refs) → Generate → Verify
+  ↓ FAILS verification
+  Retry 1 → FAILS
+  Retry 2 → FAILS
+  Retry 3 → FAILS
+  Retry 4 → FAILS
+  Retry 5 → FAILS
+  ↓
+FLAG ERROR, STOP PROCESS
+```
+
+### 2. Continuity Agent - Defined ✅
+
+**Execution**: Parallel with shot agent
+**Responsibilities**: Verify continuity from last frame to current shot
+
+### 3. Two-Step Verification - Orchestration ✅
+
+**Both verifications run in PARALLEL**:
+- STEP 1: Verify against our references (Brain multimodal query)
+- STEP 2: Visual query model (FAL_VISION_QUERY_MODEL=fal-ai/moondream2/visual-query)
+
+**Pass Criteria**: BOTH must pass to proceed
+**Failure**: If either fails, counts toward the 5 retry limit
+
+### 4. Scene Duration Logic - Resolved ✅
+
+**Decision Maker**: Shot agent + Narrative context
+**Constraints**:
+- Minimum: 3 seconds
+- Maximum: 7 seconds
+- Story bible specifies expected duration when screenplay broken into scenes
+
+**Purpose**: Important for audio generation (future phase)
+**Storage**: Scene metadata in PayloadCMS
+
+### 5. Dramatic Effect Evaluation ✅
+
+**Method**: LLM evaluation of scene context
+**Example**: "Aladdin strikes Jafar from top" → Shot agent infers:
+- Camera angle: High angle shot
+- Lighting: Dramatic shadows
+- Pacing: Fast action
+- Framing: Close-up on strike
+
+**All decisions stored in**: Scene metadata in PayloadCMS
+
+**IMPORTANT**: All scene-related data lives in PayloadCMS only - single source of truth for editing
+
+### 6. Reference Image Versioning ✅
+
+**Solution**: Name + Description system
+**Rule**: EVERY MEDIA must have name and description
+- Name: Identifies the artifact (e.g., "Aladdin", "Aladdin_injured")
+- Description: Contains all knowledge about the image
+  - Appearance details
+  - Visible features
+  - Context (e.g., "injured after Scene 5 fight")
+  - Angle/view
+  - Lighting
+  - Emotional state
+  - Any other relevant details
+
+**Action**: Add name/description if not present during generation
+
+### 7. Reference Selection Logic ✅
+
+**During scene generation**: Reference ALL artifacts needed
+**Process**: Agent parses scene description and identifies:
+- Characters present
+- Props needed
+- Location
+- Any other visual elements
+
+**Rule**: No surprises - all references must be explicitly identified and retrieved before generation
+
+### 8. 360° Generation Timing - Clarified ✅
+
+**Sequential Flow**:
+```
+Character Profile Complete
+     ↓
+Generate Master Reference (single image)
+     ↓
+Generate 360° Views (can be parallel - 6 images at once)
+     ↓
+Store all in Brain with descriptions
+```
+
+**Only 360° views can be parallel** - Master must complete first
+
+### 9. Department Execution - Sequential ✅
+
+**Correction**: Departments must run SEQUENTIALLY due to dependencies
+
+**Proposed Execution Order**:
+```
+Phase 1:
+- Character Department → Profiles + Master + 360°
+- World Department → Story Bible
+- Visual Department → Style Guide
+
+Phase 2 (depends on Phase 1):
+- Story Department → Screenplay broken into scenes (needs characters, story bible)
+
+Phase 3 (depends on Phase 2):
+- Other departments → Their outputs
+
+Phase 4 (final):
+- Brain ingestion of all qualified data
+```
+
+### 10. Error Display & Handling ✅
+
+**Display**: Show all errors, append if multiple
+**Persistence**: User must manually dismiss
+**Behavior**: Process normally STOPS when error occurs (no continuation)
+**Logging**: Errors shown as global notification at top of all pages
+
+### 11. Prompt Template Storage ✅
+
+**Location**: Create dedicated `Prompts` collection in PayloadCMS
+
+**Structure**:
+```typescript
+{
+  name: string;              // Template name
+  description: string;       // What this template is for
+  prompt: string;            // Template with variables
+  category?: string;         // e.g., "character", "scene", "location"
+  applicableTo?: string[];   // Which collections can use this
+}
+```
+
+**Variable Format**: Square brackets
+- Example: `"Generate an image of [character_name] in [location] during [time_of_day]"`
+- Agent infers and replaces variables when using template
+
+### 12. Nano Banana Usage - Clarified ✅
+
+**Two Use Cases**:
+
+1. **360° Generation** (one-time per character):
+   - Input: Master reference image
+   - Model: FAL_IMAGE_TO_IMAGE_MODEL=fal-ai/nano-banana/edit
+   - Output: 6 angle views (front, back, left, right, 3/4, full)
+
+2. **Scene Similarity Reference** (optional):
+   - Input: Last frame or reference image
+   - Purpose: Extract traits/style for new scene
+   - Use when: Want SIMILAR scene, not SAME scene
+   - Model: Same (fal-ai/nano-banana/edit)
+
+**Not conflicting**: Different purposes, same model
+
+---
+
+## ARCHITECTURE CONFIRMED - NO LOOPHOLES
+
+### Critical Workflows Defined:
+
+✅ **Composite Generation**: Max 3 refs/request, max 20 iterations, 5 retry limit, webhook-based
+✅ **Verification**: Parallel 2-step (Brain + Vision Model), both must pass
+✅ **Continuity**: Parallel agent checks last-frame consistency
+✅ **Duration**: 3-7s range, decided by shot agent + story bible
+✅ **Dramatic Effect**: LLM-based scene analysis → camera/lighting/pacing decisions
+✅ **Versioning**: Name + Description system for all media
+✅ **Reference Selection**: Explicit artifact identification, no surprises
+✅ **360° Timing**: Sequential (Profile → Master → 360° parallel)
+✅ **Department Order**: Sequential execution with dependency phases
+✅ **Error Handling**: Show all, user dismiss, stop on error
+✅ **Prompts**: Dedicated collection with variable substitution
+✅ **Nano Banana**: Dual purpose (360° + similarity reference)
+
+### Data Flow Summary:
+
+```
+Gather DB (unqualified)
+     ↓
+User: "Generate Qualified Data" button (10s popup)
+     ↓
+SEQUENTIAL QUALIFICATION:
+  Phase 1: Character (360°) + World (Bible) + Visual (Style)
+  Phase 2: Story (Screenplay → Scenes with duration)
+  Phase 3: Other departments
+  Phase 4: Brain ingestion
+     ↓
+Qualified DB + PayloadCMS (scenes with metadata)
+     ↓
+MEDIA GENERATION (per scene):
+  Shot Agent → Composite iterations (max 20, 3 refs/iter)
+       ↓
+  Continuity Agent → Check last frame (parallel)
+       ↓
+  Generate Composite Image (webhook → tasks.ft.tc)
+       ↓
+  Two-Step Verification (parallel):
+    - Brain reference check
+    - Vision model query
+       ↓
+  5 retry attempts if fails
+       ↓
+  Pass → Video Generation (3-7s)
+       ↓
+  Extract Last Frame → Next scene
+     ↓
+After all scenes: Video Stitching Service
+     ↓
+Final Product
+```
+
+**Architecture is complete and loophole-free. Ready to implement.**
+
+---
+
+## Model References & Documentation
+
+**Generation Model Documentation**: See `\docs\model-references\` for LLM and image generation model specifications, API documentation, and usage examples.
+
+**Key Models Used**:
+- **Text to Image**: FAL_TEXT_TO_IMAGE_MODEL=fal-ai/nano-banana
+- **Image to Image (360°)**: FAL_IMAGE_TO_IMAGE_MODEL=fal-ai/nano-banana/edit
+- **Vision Query**: FAL_VISION_QUERY_MODEL=fal-ai/moondream2/visual-query
+- **Last Frame Service**: last-frame.ft.tc
+- **Video Stitching**: last-frame.ft.tc (video stitching endpoint)
+- **Task Orchestration**: tasks.ft.tc
+
+**Additional Documentation**:
+- Last frame service usage: `docs/last-frame/how-to-use.md`
+- Model references: `docs/model-references/`

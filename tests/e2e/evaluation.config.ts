@@ -35,8 +35,8 @@ export default defineConfig({
 
   // Global test settings
   use: {
-    // Base URL
-    baseURL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    // Base URL - Always use localhost for E2E tests to avoid WebSocket issues
+    baseURL: 'http://localhost:3000',
 
     // Browser settings
     headless: process.env.HEADLESS !== 'false',

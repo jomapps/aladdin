@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import slugify from 'slugify'
 import { customAlphabet } from 'nanoid'
+import { authenticateRequest } from '@/lib/auth/devAuth'
 
 // Create a nanoid generator with lowercase letters and numbers, 4 characters
 const generateId = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 4)
@@ -16,10 +17,10 @@ export async function POST(req: NextRequest) {
     const payloadConfig = await config
     const payload = await getPayload({ config: payloadConfig })
 
-    // Get authenticated user
-    const { user } = await payload.auth({ headers: req.headers })
+    // Authenticate user (auto-login in development)
+    const { userId } = await authenticateRequest(req, payload)
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
         genre: genreArray,
         status,
         phase: 'expansion',
-        owner: user.id, // Set the authenticated user as owner
+        owner: userId, // Set the authenticated user as owner
       },
     })
 
@@ -93,10 +94,10 @@ export async function GET(req: NextRequest) {
     const payloadConfig = await config
     const payload = await getPayload({ config: payloadConfig })
 
-    // Get authenticated user
-    const { user } = await payload.auth({ headers: req.headers })
+    // Authenticate user (auto-login in development)
+    const { userId } = await authenticateRequest(req, payload)
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

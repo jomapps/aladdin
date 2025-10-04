@@ -23,17 +23,10 @@ interface AppProvidersProps {
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <QueryProvider>
-      <WebSocketProvider>
+      <WebSocketProvider autoConnect={false}>
         {children}
-        <Toaster
-          position="top-right"
-          expand={false}
-          richColors
-          closeButton
-          duration={4000}
-        />
+        <Toaster position="top-right" expand={false} richColors closeButton duration={4000} />
       </WebSocketProvider>
     </QueryProvider>
   )
 }
-
