@@ -109,14 +109,28 @@ Get current status and progress of a task.
 
 **GET** `/api/v1/projects/{project_id}/tasks`
 
-Get all tasks for a specific project with filtering.
+Get all tasks for a specific project with filtering. Tasks are stored in Redis and expire after 24 hours.
 
 #### Query Parameters
-- `status` - Filter by task status
-- `task_type` - Filter by task type
+- `status` - Filter by task status (queued, processing, completed, failed)
+- `task_type` - Filter by task type (evaluate_department, generate_video, etc.)
 - `page` - Page number (default: 1)
 - `limit` - Items per page (default: 20, max: 100)
-- `since` - ISO datetime for tasks created after this time
+
+#### Example Request
+```bash
+# Get all tasks for a project
+curl -H "X-API-Key: YOUR_KEY" \
+  "https://tasks.ft.tc/api/v1/projects/68df4dab400c86a6a8cf40c6/tasks"
+
+# Get only completed tasks
+curl -H "X-API-Key: YOUR_KEY" \
+  "https://tasks.ft.tc/api/v1/projects/68df4dab400c86a6a8cf40c6/tasks?status=completed"
+
+# Get evaluation tasks only
+curl -H "X-API-Key: YOUR_KEY" \
+  "https://tasks.ft.tc/api/v1/projects/68df4dab400c86a6a8cf40c6/tasks?task_type=evaluate_department"
+```
 
 #### Response
 ```json
@@ -124,21 +138,36 @@ Get all tasks for a specific project with filtering.
   "tasks": [
     {
       "task_id": "abc123-def456-ghi789",
-      "task_type": "generate_video",
+      "project_id": "68df4dab400c86a6a8cf40c6",
+      "task_type": "evaluate_department",
       "status": "completed",
-      "created_at": "2025-01-15T10:30:00Z",
-      "completed_at": "2025-01-15T10:35:30Z",
-      "result_url": "https://media.ft.tc/project_001/video_abc123.mp4"
+      "task_data": {
+        "department_slug": "story",
+        "department_number": 1,
+        "threshold": 80
+      },
+      "result": {
+        "department": "story",
+        "rating": 89,
+        "evaluation_result": "pass"
+      },
+      "created_at": "2025-10-04T10:20:00Z",
+      "updated_at": "2025-10-04T10:20:06Z"
     }
   ],
   "pagination": {
     "page": 1,
     "limit": 20,
-    "total": 45,
-    "total_pages": 3
+    "total": 5,
+    "total_pages": 1
   }
 }
 ```
+
+#### Important Notes
+- Tasks are stored in Redis and **expire after 24 hours**
+- Only tasks submitted after 2025-10-04 are tracked (when storage was implemented)
+- Tasks are sorted by creation time (newest first)
 
 ### 4. Cancel Task
 
@@ -237,7 +266,7 @@ Check service health and system status.
 
 **GET** `/api/v1/tasks/metrics`
 
-Get real-time task queue metrics and statistics.
+Get real-time task queue metrics and statistics. Metrics are stored in Redis and shared across all API and worker processes.
 
 #### Request
 ```bash
@@ -256,12 +285,7 @@ curl https://tasks.ft.tc/api/v1/tasks/metrics \
     "cancelled_tasks": 0,
     "success_rate": 91.8,
     "failure_rate": 5.8,
-    "average_durations": {
-      "generate_video": 287.5,
-      "generate_image": 45.2,
-      "evaluate_department": 125.8,
-      "automated_gather_creation": 342.1
-    },
+    "average_durations": {},
     "currently_running": 4
   },
   "timestamp": "2025-10-04T04:00:00Z"
@@ -272,15 +296,21 @@ curl https://tasks.ft.tc/api/v1/tasks/metrics \
 
 | Metric | Description |
 |--------|-------------|
-| `total_tasks` | Total number of tasks processed since worker start |
-| `completed_tasks` | Successfully completed tasks |
-| `failed_tasks` | Tasks that failed after all retries |
-| `retried_tasks` | Number of retry attempts made |
-| `cancelled_tasks` | Tasks cancelled by users |
+| `total_tasks` | Total number of tasks submitted (cumulative, persists across restarts) |
+| `completed_tasks` | Successfully completed tasks (cumulative) |
+| `failed_tasks` | Tasks that failed after all retries (cumulative) |
+| `retried_tasks` | Number of retry attempts made (cumulative) |
+| `cancelled_tasks` | Tasks cancelled by users (cumulative) |
 | `success_rate` | Percentage of successful tasks |
 | `failure_rate` | Percentage of failed tasks |
-| `average_durations` | Average execution time per task type (seconds) |
+| `average_durations` | Average execution time per task type (currently not tracked) |
 | `currently_running` | Number of tasks currently being processed |
+
+#### Important Notes
+- Metrics are stored in Redis and **persist across service restarts**
+- Metrics are **cumulative** since the last Redis reset
+- Metrics are **shared** across all API and worker processes
+- Only tasks submitted after 2025-10-04 are counted (when storage was implemented)
 
 ### 8. Get Task Queue Health
 
@@ -1632,5 +1662,242 @@ Include these details when reporting issues:
 | Voice Generation | 10-30 seconds | 2 minutes |
 | Prompt Testing | 5-15 seconds | 1 minute |
 | Department Evaluation | 30-120 seconds | 5 minutes |
+
+---
+
+## Recent Updates (2025-10-04)
+
+### ✅ Fixed: Tasks Not Being Processed
+
+**Issue**: The task service was accepting submissions but not processing them.
+
+**Root Causes**:
+1. **Worker Queue Configuration**: The Celery worker was only listening to the default `celery` queue, but the `evaluate_department` task was being sent to the `cpu_intensive` queue.
+2. **No Task Persistence**: Tasks were being processed but not saved to storage, so the API couldn't track them.
+
+**Fixes Applied**:
+
+1. **Worker Queue Configuration** (See `CELERY_WORKER_FIX.md`):
+   - Updated `ecosystem.config.js` to configure worker with all queues
+   - Worker now listens to: `celery`, `cpu_intensive`, `gpu_heavy`, `gpu_medium`
+   - Added unique hostname: `celery-redis-worker@%h` to avoid conflicts
+
+2. **Task Storage Implementation** (See `TASK_STORAGE_FIX.md`):
+   - Implemented Redis-based `TaskStorage` class for persistent task tracking
+   - Tasks are now saved to Redis when submitted
+   - Task status is updated when tasks complete or fail
+   - Metrics are shared across API and worker processes via Redis
+
+**Verification**:
+```bash
+# Check worker is listening to all queues
+celery -A app.celery_app inspect active_queues
+
+# Should show:
+# -> celery-redis-worker@vmd177401: OK
+#   * celery
+#   * cpu_intensive
+#   * gpu_heavy
+#   * gpu_medium
+
+# Submit a test task
+curl -X POST https://tasks.ft.tc/api/v1/tasks/submit \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_KEY" \
+  -d '{
+    "project_id": "test-project",
+    "task_type": "evaluate_department",
+    "task_data": {
+      "department_slug": "story",
+      "department_number": 1,
+      "gather_data": [],
+      "threshold": 80
+    }
+  }'
+
+# Wait 10 seconds, then check if task appears
+curl -H "X-API-Key: YOUR_KEY" \
+  "https://tasks.ft.tc/api/v1/projects/test-project/tasks"
+
+# Check metrics
+curl -H "X-API-Key: YOUR_KEY" \
+  "https://tasks.ft.tc/api/v1/tasks/metrics"
+```
+
+**Important Notes**:
+- Tasks submitted **before** 2025-10-04 were processed but not persisted (won't appear in task lists)
+- New tasks submitted **after** the fix are fully tracked and queryable
+- The service now requires Redis for both Celery queuing AND task storage
+- Tasks expire after 24 hours to prevent Redis from growing indefinitely
+
+---
+
+## Troubleshooting
+
+### Service Returns 404 for `/api/v1/tasks/submit`
+
+**Symptom**: The task submission endpoint returns `404 Not Found` even though the service is running and health checks pass.
+
+**Root Cause**: Missing Python dependencies in the virtual environment causing silent import failures. The FastAPI routers fail to load due to `ImportError`, which is caught by the try-except block in `app/main.py` (lines 101-111).
+
+**Diagnosis**:
+```bash
+# Check if routers are loaded in OpenAPI schema
+curl -s https://tasks.ft.tc/openapi.json | python3 -c "import sys, json; data = json.load(sys.stdin); print('Available paths:'); [print(f'  {path}') for path in sorted(data['paths'].keys())]"
+
+# If only /health and /api/v1/health are shown, routers are not loaded
+
+# Test imports directly
+cd /var/www/celery-redis
+/var/www/celery-redis/venv/bin/python -c "from app.api import tasks, projects, workers; print('SUCCESS')"
+```
+
+**Solution**:
+```bash
+# 1. Identify missing dependencies
+cd /var/www/celery-redis
+/var/www/celery-redis/venv/bin/python -c "from app.api import tasks"
+# Look for ModuleNotFoundError in output
+
+# 2. Install missing dependencies
+/var/www/celery-redis/venv/bin/pip install -r requirements.txt
+
+# Or install specific missing package
+/var/www/celery-redis/venv/bin/pip install requests==2.31.0
+
+# 3. Verify imports work
+/var/www/celery-redis/venv/bin/python -c "from app.api import tasks; print('Routes:', [r.path for r in tasks.router.routes])"
+
+# 4. Restart the service
+pm2 restart celery-redis-api
+
+# 5. Verify endpoint is now available
+curl -X POST https://tasks.ft.tc/api/v1/tasks/submit \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-api-key" \
+  -d '{"project_id":"test","task_type":"evaluate_department","task_data":{"department_slug":"story","department_number":1,"gather_data":[],"threshold":80}}'
+```
+
+**Prevention**:
+- Always run `pip install -r requirements.txt` after pulling code changes
+- Check PM2 logs for import errors: `pm2 logs celery-redis-api --lines 100`
+- Monitor the OpenAPI schema to ensure all expected endpoints are registered
+- Consider adding a startup health check that verifies all routers are loaded
+
+### Tasks Stuck in "Queued" Status
+
+**Symptom**: Tasks are submitted successfully but never start processing.
+
+**Diagnosis**:
+```bash
+# Check if Celery workers are running
+pm2 list | grep celery-worker
+
+# Check worker logs
+pm2 logs celery-worker --lines 50
+
+# Check Redis connection
+redis-cli ping
+
+# Check task queue size
+redis-cli llen celery
+```
+
+**Solution**:
+```bash
+# Restart Celery worker
+pm2 restart celery-worker
+
+# If Redis is down, restart it
+sudo systemctl restart redis-server
+```
+
+### 401 Unauthorized Errors
+
+**Symptom**: All API requests return `401 Unauthorized`.
+
+**Diagnosis**:
+```bash
+# Check if API key is set correctly
+echo $CELERY_API_KEY
+
+# Verify API key in .env file
+grep API_KEY /var/www/celery-redis/.env
+```
+
+**Solution**:
+```bash
+# Use the correct API key from .env file
+API_KEY=$(grep "^API_KEY=" /var/www/celery-redis/.env | cut -d'=' -f2)
+
+# Test with correct key
+curl -H "X-API-Key: $API_KEY" https://tasks.ft.tc/api/v1/health
+```
+
+### Service Not Responding
+
+**Symptom**: Service is not responding to any requests.
+
+**Diagnosis**:
+```bash
+# Check if service is running
+pm2 list | grep celery-redis-api
+
+# Check service logs
+pm2 logs celery-redis-api --lines 100
+
+# Check if port is listening
+netstat -tlnp | grep 8001
+```
+
+**Solution**:
+```bash
+# Restart the service
+pm2 restart celery-redis-api
+
+# If that doesn't work, check for port conflicts
+sudo lsof -i :8001
+
+# Check nginx configuration
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+### Checking Service Health
+
+**Quick Health Check**:
+```bash
+# Basic health check
+curl https://tasks.ft.tc/health
+
+# Detailed health check (requires API key)
+curl -H "X-API-Key: $API_KEY" https://tasks.ft.tc/api/v1/tasks/health
+
+# Check metrics
+curl -H "X-API-Key: $API_KEY" https://tasks.ft.tc/api/v1/tasks/metrics
+```
+
+### Viewing Logs
+
+**PM2 Logs**:
+```bash
+# View API logs
+pm2 logs celery-redis-api
+
+# View worker logs
+pm2 logs celery-worker
+
+# View last 100 lines
+pm2 logs celery-redis-api --lines 100
+
+# View errors only
+pm2 logs celery-redis-api --err
+```
+
+**Log Locations**:
+- API logs: `/var/log/celery-redis-api-out-*.log` and `/var/log/celery-redis-api-error-*.log`
+- Worker logs: `/var/log/celery-worker-out-*.log` and `/var/log/celery-worker-error-*.log`
+
+---
 
 This service handles all the heavy computational work so your applications can focus on user experience and workflow management!

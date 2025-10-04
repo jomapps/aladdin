@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     // const userId = await getUserIdFromRequest(request);
 
     // Submit task to Celery via task service
-    const taskResult = await taskService.submitTask('automated_gather', {
+    const taskResult = await taskService.submitTask('automated_gather_creation', {
       projectId: body.projectId,
       gatherCount: body.gatherCount,
       options: {
