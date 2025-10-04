@@ -363,18 +363,26 @@ DEPENDENCIES:
 CRITICAL RULES:
 1. CREATE THE ACTUAL DOCUMENT/DELIVERABLE - not a description of it
 2. Include SPECIFIC numbers, names, timelines, and details
-3. Use tables, lists, and structured formats
+3. Use tables, lists, and structured formats where appropriate
 4. Make it copy-paste ready for production use
-5. Each deliverable should be 300-500 words minimum
+5. Each deliverable MUST be between 300-2500 characters (NOT words!)
 6. Reference the specific project context (${project.name}, ${project.genre})
 7. Make each deliverable DIFFERENT and UNIQUE - don't repeat patterns
+8. Be CONCISE - quality over quantity
 
-Return ONLY valid JSON (no markdown, no extra text):
+LENGTH CONSTRAINT - CRITICAL:
+- Minimum: 300 characters per deliverable
+- Maximum: 2500 characters per deliverable
+- If you exceed 2500 characters, your response will be REJECTED
+- Focus on the most important information only
+
+RESPONSE FORMAT:
+Return a JSON array with this exact structure:
 [
   {
     "type": "issue-resolution",
-    "originalIssue": "exact issue text",
-    "content": "THE ACTUAL DELIVERABLE CONTENT HERE (300-500 words)"
+    "originalIssue": "exact issue text from evaluation",
+    "content": "Your deliverable content here (300-2500 chars)"
   }
 ]`
 
@@ -384,7 +392,7 @@ Return ONLY valid JSON (no markdown, no extra text):
         z.object({
           type: z.enum(['issue-resolution', 'suggestion-implementation']),
           originalIssue: z.string(),
-          content: z.string().min(300).max(3000),
+          content: z.string().min(300).max(2500), // Match prompt constraints
         }),
       ),
     })

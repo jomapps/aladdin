@@ -54,10 +54,7 @@ export class GatherAIProcessor {
     }
   }
 
-  async enrichContent(
-    content: string,
-    options: AIProcessingOptions,
-  ): Promise<EnrichmentResult> {
+  async enrichContent(content: string, options: AIProcessingOptions): Promise<EnrichmentResult> {
     const payload = await getPayload({ config: await configPromise })
     const runner = new AladdinAgentRunner(payload)
 
@@ -87,11 +84,51 @@ Provide summary, context, and metadata as JSON.`,
     }
   }
 
-  async checkDuplicates(
-    content: string,
-    projectId: string,
-  ): Promise<DuplicateMatch[]> {
+  async checkDuplicates(content: string, projectId: string): Promise<DuplicateMatch[]> {
     // Duplicate checking would query Brain service
     return []
   }
+
+  async processContent(options: {
+    content: string
+    imageUrl?: string
+    documentUrl?: string
+    projectId: string
+  }): Promise<{
+    enrichedContent: string
+    summary: string
+    context: string
+    tags: string[]
+    extractedText?: string
+    iterationCount?: number
+    duplicates?: Array<{ similarity: number }>
+  }> {
+    const { content, projectId } = options
+
+    // For now, return a simple processed version
+    // In the future, this will use the data-enricher agent
+    // Force rebuild
+    return {
+      enrichedContent: content,
+      summary: content.substring(0, 150),
+      context: 'Processed content',
+      tags: [],
+      extractedText: content,
+      iterationCount: 1,
+      duplicates: [],
+    }
+  }
+}
+
+// Singleton instance
+let processorInstance: GatherAIProcessor | null = null
+
+/**
+ * Get or create the GatherAIProcessor singleton instance
+ */
+export function getGatherAIProcessor(): GatherAIProcessor {
+  if (!processorInstance) {
+    processorInstance = new GatherAIProcessor()
+  }
+  return processorInstance
 }

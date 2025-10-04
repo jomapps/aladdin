@@ -1,310 +1,249 @@
-# Aladdin Project Documentation
+# Aladdin AI Movie Production Platform - Documentation
 
-Welcome to the Aladdin project documentation. This repository powers an AI-assisted movie production workflow built on a Next.js application with a background task-queue service. The system integrates LLM models via OpenRouter, coordinates AI "agents" for structured tasks, and provides APIs for long-running operations like video, image, and audio generation.
-
-This documentation is the canonical source of truth for how to set up, run, develop, and operate Aladdin. It replaces placeholder or redundant docs and consolidates the most relevant content under a single, navigable index.
-
-Important:
-- This documentation reflects the current implementation verified against the codebase.
-- Where appropriate, links point to source files to keep code and documentation in sync.
-- Some aspirational or experimental documents may be referenced as "optional context" with clear labels.
+**Version**: 1.0.0  
+**Last Updated**: October 4, 2025  
+**Status**: Production Ready
 
 ---
 
-## Table of Contents
+## 📚 Table of Contents
 
-- 1. Overview
-  - 1.1 What is Aladdin?
-  - 1.2 High-Level Architecture
-  - 1.3 Key Technologies
-  - 1.4 Repositories and Paths
-- 2. Getting Started
-  - 2.1 Prerequisites
-  - 2.2 Environment Variables
-  - 2.3 Local Development (Next.js)
-  - 2.4 Local Services (Task Queue)
-  - 2.5 Docker & Compose
-- 3. Architecture
-  - 3.1 Frontend (Next.js)
-  - 3.2 AI Integration (OpenRouter, Vercel AI SDK)
-  - 3.3 Agent Execution Flow
-  - 3.4 Task Queue Service (FastAPI + Celery/Redis)
-  - 3.5 Data & Storage
-- 4. AI Agents
-  - 4.1 AI Client and Models
-  - 4.2 Agent Executor
-  - 4.3 Tools Integration
-  - 4.4 Configuration Guidelines
-- 5. Services: Task Queue APIs
-  - 5.1 Authentication
-  - 5.2 Task Submission API
-  - 5.3 Task Status API
-  - 5.4 Workers Status API
-- 6. Configuration & Secrets
-  - 6.1 Required Env Vars
-  - 6.2 Optional Env Vars
-  - 6.3 Model Configuration
-- 7. Development Workflow
-  - 7.1 Code Organization
-  - 7.2 TypeScript & Linting
-  - 7.3 Testing
-  - 7.4 Common Scripts
-- 8. Operations
-  - 8.1 Running with Docker
-  - 8.2 Deployment Considerations
-  - 8.3 Monitoring and Logs
-- 9. Troubleshooting
-  - 9.1 Common Issues
-  - 9.2 Task Queue Debugging
-  - 9.3 AI API Issues
-- 10. Changelog & Status
-  - 10.1 Status Docs
-  - 10.2 Migration Notes
-  - 10.3 Deprecations
+### [01. Getting Started](./01-getting-started/)
+- [Quick Start Guide](./01-getting-started/quick-start.md)
+- [System Requirements](./01-getting-started/requirements.md)
+- [Installation Guide](./01-getting-started/installation.md)
+- [Environment Configuration](./01-getting-started/environment.md)
+- [First Project Setup](./01-getting-started/first-project.md)
 
----
+### [02. Architecture](./02-architecture/)
+- [System Overview](./02-architecture/system-overview.md)
+- [Technology Stack](./02-architecture/tech-stack.md)
+- [Database Architecture](./02-architecture/database.md)
+- [The Brain (Neo4j)](./02-architecture/brain.md)
+- [Agent System](./02-architecture/agent-system.md)
 
-## 1. Overview
+### [03. Development](./03-development/)
+- [Development Workflow](./03-development/workflow.md)
+- [Code Organization](./03-development/code-structure.md)
+- [Testing Strategy](./03-development/testing.md)
+- [Contributing Guidelines](./03-development/contributing.md)
+- [Debugging Guide](./03-development/debugging.md)
 
-### 1.1 What is Aladdin?
-Aladdin is an AI-powered system for orchestrating creative and production workflows for movie projects. It combines a web interface (Next.js) with background processing (FastAPI + Celery/Redis) and an AI layer that interfaces with OpenRouter to access multiple LLMs via the Vercel AI SDK.
+### [04. AI Agents](./04-ai-agents/)
+- [Agent Framework](./04-ai-agents/framework.md)
+- [Vercel AI SDK Integration](./04-ai-agents/vercel-ai-sdk.md)
+- [Agent Configuration](./04-ai-agents/configuration.md)
+- [Custom Agents](./04-ai-agents/custom-agents.md)
+- [Agent Best Practices](./04-ai-agents/best-practices.md)
 
-### 1.2 High-Level Architecture
-- Frontend: Next.js application with TypeScript, Tailwind CSS.
-- AI layer: Vercel AI SDK using an OpenRouter provider for model access.
-- Background services: FastAPI application exposing task endpoints; Celery workers backed by Redis manage long-running tasks.
-- Data: Project data managed in the app domain; tasks and worker state held/transited via Redis and Celery results.
+### [05. Features](./05-features/)
+- [Chat Interface](./05-features/chat-interface.md)
+- [Content Generation](./05-features/content-generation.md)
+- [Quality Validation](./05-features/quality-validation.md)
+- [Media Management](./05-features/media-management.md)
+- [Collaboration](./05-features/collaboration.md)
 
-### 1.3 Key Technologies
-- Next.js, TypeScript, Tailwind
-- Vercel AI SDK, OpenRouter
-- FastAPI, Celery, Redis
-- Playwright/Vitest for testing
-- Docker and docker-compose for local services
+### [06. APIs](./06-apis/)
+- [REST API Reference](./06-apis/rest-api.md)
+- [WebSocket API](./06-apis/websocket-api.md)
+- [Authentication](./06-apis/authentication.md)
+- [Rate Limiting](./06-apis/rate-limiting.md)
+- [API Examples](./06-apis/examples.md)
 
-### 1.4 Repositories and Paths
-- Frontend app and AI layer: src/lib/ai
-  - Client: src/lib/ai/client.ts
-  - Executor: src/lib/ai/agent-executor.ts
-- Services: services/task-queue/app
-  - APIs: services/task-queue/app/api
+### [07. Deployment](./07-deployment/)
+- [Deployment Prerequisites](./07-deployment/deployment-prerequisites.md)
+- [Application Deployment](./07-deployment/application-deployment.md)
+- [Production Operations](./07-deployment/production-operations.md)
+- [Environment Variables](./07-deployment/environment-variables.md)
+- [SSL Configuration](./07-deployment/ssl.md)
+- [Monitoring Setup](./07-deployment/monitoring.md)
+- [Backup Strategy](./07-deployment/backup.md)
+
+### [08. Operations](./08-operations/)
+- [Performance Monitoring](./08-operations/performance.md)
+- [Logging](./08-operations/logging.md)
+- [Scaling Guide](./08-operations/scaling.md)
+- [Security Best Practices](./08-operations/security.md)
+- [Maintenance Tasks](./08-operations/maintenance.md)
+
+### [09. Troubleshooting](./09-troubleshooting/)
+- [Common Issues](./09-troubleshooting/common-issues.md)
+- [Debugging Techniques](./09-troubleshooting/debugging.md)
+- [Performance Issues](./09-troubleshooting/performance.md)
+- [Database Issues](./09-troubleshooting/database.md)
+- [Network Issues](./09-troubleshooting/network.md)
+
+### [10. Appendix](./10-appendix/)
+- [Glossary](./10-appendix/glossary.md)
+- [FAQ](./10-appendix/faq.md)
+- [Migration History](./10-appendix/migration-history.md)
+- [Changelog](./10-appendix/changelog.md)
+- [References](./10-appendix/references.md)
 
 ---
 
-## 2. Getting Started
+## 🎯 Quick Navigation
 
-### 2.1 Prerequisites
-- Node.js LTS and pnpm installed
-- Python 3.11+ for the task-queue service
-- Docker Desktop (optional, recommended for Redis/Celery stack)
+### For New Users
+1. Read [Quick Start Guide](./01-getting-started/quick-start.md)
+2. Follow [Installation Guide](./01-getting-started/installation.md)
+3. Create your [First Project](./01-getting-started/first-project.md)
 
-### 2.2 Environment Variables
-Minimum required:
-- OPENROUTER_API_KEY: Your OpenRouter API key (required by the AI client).
-- NEXT_PUBLIC_APP_URL: Base URL of the web app, used for referer header.
-- OPENROUTER_DEFAULT_MODEL: Optional default, defaults to anthropic/claude-sonnet-4.5.
+### For Developers
+1. Understand the [System Architecture](./02-architecture/system-overview.md)
+2. Learn the [Development Workflow](./03-development/workflow.md)
+3. Review [AI Agent Framework](./04-ai-agents/framework.md)
 
-Confirmed by code (src/lib/ai/client.ts):
-- The AI client is created via OpenRouter provider:
-  - Uses OPENROUTER_API_KEY for authentication.
-  - Sets HTTP-Referer to NEXT_PUBLIC_APP_URL or http://localhost:3000.
-  - X-Title header set to "Aladdin Movie Production".
-- The getModel() function falls back to OPENROUTER_DEFAULT_MODEL or 'anthropic/claude-sonnet-4.5'.
+### For DevOps Engineers
+1. Follow [Deployment Prerequisites](./07-deployment/deployment-prerequisites.md)
+2. Configure [Application Deployment](./07-deployment/application-deployment.md)
+3. Set up [Production Operations](./07-deployment/production-operations.md)
 
-### 2.3 Local Development (Next.js)
-- pnpm install
-- pnpm dev
-- Open http://localhost:3000
-
-### 2.4 Local Services (Task Queue)
-- Python dependencies (use a venv):
-  - cd services/task-queue
-  - pip install -r requirements.txt (if present)
-- Ensure Redis is running (via Docker or local install).
-- Start FastAPI app (e.g., uvicorn main:app --reload) if not integrated into Docker.
-- Start Celery workers configured to use Redis broker/result backend.
-
-### 2.5 Docker & Compose
-- docker-compose.yml includes Redis and (optionally) service containers.
-- Use docker-compose up -d to run dependencies locally.
+### For System Administrators
+1. Review [Operations Guide](./08-operations/)
+2. Understand [Backup Strategy](./07-deployment/backup.md)
+3. Learn [Troubleshooting](./09-troubleshooting/)
 
 ---
 
-## 3. Architecture
+## 🏗️ System Overview
 
-### 3.1 Frontend (Next.js)
-- Located under src/.
-- Follows standard Next.js app conventions.
-- Tailwind CSS configured via tailwind.config.ts.
+Aladdin is an AI-powered movie production platform that enables anyone to create professional-quality movies through an intelligent chat interface. The system uses specialized AI agents to guide users from initial concept to final video production.
 
-### 3.2 AI Integration (OpenRouter, Vercel AI SDK)
-- See src/lib/ai/client.ts for configuration and default model.
-- The client uses @openrouter/ai-sdk-provider to get models compatible with Vercel AI SDK's generateText/generateObject APIs.
+### Key Components
+- **Next.js Frontend**: Modern web interface with real-time chat
+- **PayloadCMS**: Headless CMS for structured data management
+- **MongoDB**: Dual database architecture (structured + open collections)
+- **Neo4j Brain**: Knowledge graph for validation and consistency
+- **Vercel AI SDK**: Agent orchestration and LLM integration
+- **Redis**: Caching and job queue management
+- **Cloudflare R2**: Media storage with CDN
 
-### 3.3 Agent Execution Flow
-- Implemented in src/lib/ai/agent-executor.ts.
-- High-level responsibilities:
-  - Load agent definition (loadAgent method).
-  - Convert domain tools into Vercel AI SDK tool spec (convertTools).
-  - Execute either structured outputs (generateObject) or text (generateText).
-  - Create and update execution records in the database (createExecutionRecord, updateExecutionRecord) using Payload CMS's Payload type.
-- Integration points:
-  - getModel from client.ts used to select model.
-  - Tools are adapted to SDK format with execute hooks.
-
-### 3.4 Task Queue Service (FastAPI + Celery/Redis)
-- APIs defined in services/task-queue/app/api.
-- Task submission multiplexes to different Celery tasks by TaskType:
-  - GENERATE_VIDEO -> process_video_generation
-  - GENERATE_IMAGE -> process_image_generation
-  - PROCESS_AUDIO -> process_audio_generation
-- Status endpoints reflect queued/processing states; workers status endpoint reports basic metrics (currently placeholders).
-
-### 3.5 Data & Storage
-- Redis used for Celery broker/result store.
-- Media/object storage is implementation-dependent; no direct storage layer is documented in code at this time.
+### Core Features
+- Chat-driven content creation
+- 50+ specialized AI agents
+- Quality validation system
+- Image and video generation
+- Real-time collaboration
+- Cross-project content cloning
 
 ---
 
-## 4. AI Agents
+## 🚀 Quick Start
 
-### 4.1 AI Client and Models
-- getModel(modelName?) returns a model instance from OpenRouter.
-- defaultModel is exported for general use.
+```bash
+# Clone the repository
+git clone <repository-url>
+cd aladdin
 
-### 4.2 Agent Executor
-- AIAgentExecutor orchestrates prompting and tool usage.
-- Supports both structured (JSON/object) and text outputs.
-- Creates execution records via Payload (ensure server-side context has Payload instance).
+# Install dependencies
+pnpm install
 
-### 4.3 Tools Integration
-- Tools must be provided with an execute(args) function.
-- convertTools maps internal tool definitions into the shape expected by Vercel AI SDK tool calling.
+# Configure environment
+cp .env.example .env.local
+# Edit .env.local with your API keys
 
-### 4.4 Configuration Guidelines
-- Use OPENROUTER_DEFAULT_MODEL for global defaults; override per-call via options.model.
-- Set NEXT_PUBLIC_APP_URL to a valid public URL in deployed environments.
+# Start development server
+pnpm dev
 
----
+# Open http://localhost:3000
+```
 
-## 5. Services: Task Queue APIs
+### Required Environment Variables
+```bash
+# OpenRouter (AI operations)
+OPENROUTER_API_KEY=your_key_here
 
-### 5.1 Authentication
-- All endpoints depend on verify_api_key middleware (services/task-queue/app/middleware/auth.py). Provide valid API key via standard auth mechanism enforced by that dependency.
+# Database
+DATABASE_URI=mongodb://localhost:27017/aladdin
 
-### 5.2 Task Submission API
-- Method: POST /tasks/submit
-- Request: TaskSubmissionRequest
-  - project_id: string (required)
-  - task_type: one of GENERATE_VIDEO | GENERATE_IMAGE | PROCESS_AUDIO
-  - priority: optional priority value
-  - task_data: object with modality-specific fields
-  - callback_url: optional
-  - metadata: optional
-- Response: TaskSubmissionResponse
-  - task_id: uuid
-  - status: QUEUED (initial)
-  - project_id
-  - estimated_duration
-  - queue_position
-  - created_at
-- Behavior:
-  - Generates a task UUID, routes to Celery based on task_type.
-  - On enqueue, status becomes PROCESSING; response remains QUEUED by design to reflect initial state.
+# Storage
+R2_ACCOUNT_ID=your_account_id
+R2_ACCESS_KEY_ID=your_access_key
+R2_SECRET_ACCESS_KEY=your_secret_key
+R2_BUCKET_NAME=aladdin-media
 
-### 5.3 Task Status API
-- Method: GET /tasks/{task_id}/status
-- Response: TaskStatusResponse reflecting current state of the task.
-- Notes: Implementation should consult Celery/Redis for real-time status; placeholder or direct mapping may exist until fully implemented.
-
-### 5.4 Workers Status API
-- Method: GET /workers/status
-- Response: { workers: [], total_workers: 0, active_workers: 0, gpu_utilization: 0.0 }
-- Notes: Currently returns placeholders; planned integration with Redis/Celery for worker telemetry.
+# Brain Service
+BRAIN_SERVICE_BASE_URL=https://brain.ft.tc
+BRAIN_SERVICE_API_KEY=your_brain_key
+```
 
 ---
 
-## 6. Configuration & Secrets
+## 📖 Documentation Standards
 
-### 6.1 Required Env Vars
-- OPENROUTER_API_KEY (frontend/AI)
+### File Naming Conventions
+- Use kebab-case for all file names
+- Include section numbers in folder names (01-, 02-, etc.)
+- Keep file names descriptive but concise
 
-### 6.2 Optional Env Vars
-- NEXT_PUBLIC_APP_URL
-- OPENROUTER_DEFAULT_MODEL
+### Content Guidelines
+- Target ~300 lines per file for readability
+- Use clear headings and subheadings
+- Include code examples where applicable
+- Add cross-references to related documentation
 
-### 6.3 Model Configuration
-- Defaults to anthropic/claude-sonnet-4.5 if not specified.
-- You can pass a specific model id when calling getModel().
-
----
-
-## 7. Development Workflow
-
-### 7.1 Code Organization
-- src/lib/ai: AI client and agent executor
-- services/task-queue/app: FastAPI service code
-- tests: Automated tests for frontend and services
-- docs: This documentation
-
-### 7.2 TypeScript & Linting
-- Configured via tsconfig.json and eslint.config.mjs.
-
-### 7.3 Testing
-- Vitest configured via vitest.config.mts and vitest.setup.ts.
-- Playwright for end-to-end tests (playwright.config.ts).
-
-### 7.4 Common Scripts
-- pnpm dev: Start Next.js dev server
-- pnpm test: Run unit tests
-- pnpm build: Build the app
+### Version Control
+- Update the "Last Updated" date when making changes
+- Use semantic versioning for major updates
+- Include change notes in the [Changelog](./10-appendix/changelog.md)
 
 ---
 
-## 8. Operations
+## 🔍 Finding Information
 
-### 8.1 Running with Docker
-- docker-compose.yml includes Redis and service scaffolding.
-- You can extend compose file to run FastAPI and Celery locally.
+### Search Tips
+- Use your IDE's search functionality (Ctrl+Shift+F)
+- Search for specific keywords related to your issue
+- Check the [Glossary](./10-appendix/glossary.md) for term definitions
 
-### 8.2 Deployment Considerations
-- Ensure OPENROUTER_API_KEY configured in CI/CD secrets.
-- Set NEXT_PUBLIC_APP_URL to your production domain.
-- Scale Celery workers based on expected workload.
-
-### 8.3 Monitoring and Logs
-- structlog is used in the service for structured logs.
-- Consider shipping logs to a centralized system (ELK, Loki, etc.).
-
----
-
-## 9. Troubleshooting
-
-### 9.1 Common Issues
-- 401 Unauthorized when calling services: Verify API key and middleware setup.
-- Model not found: Ensure OPENROUTER_DEFAULT_MODEL is valid, or specify a model in code.
-
-### 9.2 Task Queue Debugging
-- Confirm Redis is running and Celery workers are connected.
-- Inspect task ids returned by POST /tasks/submit and check status endpoint.
-
-### 9.3 AI API Issues
-- Check that OPENROUTER_API_KEY is set.
-- Ensure HTTP-Referer header domain matches allowed config in OpenRouter if applicable.
+### Common Questions
+- **How do I deploy to production?** → [Deployment Prerequisites](./07-deployment/deployment-prerequisites.md)
+- **How do I configure the application?** → [Application Deployment](./07-deployment/application-deployment.md)
+- **How do I manage production?** → [Production Operations](./07-deployment/production-operations.md)
+- **How do I configure AI agents?** → [Agent Configuration](./04-ai-agents/configuration.md)
+- **How does the Brain work?** → [The Brain (Neo4j)](./02-architecture/brain.md)
+- **What's the technology stack?** → [Technology Stack](./02-architecture/tech-stack.md)
 
 ---
 
-## 10. Changelog & Status
+## 🤝 Contributing to Documentation
 
-### 10.1 Status Docs
-- See docs/ACTUAL_IMPLEMENTATION_STATUS.md for current implementation summaries (if maintained).
+### How to Contribute
+1. Fork the repository
+2. Create a new branch for your documentation changes
+3. Update or create documentation files
+4. Update this README if adding new sections
+5. Submit a pull request with clear description of changes
 
-### 10.2 Migration Notes
-- FIX_SEED_ERROR.md, MIGRATION_COMPLETE.md and similar docs capture past milestones. Refer to them for historical context.
-
-### 10.3 Deprecations
-- Top-level AGENTS.md and tool-internal CLAUDE.md are considered internal or redundant. Core project docs should live under docs/.
+### Documentation Review Process
+- All documentation changes require review
+- Check for accuracy against current implementation
+- Ensure cross-references are updated
+- Verify code examples work correctly
 
 ---
 
-Maintainers: Keep this document in sync with code. When interfaces change (env vars, endpoints, default models), update the relevant sections and link to the source.
+## 📞 Getting Help
+
+### Self-Service Resources
+- Check [Troubleshooting](./09-troubleshooting/) for common issues
+- Review [FAQ](./10-appendix/faq.md) for frequently asked questions
+- Search existing documentation for your topic
+
+### Community Support
+- Check the project's issue tracker
+- Review discussion forums
+- Consult the [References](./10-appendix/references.md) for external resources
+
+---
+
+## 📄 License
+
+This documentation is part of the Aladdin project and follows the same license terms as the main project.
+
+---
+
+**Document Version**: 1.0.0  
+**Last Updated**: October 4, 2025  
+**Next Review**: January 4, 2026

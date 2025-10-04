@@ -109,9 +109,24 @@ export class AIAgentExecutor {
     options: AgentExecutionOptions,
     tools: Record<string, any>,
   ): Promise<AIAgentResult> {
+    // Add explicit JSON formatting instructions to system prompt
+    const enhancedSystemPrompt = `${systemPrompt}
+
+CRITICAL OUTPUT FORMAT RULES:
+- Return ONLY valid JSON
+- Do NOT wrap JSON in markdown code blocks
+- Do NOT include any text before or after the JSON
+- Do NOT use \`\`\`json or \`\`\` markers
+- Start your response directly with { or [
+- End your response directly with } or ]`
+
+    // Force JSON mode for Anthropic models through OpenRouter
+    // Anthropic has excellent JSON adherence but needs explicit JSON mode
+    // instead of tool calling mode to avoid parsing issues
     const result = await generateObject({
       model,
-      system: systemPrompt,
+      mode: 'json', // Critical: Forces JSON mode instead of tool calling
+      system: enhancedSystemPrompt,
       prompt: options.prompt,
       schema: options.structuredOutput!.schema,
       maxSteps: options.maxSteps || 5,

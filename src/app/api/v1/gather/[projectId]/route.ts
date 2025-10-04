@@ -129,7 +129,7 @@ export async function POST(
       context: processingResult.context || 'Context unavailable',
       extractedText: processingResult.extractedText,
       iterationCount: processingResult.iterationCount,
-      duplicateCheckScore: processingResult.duplicates[0]?.similarity,
+      duplicateCheckScore: processingResult.duplicates?.[0]?.similarity,
       createdBy: String(userId), // Ensure string
     }
 
