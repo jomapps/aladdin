@@ -118,7 +118,8 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
   }, [projectId])
 
   const handleDepartmentClick = (slug: string) => {
-    router.push(`/dashboard/project/${projectId}/${slug}`)
+    // Department pages not yet implemented - navigate to project-readiness instead
+    router.push(`/dashboard/project/${projectId}/project-readiness`)
   }
 
   const handleEvaluateClick = (e: React.MouseEvent, slug: string, number: number) => {

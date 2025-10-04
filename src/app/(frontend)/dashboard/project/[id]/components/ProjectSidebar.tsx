@@ -54,14 +54,16 @@ interface ProjectSidebarProps {
   onToggle?: () => void
 }
 
+// Department pages are not yet implemented - these links are disabled for now
+// TODO: Create department-specific pages at /dashboard/project/[id]/[department]
 const DEPARTMENTS: Department[] = [
-  { id: 'story', name: 'Story', icon: BookOpen, path: '/story', accent: 'from-sky-400/40 to-indigo-400/20' },
-  { id: 'character', name: 'Character', icon: User2, path: '/character', accent: 'from-emerald-400/45 to-sky-400/20' },
-  { id: 'visual', name: 'Visual', icon: Palette, path: '/visual', accent: 'from-fuchsia-400/45 to-amber-300/20' },
-  { id: 'video', name: 'Video', icon: Clapperboard, path: '/video', accent: 'from-purple-400/45 to-sky-400/20' },
-  { id: 'audio', name: 'Audio', icon: Waves, path: '/audio', accent: 'from-emerald-400/40 to-cyan-400/20' },
-  { id: 'image-quality', name: 'Image Quality', icon: Sparkles, path: '/image-quality', accent: 'from-amber-300/50 to-rose-300/20' },
-  { id: 'production', name: 'Production', icon: Target, path: '/production', accent: 'from-indigo-400/40 to-rose-300/20' },
+  // { id: 'story', name: 'Story', icon: BookOpen, path: '/story', accent: 'from-sky-400/40 to-indigo-400/20' },
+  // { id: 'character', name: 'Character', icon: User2, path: '/character', accent: 'from-emerald-400/45 to-sky-400/20' },
+  // { id: 'visual', name: 'Visual', icon: Palette, path: '/visual', accent: 'from-fuchsia-400/45 to-amber-300/20' },
+  // { id: 'video', name: 'Video', icon: Clapperboard, path: '/video', accent: 'from-purple-400/45 to-sky-400/20' },
+  // { id: 'audio', name: 'Audio', icon: Waves, path: '/audio', accent: 'from-emerald-400/40 to-cyan-400/20' },
+  // { id: 'image-quality', name: 'Image Quality', icon: Sparkles, path: '/image-quality', accent: 'from-amber-300/50 to-rose-300/20' },
+  // { id: 'production', name: 'Production', icon: Target, path: '/production', accent: 'from-indigo-400/40 to-rose-300/20' },
 ]
 
 export default function ProjectSidebar({
@@ -123,7 +125,12 @@ export default function ProjectSidebar({
   return (
     <>
       {/* Overlay for mobile */}
-      {isOpen && <div className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm lg:hidden" onClick={onToggle} />}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm lg:hidden"
+          onClick={onToggle}
+        />
+      )}
 
       {/* Sidebar */}
       <aside
@@ -142,9 +149,7 @@ export default function ProjectSidebar({
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-300">
                 Project
               </p>
-              <h2 className="mt-2 line-clamp-2 text-lg font-semibold text-white">
-                {projectName}
-              </h2>
+              <h2 className="mt-2 line-clamp-2 text-lg font-semibold text-white">{projectName}</h2>
             </div>
             <button
               onClick={onToggle}
