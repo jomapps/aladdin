@@ -1,6 +1,11 @@
 /**
  * Data Preparation Agent - Core Service
  * Intercepts all data destined for brain service and enriches it with context
+ *
+ * NOTE: Data Preparation Agent uses direct LLM client for metadata/relationship generation.
+ * This is acceptable as it's a utility service doing focused tasks.
+ * For department-level workflows, use AladdinAgentRunner instead.
+ * See /docs/migration/LLM_CLIENT_TO_AGENT_RUNNER.md
  */
 
 import { getLLMClient, LLMClient } from '@/lib/llm/client'

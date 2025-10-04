@@ -4,14 +4,14 @@
  *
  * Flow:
  * 1. Get story bible + characters from qualified DB
- * 2. Generate full screenplay using LLM
+ * 2. Generate full screenplay using AladdinAgentRunner
  * 3. Break screenplay into 3-7s scenes using breakScreenplayIntoScenes()
  * 4. Analyze dramatic effect for each scene
  * 5. Create scene documents in PayloadCMS scenes collection
  * 6. Store screenplay in qualified DB
  */
 
-import { getLLMClient } from '@/lib/llm/client'
+import { AladdinAgentRunner } from '@/lib/agents/AladdinAgentRunner'
 import { qualifiedDB } from '@/lib/db/qualifiedDatabase'
 import { getPayload } from 'payload'
 import config from '@payload-config'
@@ -76,7 +76,23 @@ interface Scene {
 }
 
 export class StoryDepartment {
-  private llm = getLLMClient()
+  private payload: any
+  private runner: AladdinAgentRunner | null = null
+
+  /**
+   * Initialize the agent runner
+   */
+  private async initializeRunner(): Promise<AladdinAgentRunner> {
+    if (!this.runner) {
+      this.payload = await getPayload({ config })
+      const apiKey = process.env.OPENROUTER_API_KEY || process.env.ANTHROPIC_API_KEY
+      if (!apiKey) {
+        throw new Error('Missing API key: Set OPENROUTER_API_KEY or ANTHROPIC_API_KEY')
+      }
+      this.runner = new AladdinAgentRunner(apiKey, this.payload)
+    }
+    return this.runner
+  }
 
   /**
    * Process story bible and generate screenplay with scenes
@@ -87,16 +103,19 @@ export class StoryDepartment {
   }> {
     console.log(`[StoryDept] Processing story for project ${projectSlug}`)
 
+    // Initialize runner
+    await this.initializeRunner()
+
     // Step 1: Get story bible and characters from qualified DB
     const { storyBible, characters } = await this.getStoryData(projectSlug)
     console.log(`[StoryDept] Retrieved story bible and ${characters.length} characters`)
 
-    // Step 2: Generate full screenplay
-    const screenplay = await this.generateScreenplay(storyBible, characters)
+    // Step 2: Generate full screenplay using agent runner
+    const screenplay = await this.generateScreenplay(storyBible, characters, projectId, projectSlug)
     console.log(`[StoryDept] Generated screenplay: ${screenplay.sceneCount} scenes, ${screenplay.estimatedDuration}s`)
 
-    // Step 3: Break screenplay into 3-7s scenes
-    const scenes = await this.breakScreenplayIntoScenes(screenplay, storyBible)
+    // Step 3: Break screenplay into 3-7s scenes using agent runner
+    const scenes = await this.breakScreenplayIntoScenes(screenplay, storyBible, projectId, projectSlug)
     console.log(`[StoryDept] Broke screenplay into ${scenes.length} scenes`)
 
     // Step 4: Create scene documents in PayloadCMS
@@ -143,9 +162,35 @@ export class StoryDepartment {
   }
 
   /**
-   * Generate full screenplay using LLM
+   * Generate full screenplay using AladdinAgentRunner
    */
-  private async generateScreenplay(storyBible: StoryBible, characters: Character[]): Promise<Screenplay> {
+  private async generateScreenplay(
+    storyBible: StoryBible,
+    characters: Character[],
+    projectId: string,
+    projectSlug: string
+  ): Promise<Screenplay> {
+    const runner = await this.initializeRunner()
+
+    // Find or use story department screenplay agent
+    const agents = await this.payload.find({
+      collection: 'agents',
+      where: {
+        or: [
+          { slug: { equals: 'story-screenplay-agent' } },
+          { slug: { equals: 'story-department-agent' } }
+        ],
+        isActive: { equals: true }
+      },
+      limit: 1
+    })
+
+    if (!agents.docs.length) {
+      throw new Error('Story screenplay agent not found. Please create a story-screenplay-agent in PayloadCMS.')
+    }
+
+    const storyAgent = agents.docs[0]
+
     const prompt = `You are a master screenwriter creating a full screenplay for a movie.
 
 Given the following story bible and characters:
@@ -194,16 +239,58 @@ Return a JSON object:
 
 IMPORTANT: Return ONLY the JSON object, no markdown, no explanations.`
 
-    return await this.llm.completeJSON<Screenplay>(prompt, {
-      temperature: 0.4,
-      maxTokens: 16000
-    })
+    const result = await runner.executeAgent(
+      storyAgent.agentId,
+      prompt,
+      {
+        projectId,
+        conversationId: `story-screenplay-${projectSlug}`,
+        metadata: {
+          department: 'story',
+          phase: 'screenplay',
+          storyBibleTitle: storyBible.title
+        }
+      }
+    )
+
+    // Parse the screenplay output
+    const screenplay = typeof result.output === 'string'
+      ? JSON.parse(result.output)
+      : result.output
+
+    return screenplay as Screenplay
   }
 
   /**
-   * Break screenplay into 3-7s scenes with dramatic analysis
+   * Break screenplay into 3-7s scenes with dramatic analysis using AladdinAgentRunner
    */
-  async breakScreenplayIntoScenes(screenplay: Screenplay, storyBible: StoryBible): Promise<Scene[]> {
+  async breakScreenplayIntoScenes(
+    screenplay: Screenplay,
+    storyBible: StoryBible,
+    projectId: string,
+    projectSlug: string
+  ): Promise<Scene[]> {
+    const runner = await this.initializeRunner()
+
+    // Find or use scene breakdown agent
+    const agents = await this.payload.find({
+      collection: 'agents',
+      where: {
+        or: [
+          { slug: { equals: 'scene-breakdown-agent' } },
+          { slug: { equals: 'story-department-agent' } }
+        ],
+        isActive: { equals: true }
+      },
+      limit: 1
+    })
+
+    if (!agents.docs.length) {
+      throw new Error('Scene breakdown agent not found. Please create a scene-breakdown-agent in PayloadCMS.')
+    }
+
+    const sceneAgent = agents.docs[0]
+
     const prompt = `You are a film editor breaking down a screenplay into individual scenes for AI video generation.
 
 SCREENPLAY:
@@ -250,10 +337,26 @@ Return a JSON array of Scene objects.
 
 IMPORTANT: Return ONLY the JSON array, no markdown, no explanations.`
 
-    return await this.llm.completeJSON<Scene[]>(prompt, {
-      temperature: 0.3,
-      maxTokens: 16000
-    })
+    const result = await runner.executeAgent(
+      sceneAgent.agentId,
+      prompt,
+      {
+        projectId,
+        conversationId: `story-scenes-${projectSlug}`,
+        metadata: {
+          department: 'story',
+          phase: 'scene-breakdown',
+          screenplayTitle: screenplay.title
+        }
+      }
+    )
+
+    // Parse the scenes output
+    const scenes = typeof result.output === 'string'
+      ? JSON.parse(result.output)
+      : result.output
+
+    return scenes as Scene[]
   }
 
   /**
@@ -326,11 +429,14 @@ export const storyDepartment = new StoryDepartment()
 
 /**
  * Standalone function to break screenplay into scenes
+ * NOTE: Requires projectId and projectSlug for agent execution
  */
 export async function breakScreenplayIntoScenes(
   screenplay: Screenplay,
-  storyBible: StoryBible
+  storyBible: StoryBible,
+  projectId: string,
+  projectSlug: string
 ): Promise<Scene[]> {
   const dept = new StoryDepartment()
-  return await dept.breakScreenplayIntoScenes(screenplay, storyBible)
+  return await dept.breakScreenplayIntoScenes(screenplay, storyBible, projectId, projectSlug)
 }

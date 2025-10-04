@@ -178,19 +178,35 @@ taskService.pollTaskUntilComplete()   // Wait for completion
 
 **Location**: `/src/app/api/orchestrator/`, `/src/lib/agents/`
 
+**Architecture**: PayloadCMS → AladdinAgentRunner → @codebuff/sdk → OpenRouter/Anthropic
+
 **Features**:
-- ✅ Master orchestrator with department routing
-- ✅ Streaming responses (SSE)
-- ✅ WebSocket real-time updates
-- ✅ Department heads + specialists
-- ✅ Tool execution (routeToDepartment)
-- ✅ Conversation history tracking
+- ✅ Dynamic agent execution from CMS definitions
+- ✅ @codebuff/sdk integration for LLM abstraction
+- ✅ Custom tool loading and registration
+- ✅ Real-time event streaming via WebSocket
+- ✅ Execution tracking and audit trail
+- ✅ Automatic retry with exponential backoff
+- ✅ Performance metrics tracking
+- ✅ OpenRouter support for model selection
 
 **API Endpoints**:
 ```
-POST /api/orchestrator/chat     - Send message
-POST /api/orchestrator/stream   - Stream execution
+POST /api/orchestrator/chat     - Send message to agent
+POST /api/orchestrator/stream   - Stream agent execution
 WS   /api/orchestrator/ws       - WebSocket connection
+```
+
+**Agent Execution Pattern**:
+```typescript
+// 1. Load agent from PayloadCMS
+const agent = await payload.find({ collection: 'agents', where: { agentId } })
+
+// 2. Create AladdinAgentRunner
+const runner = new AladdinAgentRunner(apiKey, payload)
+
+// 3. Execute with @codebuff/sdk
+const result = await runner.executeAgent(agentId, prompt, context)
 ```
 
 **Departments**:
@@ -487,7 +503,9 @@ await redis.setex(`key:${id}`, 300, JSON.stringify(data))
 - [x] Task Service (tasks.ft.tc)
 - [x] FAL.ai Media Generation
 - [x] Cloudflare R2 Storage
-- [x] OpenRouter LLM
+- [x] @codebuff/sdk (LLM abstraction layer)
+- [x] OpenRouter (via @codebuff/sdk)
+- [x] Anthropic Claude (via @codebuff/sdk)
 - [x] ElevenLabs Voice
 - [x] Jina AI Embeddings
 

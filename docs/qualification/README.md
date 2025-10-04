@@ -59,12 +59,16 @@
 
 ✅ Store scenes in PayloadCMS `scenes` collection
 
-### LLM Integration
-✅ OpenRouter API integration with Claude Sonnet 4.5
-✅ Proper prompt engineering for scene breakdown
-✅ JSON response parsing with error handling
-✅ Token usage tracking
-✅ Retry logic with backup model support
+### Agent-Based LLM Integration
+✅ @codebuff/sdk for LLM abstraction
+✅ AladdinAgentRunner for agent execution
+✅ Dynamic agent loading from PayloadCMS
+✅ OpenRouter/Anthropic API integration via @codebuff/sdk
+✅ Custom tool loading and registration
+✅ Real-time event streaming
+✅ Execution tracking in agent-executions collection
+✅ Automatic retry logic with exponential backoff
+✅ Performance metrics and success rate tracking
 
 ## 📊 Data Flow
 
@@ -74,12 +78,14 @@
 └──────┬──────┘
        │
        ↓
-┌──────────────────────┐
-│  World Department    │
-│  - Extract data      │
-│  - Generate bible    │  → LLM (Claude Sonnet 4.5)
-│  - Store qualified   │
-└──────┬───────────────┘
+┌──────────────────────────────────────────┐
+│  World Department                         │
+│  PayloadCMS → AladdinAgentRunner         │
+│  - Load world-processor agent            │
+│  - Execute via @codebuff/sdk             │
+│  - Generate bible via OpenRouter/Claude  │
+│  - Store qualified data                  │
+└──────┬───────────────────────────────────┘
        │
        ↓
 ┌──────────────────────┐
@@ -89,12 +95,14 @@
 └──────┬───────────────┘
        │
        ↓
-┌──────────────────────┐
-│  Story Department    │
-│  - Get story bible   │
-│  - Generate script   │  → LLM (Claude Sonnet 4.5)
-│  - Break into scenes │
-└──────┬───────────────┘
+┌──────────────────────────────────────────┐
+│  Story Department                         │
+│  PayloadCMS → AladdinAgentRunner         │
+│  - Load story-processor agent            │
+│  - Execute via @codebuff/sdk             │
+│  - Generate script via OpenRouter/Claude │
+│  - Break into scenes                     │
+└──────┬───────────────────────────────────┘
        │
        ↓
 ┌──────────────────────┐

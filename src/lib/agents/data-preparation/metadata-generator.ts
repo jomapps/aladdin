@@ -1,6 +1,9 @@
 /**
  * Metadata Generator - LLM-Powered Dynamic Metadata Generation
  * Uses multi-sequence prompts to analyze entities and generate rich metadata
+ *
+ * NOTE: This utility service uses direct LLM client for focused metadata generation.
+ * See /docs/migration/LLM_CLIENT_TO_AGENT_RUNNER.md for when to use agents instead.
  */
 
 import { LLMClient } from '@/lib/llm/client'

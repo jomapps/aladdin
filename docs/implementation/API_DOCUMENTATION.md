@@ -191,7 +191,9 @@ curl "https://aladdin.ngrok.pro/api/v1/gather/abc123?page=1&limit=10&sort=latest
 ---
 
 #### POST /api/v1/project-readiness/[projectId]/evaluate
-**Description**: Submit a department for evaluation
+**Description**: Submit a department for evaluation using AI agents
+
+**Architecture**: Uses AladdinAgentRunner to execute evaluation agents from PayloadCMS
 
 **Request Body**:
 ```typescript
@@ -207,14 +209,28 @@ curl "https://aladdin.ngrok.pro/api/v1/gather/abc123?page=1&limit=10&sort=latest
   department: string;
   status: 'in_progress' | 'queued';
   message: string;
+  executionId?: string; // Agent execution ID
 }
 ```
+
+**Execution Flow**:
+1. Load department from PayloadCMS
+2. Find corresponding agent (e.g., 'story-evaluator-001')
+3. Create AladdinAgentRunner instance
+4. Execute agent via @codebuff/sdk
+5. Agent uses custom tools to:
+   - Gather project data
+   - Analyze content quality
+   - Generate evaluation summary
+   - Store results in project-readiness
+6. Track execution in agent-executions collection
 
 **Validation Rules**:
 1. Previous department must be completed (except dept 1)
 2. Previous department rating must meet threshold
 3. Project must exist
 4. Department must exist
+5. Agent must be active in PayloadCMS
 
 ---
 

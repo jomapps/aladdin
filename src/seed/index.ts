@@ -21,6 +21,7 @@ import { seedAgents } from './agents.seed.js'
 import { seedCustomTools } from './custom-tools.seed.js'
 import { seedUsers } from './users.seed.js'
 import { seedProjects } from './projects.seed.js'
+import { seedQualificationAgents } from './qualification-agents.seed.js'
 
 /**
  * Main seed function
@@ -37,13 +38,14 @@ async function seed() {
     console.log('✅ PayloadCMS initialized\n')
 
     // Seed order:
-    // Users → Departments → Agents → Custom Tools → Projects
+    // Users → Departments → Agents → Custom Tools → Qualification Agents → Projects
     // (Agents & Tools depend on Departments; Projects depend on Users)
 
     await seedUsers(payload)
     await seedDepartments(payload)
     await seedAgents(payload)
     await seedCustomTools(payload)
+    await seedQualificationAgents(payload)
     await seedProjects(payload)
 
     console.log('='.repeat(60))
@@ -53,7 +55,7 @@ async function seed() {
     console.log('📊 Seed Summary:')
     console.log('  - Users: 3')
     console.log('  - Departments: 7')
-    console.log('  - Agents: 35 (6 heads + 29 specialists)')
+    console.log('  - Agents: 40 (6 heads + 29 specialists + 5 qualification agents)')
     console.log('    • Story: 5 agents')
     console.log(
       '    • Character: 10 agents (includes Hair Stylist, Costume Designer, Makeup Artist, Voice Creator)',
@@ -62,6 +64,7 @@ async function seed() {
     console.log('    • Video: 5 agents')
     console.log('    • Audio: 5 agents')
     console.log('    • Production: 5 agents')
+    console.log('    • Qualification: 5 agents (Character, World, Story, Visual, Evaluation)')
     console.log('  - Custom Tools: 10')
     console.log('  - Projects: 4')
     console.log('\n✨ Your Aladdin AI system is ready to use!\n')

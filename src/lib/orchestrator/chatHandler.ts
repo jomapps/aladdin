@@ -1,6 +1,10 @@
 /**
  * Chat Mode Handler
  * Handles general AI conversation with optional project context via Brain service
+ *
+ * NOTE: Chat handler uses direct LLM client for simple conversations.
+ * For complex workflows with tools/agents, use AladdinAgentRunner.
+ * See /docs/migration/LLM_CLIENT_TO_AGENT_RUNNER.md
  */
 
 import { getLLMClient, type LLMMessage } from '@/lib/llm/client'

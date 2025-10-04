@@ -1,6 +1,10 @@
 /**
  * Data Mode Handler
  * Handles data ingestion into Gather with AI enrichment
+ *
+ * NOTE: Uses direct LLM client for simple enrichment tasks.
+ * For complex workflows, consider using AladdinAgentRunner.
+ * See /docs/migration/LLM_CLIENT_TO_AGENT_RUNNER.md
  */
 
 import { getLLMClient } from '@/lib/llm/client'

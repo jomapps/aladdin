@@ -1,22 +1,21 @@
 /**
  * World Department
- * Processes raw world data from gather DB and generates story bible using LLM
+ * Processes raw world data from gather DB and generates story bible using @codebuff/sdk agent
  *
  * Flow:
  * 1. Get raw world data from gather DB (gatherDatabase)
- * 2. Generate comprehensive story bible using LLM (OpenRouter/Claude)
+ * 2. Generate comprehensive story bible using World Department Agent (@codebuff/sdk)
  * 3. Extract world rules, timeline, consistency rules
  * 4. Store in qualified DB: story_bible collection
  * 5. Store in PayloadCMS: story-bible collection
  * 6. Ingest into brain service for semantic search
  */
 
-import { getLLMClient } from '@/lib/llm/client'
+import { AladdinAgentRunner } from '@/lib/agents/AladdinAgentRunner'
+import { getPayloadClient } from '@/lib/payload'
 import { gatherDB } from '@/lib/db/gatherDatabase'
 import { qualifiedDB } from '@/lib/db/qualifiedDatabase'
 import { BrainClient } from '@/lib/brain/client'
-import { getPayload } from 'payload'
-import config from '@payload-config'
 
 interface WorldData {
   projectId: string
@@ -92,10 +91,8 @@ interface StoryBible {
 }
 
 export class WorldDepartment {
-  private llm = getLLMClient()
-
   /**
-   * Process world data and generate story bible
+   * Process world data and generate story bible using @codebuff/sdk agent
    */
   async processWorldData(projectId: string, projectSlug: string, userId: string): Promise<StoryBible> {
     console.log(`[WorldDept] Processing world data for project ${projectSlug}`)
@@ -104,8 +101,8 @@ export class WorldDepartment {
     const worldData = await this.getRawWorldData(projectId, projectSlug)
     console.log(`[WorldDept] Retrieved ${worldData.worldElements.length} world elements`)
 
-    // Step 2: Generate story bible using LLM
-    const storyBible = await this.generateStoryBible(worldData)
+    // Step 2: Generate story bible using World Department Agent (@codebuff/sdk)
+    const storyBible = await this.generateStoryBible(worldData, projectId)
     console.log(`[WorldDept] Generated story bible with ${storyBible.worldRules.length} world rules`)
 
     // Step 3: Store in qualified DB
@@ -164,10 +161,66 @@ export class WorldDepartment {
   }
 
   /**
-   * Generate comprehensive story bible using LLM
+   * Generate comprehensive story bible using World Department Agent
    */
-  private async generateStoryBible(worldData: WorldData): Promise<StoryBible> {
-    const prompt = `You are a master story consultant creating a comprehensive story bible for a movie production.
+  private async generateStoryBible(worldData: WorldData, projectId: string): Promise<StoryBible> {
+    const prompt = this.buildWorldPrompt(worldData)
+
+    try {
+      // Initialize PayloadCMS and agent runner
+      const payload = await getPayloadClient()
+      const runner = new AladdinAgentRunner(
+        process.env.OPENROUTER_API_KEY!,
+        payload
+      )
+
+      // Get world department agent from PayloadCMS
+      const agents = await payload.find({
+        collection: 'agents',
+        where: { slug: { equals: 'world-department-agent' } },
+        limit: 1
+      })
+
+      if (!agents.docs.length) {
+        throw new Error('World Department Agent not found in PayloadCMS')
+      }
+
+      // Execute agent with proper context
+      const result = await runner.executeAgent(
+        agents.docs[0].id,
+        prompt,
+        {
+          projectId,
+          conversationId: `world-${projectId}`,
+          metadata: {
+            department: 'world',
+            dataSize: {
+              worldElements: worldData.worldElements.length,
+              characters: worldData.characters.length,
+              locations: worldData.locations.length,
+              rules: worldData.rules.length
+            }
+          }
+        }
+      )
+
+      // Parse JSON output (agent system prompt enforces JSON format)
+      const storyBible = this.parseStoryBible(result.output)
+
+      return storyBible
+    } catch (error) {
+      console.error('[WorldDept] Failed to generate story bible:', error)
+      throw new Error(
+        `Story bible generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
+    }
+  }
+
+  /**
+   * Build world prompt for agent
+   */
+  private buildWorldPrompt(worldData: WorldData): string {
+    return `You are a master story consultant creating a comprehensive story bible for a movie production.
 
 Given the following world data:
 
@@ -259,12 +312,47 @@ interface StoryBible {
   }
 }
 
-IMPORTANT: Return ONLY the JSON object, no markdown, no explanations.`
+CRITICAL: Return ONLY the JSON object, no markdown formatting, no code blocks, no explanations.`
+  }
 
-    return await this.llm.completeJSON<StoryBible>(prompt, {
-      temperature: 0.3,
-      maxTokens: 8000
-    })
+  /**
+   * Parse and validate story bible from agent output
+   */
+  private parseStoryBible(output: unknown): StoryBible {
+    try {
+      // Handle different output formats
+      let jsonString: string
+
+      if (typeof output === 'string') {
+        // Remove markdown code blocks if present
+        jsonString = output.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
+      } else if (typeof output === 'object' && output !== null) {
+        // Already an object, just validate structure
+        return output as StoryBible
+      } else {
+        throw new Error('Invalid output format: expected string or object')
+      }
+
+      const parsed = JSON.parse(jsonString)
+
+      // Validate required fields
+      if (!parsed.title || !parsed.version || !parsed.synopsis) {
+        throw new Error('Missing required fields: title, version, or synopsis')
+      }
+
+      if (!Array.isArray(parsed.worldRules)) {
+        throw new Error('worldRules must be an array')
+      }
+
+      return parsed as StoryBible
+    } catch (error) {
+      console.error('[WorldDept] Failed to parse story bible:', error)
+      console.error('[WorldDept] Raw output:', output)
+
+      throw new Error(
+        `Failed to parse story bible JSON: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
+    }
   }
 
   /**
@@ -294,7 +382,7 @@ IMPORTANT: Return ONLY the JSON object, no markdown, no explanations.`
    * Store story bible in PayloadCMS
    */
   private async storeInPayloadCMS(storyBible: StoryBible, projectId: string): Promise<void> {
-    const payload = await getPayload({ config })
+    const payload = await getPayloadClient()
 
     await payload.create({
       collection: 'story-bible',
@@ -311,7 +399,7 @@ IMPORTANT: Return ONLY the JSON object, no markdown, no explanations.`
         themes: storyBible.themes,
         visualStyleGuide: storyBible.visualStyleGuide,
         lastReviewedAt: new Date(),
-        lastReviewedBy: 'World Department (AI)',
+        lastReviewedBy: 'World Department Agent (@codebuff/sdk)',
       }
     })
   }

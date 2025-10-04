@@ -1,5 +1,8 @@
 /**
  * Relationship Discoverer - Auto-discovers relationships between entities
+ *
+ * NOTE: This utility service uses direct LLM client for relationship analysis.
+ * See /docs/migration/LLM_CLIENT_TO_AGENT_RUNNER.md for when to use agents instead.
  */
 
 import { LLMClient } from '@/lib/llm/client'

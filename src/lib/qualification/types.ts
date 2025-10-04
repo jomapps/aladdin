@@ -2,6 +2,25 @@
  * TypeScript Types for Qualification Departments
  */
 
+import type { AgentExecutionContext as BaseAgentExecutionContext, AgentExecutionResult } from '@/lib/agents/AladdinAgentRunner'
+
+/**
+ * Extended agent execution context for qualification
+ */
+export interface QualificationAgentContext extends BaseAgentExecutionContext {
+  gatherDbName?: string
+  qualifiedDbName?: string
+  phase?: 'character' | 'world-building' | 'visual-design' | 'story-development' | 'other'
+}
+
+/**
+ * Agent execution result for qualification tasks
+ */
+export interface QualificationAgentResult extends AgentExecutionResult {
+  department: string
+  qualifiedData?: any
+}
+
 export interface WorldData {
   projectId: string
   projectSlug: string

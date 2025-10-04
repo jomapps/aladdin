@@ -13,33 +13,43 @@
 
 ## Architecture Overview
 
-The Aladdin system integrates three primary external services:
+The Aladdin system integrates external services through a layered architecture:
 
 ```
-┌─────────────────────────────────────────────────┐
-│           Aladdin Next.js Application           │
-│  ┌─────────────┐  ┌──────────────┐  ┌────────┐ │
-│  │   Gather    │  │   Project    │  │ Agent  │ │
-│  │   System    │  │  Readiness   │  │ System │ │
-│  └──────┬──────┘  └──────┬───────┘  └───┬────┘ │
-└─────────┼─────────────────┼──────────────┼──────┘
-          │                 │              │
-          ▼                 ▼              ▼
-    ┌──────────┐      ┌──────────┐   ┌──────────┐
-    │  Brain   │      │   Task   │   │  FAL.ai  │
-    │ Service  │      │ Service  │   │  Media   │
-    │(brain.ft)│      │(tasks.ft)│   │Generation│
-    └──────────┘      └──────────┘   └──────────┘
-         │                  │              │
-         ▼                  ▼              ▼
-    Neo4j Graph        Redis/Celery    Image/Video
-    + Embeddings       Task Queue       Generation
+┌─────────────────────────────────────────────────────────┐
+│              Aladdin Next.js Application                │
+│  ┌─────────────┐  ┌──────────────┐  ┌────────────────┐ │
+│  │   Gather    │  │   Project    │  │ AladdinAgent   │ │
+│  │   System    │  │  Readiness   │  │    Runner      │ │
+│  └──────┬──────┘  └──────┬───────┘  └───────┬────────┘ │
+└─────────┼─────────────────┼──────────────────┼──────────┘
+          │                 │                  │
+          ▼                 ▼                  ▼
+    ┌──────────┐      ┌──────────┐   ┌─────────────────┐
+    │  Brain   │      │   Task   │   │  @codebuff/sdk  │
+    │ Service  │      │ Service  │   │  (LLM Layer)    │
+    │(brain.ft)│      │(tasks.ft)│   └────────┬────────┘
+    └──────────┘      └──────────┘            │
+         │                  │                 │
+         ▼                  ▼                 ▼
+    Neo4j Graph        Redis/Celery    ┌──────────────┐
+    + Embeddings       Task Queue       │  OpenRouter  │
+                                        │  Anthropic   │
+                                        └──────────────┘
+          │
+          ▼
+    ┌──────────┐
+    │  FAL.ai  │
+    │  Media   │
+    └──────────┘
 ```
 
 **Service Responsibilities**:
 1. **Brain Service** (`brain.ft.tc`) - Knowledge graph, semantic search, validation
 2. **Task Service** (`tasks.ft.tc`) - Async task processing, evaluation queue
-3. **FAL.ai** - AI-powered media generation (images, vision queries)
+3. **@codebuff/sdk** - LLM abstraction layer (OpenRouter/Anthropic)
+4. **AladdinAgentRunner** - Agent execution engine (PayloadCMS ↔ @codebuff/sdk)
+5. **FAL.ai** - AI-powered media generation (images, vision queries)
 
 ---
 
@@ -427,6 +437,220 @@ try {
   } else {
     console.error('Task submission failed:', error)
   }
+}
+```
+
+---
+
+## LLM Integration via @codebuff/sdk
+
+### Overview
+All LLM interactions go through @codebuff/sdk, which provides a unified interface to OpenRouter and Anthropic APIs.
+
+**Architecture**: PayloadCMS Agents → AladdinAgentRunner → @codebuff/sdk → OpenRouter/Anthropic
+
+### AladdinAgentRunner Setup
+
+```typescript
+// src/lib/agents/AladdinAgentRunner.ts
+import { CodebuffClient } from '@codebuff/sdk'
+import type { Payload } from 'payload'
+
+export class AladdinAgentRunner {
+  private client: CodebuffClient
+  private payload: Payload
+
+  constructor(apiKey: string, payload: Payload, cwd?: string) {
+    // Auto-detect OpenRouter vs Anthropic
+    const useOpenRouter = !!process.env.OPENROUTER_BASE_URL
+    const finalApiKey = useOpenRouter
+      ? process.env.OPENROUTER_API_KEY || apiKey
+      : apiKey
+
+    this.client = new CodebuffClient({
+      apiKey: finalApiKey,
+      baseURL: useOpenRouter ? process.env.OPENROUTER_BASE_URL : undefined,
+      cwd: cwd || process.cwd(),
+    })
+    this.payload = payload
+  }
+
+  async executeAgent(
+    agentId: string,
+    prompt: string,
+    context: AgentExecutionContext
+  ): Promise<AgentExecutionResult> {
+    // 1. Load agent from PayloadCMS
+    const agent = await this.payload.find({
+      collection: 'agents',
+      where: { agentId: { equals: agentId } }
+    })
+
+    // 2. Load custom tools for agent
+    const tools = await this.loadCustomTools(agent)
+
+    // 3. Create agent definition
+    const agentDefinition = {
+      id: agent.agentId,
+      model: agent.model,
+      displayName: agent.name,
+      toolNames: agent.toolNames,
+      instructionsPrompt: agent.instructionsPrompt
+    }
+
+    // 4. Execute via @codebuff/sdk
+    const result = await this.client.run({
+      agent: agent.agentId,
+      prompt,
+      agentDefinitions: [agentDefinition],
+      customToolDefinitions: tools,
+      maxAgentSteps: agent.maxAgentSteps || 20,
+      handleEvent: async (event) => {
+        // Store events in agent-executions collection
+        await this.handleAgentEvent(executionId, event)
+      }
+    })
+
+    return {
+      executionId,
+      output: result.output,
+      runState: result,
+      executionTime: Date.now() - startTime
+    }
+  }
+}
+```
+
+### Usage in Qualification System
+
+```typescript
+// src/lib/qualification/worldDepartment.ts
+import { AladdinAgentRunner } from '@/lib/agents/AladdinAgentRunner'
+import { getPayload } from 'payload'
+import config from '@payload-config'
+
+export async function processWorldData(projectId: string) {
+  const payload = await getPayload({ config })
+  const runner = new AladdinAgentRunner(
+    process.env.CODEBUFF_API_KEY!,
+    payload
+  )
+
+  // Execute world-processor agent
+  const result = await runner.executeAgent(
+    'world-processor-001',
+    'Generate story bible from gather data',
+    {
+      projectId,
+      conversationId: `world-${projectId}`,
+      metadata: { department: 'world' }
+    }
+  )
+
+  return result.output // Story bible
+}
+```
+
+### Custom Tool Loading
+
+```typescript
+// Tools are loaded from PayloadCMS custom-tools collection
+private async loadCustomTools(agent: any): Promise<any[]> {
+  const toolsQuery = await this.payload.find({
+    collection: 'custom-tools',
+    where: {
+      and: [
+        {
+          or: [
+            { isGlobal: { equals: true } },
+            { departments: { contains: agent.department } }
+          ]
+        },
+        { isActive: { equals: true } }
+      ]
+    }
+  })
+
+  return toolsQuery.docs.map(tool => ({
+    toolName: tool.toolName,
+    description: tool.description,
+    inputSchema: tool.inputSchema,
+    execute: new Function(`return ${tool.executeFunction}`)()
+  }))
+}
+```
+
+### OpenRouter Configuration
+
+```bash
+# .env
+# For OpenRouter (via @codebuff/sdk)
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_API_KEY=sk-or-v1-...
+OPENROUTER_DEFAULT_MODEL=anthropic/claude-sonnet-4.5
+
+# For direct Anthropic (via @codebuff/sdk)
+ANTHROPIC_API_KEY=sk-ant-...
+CODEBUFF_API_KEY=${ANTHROPIC_API_KEY}
+```
+
+### Execution Tracking
+
+All agent executions are tracked in the `agent-executions` collection:
+
+```typescript
+interface AgentExecution {
+  id: string
+  agent: string              // Agent ID
+  department: string         // Department ID
+  project: string            // Project ID
+  prompt: string            // Input prompt
+  output: unknown           // Agent output
+  runState: RunState        // Full @codebuff/sdk run state
+  status: 'running' | 'completed' | 'failed'
+  executionTime: number     // Milliseconds
+  tokenUsage: {
+    inputTokens: number
+    outputTokens: number
+    totalTokens: number
+  }
+  events: Array<unknown>    // Real-time events
+  error?: {
+    message: string
+    code?: string
+  }
+}
+```
+
+### Error Handling
+
+```typescript
+try {
+  const result = await runner.executeAgent(agentId, prompt, context)
+} catch (error) {
+  console.error('Agent execution failed:', error)
+
+  // Automatic retry with exponential backoff
+  if (execution.retryCount < execution.maxRetries) {
+    const delay = Math.pow(2, execution.retryCount) * 1000
+    await new Promise(resolve => setTimeout(resolve, delay))
+    return runner.executeAgent(agentId, prompt, context)
+  }
+}
+```
+
+### Performance Metrics
+
+Agent performance is automatically tracked:
+
+```typescript
+interface AgentMetrics {
+  totalExecutions: number
+  successfulExecutions: number
+  failedExecutions: number
+  averageExecutionTime: number  // Milliseconds
+  successRate: number            // Percentage
+  lastExecutedAt: Date
 }
 ```
 

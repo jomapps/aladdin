@@ -1,9 +1,9 @@
 /**
  * Evaluation Enhancer Service
- * Uses AI to analyze evaluation results and generate improvements
+ * Uses AI agents to analyze evaluation results and generate improvements
  */
 
-import { getLLMClient } from '@/lib/llm/client'
+import { AladdinAgentRunner } from '@/lib/agents/AladdinAgentRunner'
 import { getDataPreparationAgent } from '@/lib/agents/data-preparation/agent'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
@@ -73,10 +73,8 @@ class EvaluationEnhancer {
       .join('\n\n---\n\n')
       .slice(0, 3000) // Limit to 3000 chars to avoid token overflow
 
-    // 3. Use LLM to generate comprehensive improvements
-    const llm = getLLMClient()
+    // 3. Use AladdinAgentRunner to generate comprehensive improvements
     const improvements = await this.generateImprovements(
-      llm,
       project,
       departmentName,
       evaluationResult,
@@ -85,6 +83,7 @@ class EvaluationEnhancer {
       suggestions,
       rating,
       existingContent,
+      projectId,
     )
 
     console.log('[EvaluationEnhancer] Generated improvements:', improvements.length)
@@ -98,10 +97,13 @@ class EvaluationEnhancer {
 
     for (const improvement of improvements) {
       try {
-        console.log('[EvaluationEnhancer] Processing improvement:', {
+        console.log('[EvaluationEnhancer] ========================================')
+        console.log('[EvaluationEnhancer] 📦 Processing improvement:', {
           type: improvement.type,
           originalIssue: improvement.originalIssue?.slice(0, 50),
           contentLength: improvement.content?.length,
+          contentType: typeof improvement.content,
+          contentPreview: improvement.content?.slice(0, 200),
         })
 
         // Create summary and context for gather item
@@ -109,10 +111,16 @@ class EvaluationEnhancer {
         const context = `Generated to address: ${improvement.originalIssue}`
 
         // Save to gather database (MongoDB)
-        console.log('[EvaluationEnhancer] Saving to gather database...')
+        console.log('[EvaluationEnhancer] 💾 Saving to gather database...')
+        console.log('[EvaluationEnhancer] Content to save (length):', improvement.content.length)
+        console.log(
+          '[EvaluationEnhancer] Content to save (preview):',
+          improvement.content.slice(0, 300),
+        )
+
         const gatherDoc = await gatherDB.createGatherItem(projectId, {
           projectId,
-          content: JSON.stringify(improvement.content), // Store as JSON string
+          content: improvement.content, // ✅ Store as string directly, NOT JSON.stringify
           summary,
           context,
           createdBy: userId,
@@ -127,7 +135,8 @@ class EvaluationEnhancer {
             model: 'ai-enhancement',
           },
         })
-        console.log('[EvaluationEnhancer] Saved to gather:', gatherDoc._id)
+        console.log('[EvaluationEnhancer] ✅ Saved to gather:', gatherDoc._id)
+        console.log('[EvaluationEnhancer] Saved content length:', gatherDoc.content?.length)
 
         // Prepare and enrich data for brain service
         console.log('[EvaluationEnhancer] Preparing data for brain service...')
@@ -210,10 +219,9 @@ class EvaluationEnhancer {
   }
 
   /**
-   * Generate improvements using LLM
+   * Generate improvements using AladdinAgentRunner
    */
   private async generateImprovements(
-    llm: any,
     project: any,
     departmentName: string,
     evaluationResult: string,
@@ -222,6 +230,7 @@ class EvaluationEnhancer {
     suggestions: string[],
     rating: number,
     existingContent: string,
+    projectId: string,
   ): Promise<Array<{ type: string; content: string; originalIssue: string }>> {
     const prompt = `You are an expert movie production assistant creating CONCRETE DELIVERABLES to resolve evaluation issues.
 
@@ -369,34 +378,81 @@ Return ONLY valid JSON (no markdown, no extra text):
 ]`
 
     try {
-      console.log('[EvaluationEnhancer] Calling LLM to generate improvements...')
-      console.log('[EvaluationEnhancer] LLM client type:', llm.constructor.name)
+      console.log('[EvaluationEnhancer] ========================================')
+      console.log('[EvaluationEnhancer] 🚀 STARTING AGENT EXECUTION')
+      console.log('[EvaluationEnhancer] ========================================')
       console.log('[EvaluationEnhancer] Prompt length:', prompt.length)
+      console.log('[EvaluationEnhancer] Issues count:', issues.length)
+      console.log('[EvaluationEnhancer] Suggestions count:', suggestions.length)
+      console.log('[EvaluationEnhancer] Prompt preview:', prompt.slice(0, 500))
 
-      // Use chat() method which accepts array of messages, not complete()
-      const response = await llm.chat(
-        [
-          {
-            role: 'system',
-            content:
-              'You are an expert movie production assistant. Generate detailed, production-ready content.',
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        {
-          maxTokens: 4000, // Increase token limit for detailed responses
-          temperature: 0.7, // Slightly higher for more creative content
+      // Get PayloadCMS instance
+      const payload = await getPayload({ config })
+
+      // Initialize AladdinAgentRunner
+      const apiKey = process.env.OPENROUTER_API_KEY || process.env.ANTHROPIC_API_KEY
+      if (!apiKey) {
+        throw new Error('Missing API key: Set OPENROUTER_API_KEY or ANTHROPIC_API_KEY')
+      }
+
+      const runner = new AladdinAgentRunner(apiKey, payload)
+
+      // Find evaluation enhancer agent
+      const agents = await payload.find({
+        collection: 'agents',
+        where: {
+          or: [
+            { slug: { equals: 'evaluation-enhancer-agent' } },
+            { slug: { equals: 'quality-enhancer-agent' } }
+          ],
+          isActive: { equals: true }
         },
+        limit: 1
+      })
+
+      if (!agents.docs.length) {
+        throw new Error('Evaluation enhancer agent not found. Please create evaluation-enhancer-agent in PayloadCMS.')
+      }
+
+      // Execute agent
+      console.log('[EvaluationEnhancer] 📤 Executing agent:', agents.docs[0].agentId)
+      const result = await runner.executeAgent(
+        agents.docs[0].agentId,
+        prompt,
+        {
+          projectId,
+          conversationId: `eval-enhance-${Date.now()}`,
+          metadata: {
+            departmentName,
+            rating,
+            issuesCount: issues.length,
+            suggestionsCount: suggestions.length
+          }
+        }
       )
 
-      console.log('[EvaluationEnhancer] LLM response received, length:', response.content.length)
+      console.log('[EvaluationEnhancer] ========================================')
+      console.log('[EvaluationEnhancer] ✅ AGENT RESPONSE RECEIVED!')
+      console.log('[EvaluationEnhancer] ========================================')
+      console.log('[EvaluationEnhancer] Output type:', typeof result.output)
+      console.log('[EvaluationEnhancer] Execution time:', result.executionTime, 'ms')
+      console.log('[EvaluationEnhancer] Token usage:', result.tokenUsage)
 
       // Parse JSON response
-      const content = response.content.trim()
+      let content = typeof result.output === 'string' ? result.output.trim() : JSON.stringify(result.output)
       console.log('[EvaluationEnhancer] Response preview:', content.slice(0, 200))
+
+      // Remove markdown code blocks if present
+      console.log('[EvaluationEnhancer] Cleaning markdown code blocks...')
+      if (content.startsWith('```json')) {
+        content = content.replace(/^```json\n?/, '').replace(/\n?```$/, '')
+        console.log('[EvaluationEnhancer] Removed ```json wrapper')
+      } else if (content.startsWith('```')) {
+        content = content.replace(/^```\n?/, '').replace(/\n?```$/, '')
+        console.log('[EvaluationEnhancer] Removed ``` wrapper')
+      }
+
+      console.log('[EvaluationEnhancer] Cleaned content preview:', content.slice(0, 200))
 
       const jsonMatch = content.match(/\[[\s\S]*\]/)
       if (!jsonMatch) {
@@ -404,7 +460,7 @@ Return ONLY valid JSON (no markdown, no extra text):
           '[EvaluationEnhancer] Failed to find JSON array in response:',
           content.slice(0, 500),
         )
-        throw new Error('Failed to parse LLM response as JSON - no array found')
+        throw new Error('Failed to parse agent response as JSON - no array found')
       }
 
       console.log('[EvaluationEnhancer] Parsing JSON array...')
@@ -414,7 +470,7 @@ Return ONLY valid JSON (no markdown, no extra text):
       // Validate improvements structure
       if (!Array.isArray(improvements) || improvements.length === 0) {
         console.error('[EvaluationEnhancer] Invalid improvements structure:', improvements)
-        throw new Error('LLM returned invalid improvements structure')
+        throw new Error('Agent returned invalid improvements structure')
       }
 
       // Validate each improvement has required fields
@@ -427,16 +483,17 @@ Return ONLY valid JSON (no markdown, no extra text):
 
       return improvements
     } catch (error) {
-      console.error('[EvaluationEnhancer] ❌ LLM generation failed:', {
+      console.error('[EvaluationEnhancer] ❌ AGENT GENERATION FAILED:', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         errorType: error?.constructor?.name,
         fullError: JSON.stringify(error, null, 2),
       })
-      // Return fallback improvements
-      console.log('[EvaluationEnhancer] ⚠️ Using fallback improvements due to LLM failure')
-      console.log('[EvaluationEnhancer] ⚠️ This means the AI did NOT generate detailed content')
-      return this.generateFallbackImprovements(issues, suggestions)
+      // NO FALLBACK - throw the error so we can see what's wrong
+      console.error('[EvaluationEnhancer] ❌ THROWING ERROR - NO FALLBACK')
+      throw new Error(
+        `Agent generation failed: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 

@@ -16,6 +16,7 @@
     "db:seed": "cross-env NODE_OPTIONS=--no-deprecation payload run ./scripts/db/clean.js -- --confirm --drop-db && cross-env NODE_OPTIONS=--no-deprecation payload run src/seed/index.ts",
     "db:backup": "cross-env NODE_OPTIONS=--no-deprecation payload run ./scripts/db/backup.js --",
     "db:restore": "cross-env NODE_OPTIONS=--no-deprecation payload run ./scripts/db/restore.js --",
+    "seed:qualification-agents": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/seed-qualification-agents.ts",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
     "test": "pnpm run test:int && pnpm run test:e2e",
     "test:e2e": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test",

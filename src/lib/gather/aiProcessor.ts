@@ -1,6 +1,10 @@
 /**
  * AI Processing Service for Gather Feature
  * Handles content enrichment, summary/context generation, and vision processing
+ *
+ * NOTE: This processor uses lightweight direct LLM calls for simple tasks.
+ * For complex agent workflows, use AladdinAgentRunner instead.
+ * See /docs/migration/LLM_CLIENT_TO_AGENT_RUNNER.md for details.
  */
 
 import { getLLMClient } from '@/lib/llm/client'
@@ -18,6 +22,8 @@ export class GatherAIProcessor {
   private maxIterations: number = 3
 
   constructor() {
+    // NOTE: This is one of the few places where direct LLM client is acceptable
+    // because we're doing simple, stateless content processing without complex workflows
     this.llmClient = getLLMClient()
   }
 

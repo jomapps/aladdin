@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { checkReadiness } from '@/lib/evaluation/checkReadiness';
+import { AladdinAgentRunner } from '@/lib/agents/AladdinAgentRunner';
+import { getPayloadClient } from '@/lib/payload';
 
 interface PhaseResult {
   department: string;
@@ -146,7 +148,13 @@ async function executeWorldDepartment(
 ): Promise<PhaseResult> {
   try {
     const supabase = await createClient();
+    const payload = await getPayloadClient();
+    const runner = new AladdinAgentRunner(
+      process.env.OPENROUTER_API_KEY!,
+      payload
+    );
 
+    // Fetch gather data
     const { data: gatherData, error: fetchError } = await supabase
       .from(gatherDbName)
       .select('*')
@@ -154,7 +162,51 @@ async function executeWorldDepartment(
 
     if (fetchError) throw fetchError;
 
-    const qualifiedData = processWorldData(gatherData);
+    // Load world department head agent
+    const worldAgent = await payload.find({
+      collection: 'agents',
+      where: {
+        agentId: { equals: 'story-head-001' }, // World building by story head
+        isActive: { equals: true }
+      },
+      limit: 1
+    });
+
+    if (!worldAgent.docs.length) {
+      throw new Error('World department agent not found');
+    }
+
+    // Create context prompt for world building
+    const contextPrompt = `Analyze and qualify world-building data for project ${projectId}:
+
+${JSON.stringify(gatherData, null, 2)}
+
+Generate a comprehensive story bible including:
+- World rules and constraints
+- Locations with detailed descriptions
+- Timeline of events
+- Consistency rules for visual and narrative elements
+- Themes and visual style guide
+
+Ensure all qualified data maintains consistency and supports the narrative.`;
+
+    // Execute agent
+    const result = await runner.executeAgent(
+      worldAgent.docs[0].agentId,
+      contextPrompt,
+      {
+        projectId,
+        conversationId: `qualification-world-${projectId}`,
+        metadata: { phase: 'world-building', gatherDbName, qualifiedDbName }
+      }
+    );
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    // Process and store qualified data
+    const qualifiedData = processWorldData(gatherData, result.output);
 
     const { error: insertError } = await supabase
       .from(qualifiedDbName)
@@ -179,7 +231,13 @@ async function executeVisualDepartment(
 ): Promise<PhaseResult> {
   try {
     const supabase = await createClient();
+    const payload = await getPayloadClient();
+    const runner = new AladdinAgentRunner(
+      process.env.OPENROUTER_API_KEY!,
+      payload
+    );
 
+    // Fetch gather data
     const { data: gatherData, error: fetchError } = await supabase
       .from(gatherDbName)
       .select('*')
@@ -187,7 +245,51 @@ async function executeVisualDepartment(
 
     if (fetchError) throw fetchError;
 
-    const qualifiedData = processVisualData(gatherData);
+    // Load visual department head agent
+    const visualAgent = await payload.find({
+      collection: 'agents',
+      where: {
+        agentId: { equals: 'visual-head-001' },
+        isActive: { equals: true }
+      },
+      limit: 1
+    });
+
+    if (!visualAgent.docs.length) {
+      throw new Error('Visual department agent not found');
+    }
+
+    // Create context prompt for visual qualification
+    const contextPrompt = `Analyze and qualify visual design data for project ${projectId}:
+
+${JSON.stringify(gatherData, null, 2)}
+
+Generate comprehensive visual guidelines including:
+- Visual style and art direction
+- Color palettes and mood boards
+- Lighting and cinematography guidelines
+- Visual consistency rules
+- Quality standards for image generation
+
+Ensure all qualified data maintains visual coherence and supports the narrative tone.`;
+
+    // Execute agent
+    const result = await runner.executeAgent(
+      visualAgent.docs[0].agentId,
+      contextPrompt,
+      {
+        projectId,
+        conversationId: `qualification-visual-${projectId}`,
+        metadata: { phase: 'visual-design', gatherDbName, qualifiedDbName }
+      }
+    );
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    // Process and store qualified data
+    const qualifiedData = processVisualData(gatherData, result.output);
 
     const { error: insertError } = await supabase
       .from(qualifiedDbName)
@@ -216,6 +318,11 @@ async function executePhaseB(
 ): Promise<PhaseResult> {
   try {
     const supabase = await createClient();
+    const payload = await getPayloadClient();
+    const runner = new AladdinAgentRunner(
+      process.env.OPENROUTER_API_KEY!,
+      payload
+    );
 
     // Get story data from gather
     const { data: gatherData, error: fetchError } = await supabase
@@ -225,11 +332,71 @@ async function executePhaseB(
 
     if (fetchError) throw fetchError;
 
+    // Load story department head agent
+    const storyAgent = await payload.find({
+      collection: 'agents',
+      where: {
+        agentId: { equals: 'story-head-001' },
+        isActive: { equals: true }
+      },
+      limit: 1
+    });
+
+    if (!storyAgent.docs.length) {
+      throw new Error('Story department agent not found');
+    }
+
     // Process story data using Phase A results for context
     const characterData = phaseAResults.find(r => r.department === 'character')?.data;
     const worldData = phaseAResults.find(r => r.department === 'world')?.data;
+    const visualData = phaseAResults.find(r => r.department === 'visual')?.data;
 
-    const qualifiedData = processStoryData(gatherData, { characterData, worldData });
+    // Create context prompt for story qualification with Phase A context
+    const contextPrompt = `Analyze and qualify story data for project ${projectId} with context from Phase A:
+
+GATHER STORY DATA:
+${JSON.stringify(gatherData, null, 2)}
+
+QUALIFIED CHARACTER DATA:
+${JSON.stringify(characterData, null, 2)}
+
+QUALIFIED WORLD DATA:
+${JSON.stringify(worldData, null, 2)}
+
+QUALIFIED VISUAL DATA:
+${JSON.stringify(visualData, null, 2)}
+
+Generate a comprehensive screenplay and scene breakdown including:
+- Complete screenplay following industry format
+- Detailed scene breakdowns with camera/lighting direction
+- Dramatic effect analysis for each scene
+- Integration with character arcs and world rules
+- Visual consistency with art direction
+
+Ensure all story elements are consistent with the qualified character, world, and visual data from Phase A.`;
+
+    // Execute agent
+    const result = await runner.executeAgent(
+      storyAgent.docs[0].agentId,
+      contextPrompt,
+      {
+        projectId,
+        conversationId: `qualification-story-${projectId}`,
+        metadata: {
+          phase: 'story-development',
+          gatherDbName,
+          qualifiedDbName,
+          contextData: { characterData, worldData, visualData }
+        }
+      }
+    );
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    // Process and store qualified data
+    const qualifiedData = processStoryData(gatherData, { characterData, worldData }, result.output);
 
     // Store in qualified database
     const { error: insertError } = await supabase
@@ -353,31 +520,47 @@ function processCharacterData(data: any[]): any[] {
   }));
 }
 
-function processWorldData(data: any[]): any[] {
+function processWorldData(data: any[], agentOutput?: any): any[] {
   // Add qualification logic for world data
-  return data.map(item => ({
-    ...item,
-    qualified: true,
-    qualified_at: new Date().toISOString()
-  }));
-}
-
-function processVisualData(data: any[]): any[] {
-  // Add qualification logic for visual data
-  return data.map(item => ({
-    ...item,
-    qualified: true,
-    qualified_at: new Date().toISOString()
-  }));
-}
-
-function processStoryData(data: any[], context: { characterData?: any[], worldData?: any[] }): any[] {
-  // Add qualification logic for story data with context from Phase A
+  // Merge agent output with original gather data
   return data.map(item => ({
     ...item,
     qualified: true,
     qualified_at: new Date().toISOString(),
-    context_applied: true
+    agent_qualified: agentOutput ? {
+      storyBible: agentOutput,
+      processedBy: 'story-head-001'
+    } : undefined
+  }));
+}
+
+function processVisualData(data: any[], agentOutput?: any): any[] {
+  // Add qualification logic for visual data
+  // Merge agent output with original gather data
+  return data.map(item => ({
+    ...item,
+    qualified: true,
+    qualified_at: new Date().toISOString(),
+    agent_qualified: agentOutput ? {
+      visualGuidelines: agentOutput,
+      processedBy: 'visual-head-001'
+    } : undefined
+  }));
+}
+
+function processStoryData(data: any[], context: { characterData?: any[], worldData?: any[] }, agentOutput?: any): any[] {
+  // Add qualification logic for story data with context from Phase A
+  // Merge agent output with original gather data
+  return data.map(item => ({
+    ...item,
+    qualified: true,
+    qualified_at: new Date().toISOString(),
+    context_applied: true,
+    agent_qualified: agentOutput ? {
+      screenplay: agentOutput,
+      processedBy: 'story-head-001',
+      contextData: context
+    } : undefined
   }));
 }
 

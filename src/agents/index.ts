@@ -160,6 +160,7 @@ import { productionManagerAgent } from './specialists/production/productionManag
 import { qualityControllerAgent } from './specialists/production/qualityController'
 import { schedulerAgent } from './specialists/production/scheduler'
 import { budgetCoordinatorAgent } from './specialists/production/budgetCoordinator'
+import { contentEnhancerAgent } from './specialists/production/contentEnhancer'
 
 import { masterReferenceGeneratorAgent } from './specialists/imageQuality/masterReferenceGenerator'
 import { profile360CreatorAgent } from './specialists/imageQuality/profile360Creator'
@@ -224,6 +225,7 @@ export const specialists = {
     qualityControllerAgent,
     schedulerAgent,
     budgetCoordinatorAgent,
+    contentEnhancerAgent,
   ],
   imageQuality: [
     masterReferenceGeneratorAgent,

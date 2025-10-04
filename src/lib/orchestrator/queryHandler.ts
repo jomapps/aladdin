@@ -1,6 +1,10 @@
 /**
  * Query Mode Handler
  * Handles Brain service queries with semantic search
+ *
+ * NOTE: Uses direct LLM client for result synthesis.
+ * For complex query workflows, consider using AladdinAgentRunner.
+ * See /docs/migration/LLM_CLIENT_TO_AGENT_RUNNER.md
  */
 
 import { getLLMClient, type LLMMessage } from '@/lib/llm/client'

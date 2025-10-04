@@ -1,6 +1,38 @@
 /**
  * LLM Client for OpenRouter Integration
  * Supports Claude Sonnet 4.5 via OpenRouter with retry logic and token tracking
+ *
+ * ⚠️ DEPRECATED: This client is deprecated and will be removed in a future version.
+ *
+ * USE INSTEAD: AladdinAgentRunner from @/lib/agents/AladdinAgentRunner
+ *
+ * Migration guide: /docs/migration/LLM_CLIENT_TO_AGENT_RUNNER.md
+ *
+ * Benefits of AladdinAgentRunner:
+ * - Consistent agent-based architecture
+ * - CMS-managed agent definitions
+ * - Custom tool integration
+ * - Execution tracking and audit trail
+ * - Real-time event streaming
+ * - Better error handling with retries
+ *
+ * Example migration:
+ * ```typescript
+ * // OLD (deprecated):
+ * import { getLLMClient } from '@/lib/llm/client'
+ * const llm = getLLMClient()
+ * const response = await llm.complete(prompt)
+ *
+ * // NEW (recommended):
+ * import { AladdinAgentRunner } from '@/lib/agents/AladdinAgentRunner'
+ * import { getPayload } from 'payload'
+ * import config from '@/payload.config'
+ *
+ * const payload = await getPayload({ config })
+ * const runner = new AladdinAgentRunner(apiKey, payload)
+ * const result = await runner.executeAgent('agent-id', prompt, context)
+ * const response = result.output
+ * ```
  */
 
 import axios, { AxiosInstance } from 'axios'
@@ -264,6 +296,14 @@ export class LLMClient {
 let llmClientInstance: LLMClient | null = null
 
 export function getLLMClient(config?: LLMConfig): LLMClient {
+  // ⚠️ DEPRECATION WARNING
+  console.warn(
+    '\n⚠️  DEPRECATION WARNING: getLLMClient() is deprecated!\n' +
+    '   Please migrate to AladdinAgentRunner for better architecture.\n' +
+    '   See: /docs/migration/LLM_CLIENT_TO_AGENT_RUNNER.md\n' +
+    '   This function will be removed in a future version.\n'
+  )
+
   if (!llmClientInstance) {
     const apiKey = config?.apiKey || process.env.OPENROUTER_API_KEY
     const baseUrl = config?.baseUrl || process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1'
