@@ -217,24 +217,20 @@ Provide a helpful, friendly response. Use markdown formatting when appropriate.`
 
   // 6. Execute agent
   const runner = new AladdinAgentRunner(payload)
-  const result = await runner.execute({
-    agentId: 'chat-assistant',
-    prompt: contextualPrompt,
-    context: {
-      projectId: projectId || 'global',
-      conversationId: actualConversationId,
-      userId,
-    },
+  const result = await runner.executeAgent('chat-assistant', contextualPrompt, {
+    projectId: projectId || 'global',
+    conversationId: actualConversationId,
+    metadata: { userId },
   })
 
   console.log('[ChatHandler] Agent response generated:', {
-    tokens: result.usage.totalTokens,
-    model: result.model,
+    tokens: result.tokenUsage?.totalTokens || 0,
+    executionTime: result.executionTime,
     brainResultsUsed: brainResults.length,
   })
 
   // 7. Generate contextual suggestions
-  const suggestions = generateChatSuggestions(content, result.content)
+  const suggestions = generateChatSuggestions(content, result.output)
 
   // 8. Save messages to conversation
   try {
@@ -254,7 +250,7 @@ Provide a helpful, friendly response. Use markdown formatting when appropriate.`
             {
               id: `msg-${Date.now()}-assistant`,
               role: 'assistant',
-              content: result.content,
+              content: result.output,
               timestamp: new Date(),
               metadata:
                 brainResults.length > 0 ? { brainResultsCount: brainResults.length } : undefined,
@@ -272,12 +268,12 @@ Provide a helpful, friendly response. Use markdown formatting when appropriate.`
   // 9. Return result
   return {
     conversationId: actualConversationId,
-    message: result.content,
-    model: result.model,
+    message: result.output,
+    model: model || process.env.OPENROUTER_DEFAULT_MODEL || 'anthropic/claude-sonnet-4.5',
     usage: {
-      promptTokens: result.usage.promptTokens,
-      completionTokens: result.usage.completionTokens,
-      totalTokens: result.usage.totalTokens,
+      promptTokens: result.tokenUsage?.inputTokens || 0,
+      completionTokens: result.tokenUsage?.outputTokens || 0,
+      totalTokens: result.tokenUsage?.totalTokens || 0,
     },
     suggestions,
   }

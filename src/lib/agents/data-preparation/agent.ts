@@ -99,6 +99,29 @@ Format as JSON with fields: summary, context, tags, entityType`,
   }
 
   /**
+   * Prepare batch of items (for backward compatibility)
+   */
+  async prepareBatch(
+    items: Array<{ data: any; options: PrepareOptions }>,
+  ): Promise<BrainDocument[]> {
+    console.log(`[DataPrepAgent] Preparing batch of ${items.length} items`)
+    const results = await Promise.all(
+      items.map((item) => this.prepare(item.data, item.options)),
+    )
+    return results
+  }
+
+  /**
+   * Prepare async (queued - for backward compatibility)
+   */
+  async prepareAsync(data: any, options: PrepareOptions): Promise<string> {
+    console.log(`[DataPrepAgent] Queueing preparation for ${options.entityType}`)
+    // For now, just prepare synchronously and return job ID
+    const result = await this.prepare(data, options)
+    return `job-${Date.now()}-${result.id}`
+  }
+
+  /**
    * Validate input data
    */
   private validateInput(data: any, options: PrepareOptions): void {
@@ -116,3 +139,45 @@ Format as JSON with fields: summary, context, tags, entityType`,
 
 // Export for backward compatibility
 export { DataPreparationAgent as default }
+
+/**
+ * Factory function for backward compatibility
+ * Creates a singleton instance of DataPreparationAgent
+ */
+let agentInstance: DataPreparationAgent | null = null
+
+export function getDataPreparationAgent(config?: AgentConfig): DataPreparationAgent {
+  if (!agentInstance) {
+    // Default config
+    const defaultConfig: AgentConfig = {
+      llm: {
+        model: 'anthropic/claude-sonnet-4.5',
+        temperature: 0.3,
+        maxTokens: 2000,
+      },
+      features: {
+        enableCaching: true,
+        enableBatching: true,
+        enableQueueing: false,
+        enableValidation: true,
+        enableMetadataGeneration: true,
+        enableRelationshipDiscovery: true,
+        enableContentEnrichment: true,
+      },
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+      },
+      cache: {
+        ttl: 3600,
+        maxSize: 1000,
+      },
+      queue: {
+        concurrency: 5,
+        maxRetries: 3,
+      },
+    }
+    agentInstance = new DataPreparationAgent(config || defaultConfig)
+  }
+  return agentInstance
+}

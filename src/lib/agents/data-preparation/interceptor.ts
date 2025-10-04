@@ -76,7 +76,7 @@ export class BrainServiceInterceptor {
         !item.options.sourceCollection ||
         !this.bypassCollections.has(item.options.sourceCollection),
     )
-    const toBypas = items.filter(
+    const toBypass = items.filter(
       (item) =>
         item.options.sourceCollection && this.bypassCollections.has(item.options.sourceCollection),
     )

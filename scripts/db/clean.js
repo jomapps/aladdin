@@ -138,8 +138,28 @@ async function main() {
 
     // Clean or drop PayloadCMS database
     if (process.argv.includes('--drop-db') || process.argv.includes('--drop')) {
-      await payloadClient.db().dropDatabase()
-      console.log('✅ Dropped PayloadCMS database')
+      const dbName = payloadClient.db().databaseName
+      console.log(`\n🗑️  Dropping database: ${dbName}`)
+
+      try {
+        await payloadClient.db().dropDatabase()
+        console.log(`✅ Dropped PayloadCMS database: ${dbName}`)
+
+        // Verify it's gone
+        const adminDb = payloadClient.db('admin')
+        const { databases } = await adminDb.admin().listDatabases()
+        const stillExists = databases.find(db => db.name === dbName)
+
+        if (stillExists) {
+          console.error(`❌ WARNING: Database ${dbName} still exists after drop!`)
+          console.error('   Manual cleanup may be required.')
+        } else {
+          console.log(`✅ Verified: Database ${dbName} has been completely removed`)
+        }
+      } catch (error) {
+        console.error(`❌ Failed to drop database:`, error.message)
+        throw error
+      }
     } else {
       await cleanPayloadDatabase(payloadClient)
     }

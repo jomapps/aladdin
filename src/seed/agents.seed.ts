@@ -1896,7 +1896,7 @@ You are the Head of the Production Department for Aladdin AI Movie Production. Y
     specialization: 'production-coordination',
     skills: [{ skill: 'project-management' }, { skill: 'coordination' }, { skill: 'oversight' }],
     isActive: true,
-    requiresReview: false,
+    requiresReview: true,
     qualityThreshold: 75,
     executionSettings: {
       timeout: 240,
@@ -2175,7 +2175,7 @@ When provided with project context from the Brain knowledge base, use it to give
     specialization: 'conversation',
     skills: [{ skill: 'communication' }, { skill: 'guidance' }, { skill: 'support' }],
     isActive: true,
-    requiresReview: false,
+    requiresReview: true,
     qualityThreshold: 75,
     executionSettings: {
       timeout: 60,
@@ -2231,7 +2231,7 @@ If the Brain has no or few results:
     specialization: 'query-synthesis',
     skills: [{ skill: 'search-synthesis' }, { skill: 'information-retrieval' }, { skill: 'guidance' }],
     isActive: true,
-    requiresReview: false,
+    requiresReview: true,
     qualityThreshold: 75,
     executionSettings: {
       timeout: 45,
@@ -2292,7 +2292,7 @@ You are an expert at enriching unstructured content with summaries, context, and
     specialization: 'data-enrichment',
     skills: [{ skill: 'summarization' }, { skill: 'metadata-extraction' }, { skill: 'organization' }],
     isActive: true,
-    requiresReview: false,
+    requiresReview: true,
     qualityThreshold: 75,
     executionSettings: {
       timeout: 45,
@@ -2349,7 +2349,7 @@ You are an expert at generating rich metadata for semantic search and knowledge 
     specialization: 'metadata-generation',
     skills: [{ skill: 'semantic-tagging' }, { skill: 'categorization' }, { skill: 'entity-extraction' }],
     isActive: true,
-    requiresReview: false,
+    requiresReview: true,
     qualityThreshold: 75,
     executionSettings: {
       timeout: 30,
@@ -2407,7 +2407,7 @@ You are an expert at discovering semantic relationships between content pieces.
     specialization: 'relationship-discovery',
     skills: [{ skill: 'relationship-mapping' }, { skill: 'graph-building' }, { skill: 'connection-analysis' }],
     isActive: true,
-    requiresReview: false,
+    requiresReview: true,
     qualityThreshold: 75,
     executionSettings: {
       timeout: 45,
@@ -2471,7 +2471,7 @@ Return scores for each dimension plus:
     specialization: 'quality-assessment',
     skills: [{ skill: 'quality-scoring' }, { skill: 'evaluation' }, { skill: 'feedback' }],
     isActive: true,
-    requiresReview: false,
+    requiresReview: true,
     qualityThreshold: 75,
     executionSettings: {
       timeout: 30,

@@ -1116,9 +1116,9 @@ export interface AgentExecution {
    */
   agent: string | Agent;
   /**
-   * Department this execution belongs to
+   * Department this execution belongs to (optional for utility agents)
    */
-  department: string | Department;
+  department?: (string | null) | Department;
   /**
    * Project this execution is part of
    */

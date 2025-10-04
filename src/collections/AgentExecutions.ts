@@ -70,10 +70,10 @@ export const AgentExecutions: CollectionConfig = {
       name: 'department',
       type: 'relationship',
       relationTo: 'departments',
-      required: true,
+      required: false,
       label: 'Department',
       admin: {
-        description: 'Department this execution belongs to',
+        description: 'Department this execution belongs to (optional for utility agents)',
       },
     },
 
