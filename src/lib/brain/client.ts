@@ -196,9 +196,26 @@ export class BrainClient {
    */
   async addNode(request: AddNodeRequest): Promise<BrainNode> {
     try {
+      console.log('[BrainClient] addNode request:', {
+        type: request.type,
+        contentLength: request.content?.length,
+        projectId: request.projectId,
+        hasProperties: !!request.properties,
+        propertiesKeys: request.properties ? Object.keys(request.properties) : [],
+        generateEmbedding: request.generateEmbedding,
+      })
       const response = await this.axiosInstance.post('/api/v1/nodes', request)
+      console.log('[BrainClient] addNode response:', {
+        nodeId: response.data.node?.id,
+        status: response.status,
+      })
       return response.data.node
     } catch (error) {
+      console.error('[BrainClient] addNode error:', {
+        error: error instanceof Error ? error.message : String(error),
+        response: (error as any)?.response?.data,
+        status: (error as any)?.response?.status,
+      })
       throw this.handleError(error, 'addNode')
     }
   }
@@ -240,8 +257,12 @@ export class BrainClient {
     request: DeleteNodeRequest,
   ): Promise<{ success: boolean; deletedCount: number }> {
     try {
+      const params: Record<string, any> = {}
+      if (request.cascade !== undefined) params.cascade = request.cascade
+      if (request.projectId) params.project_id = request.projectId
+
       const response = await this.axiosInstance.delete(`/api/v1/nodes/${request.nodeId}`, {
-        params: { cascade: request.cascade },
+        params,
       })
       return response.data
     } catch (error) {

@@ -351,6 +351,109 @@ class GatherDatabaseManager {
   }
 
   /**
+   * Lock gather database (prevents further modifications after qualification)
+   */
+  async lockDatabase(
+    projectId: string,
+    lockedBy: string,
+    migratedToSlug: string,
+    reason: string = 'Migrated to qualified database'
+  ): Promise<boolean> {
+    const db = await this.getProjectDatabase(projectId)
+    const lockCollection = db.collection('_system_lock')
+
+    const existing = await lockCollection.findOne({ databaseName: `aladdin-gather-${projectId}` })
+
+    if (existing && existing.isLocked) {
+      console.warn(`Gather database already locked for project: ${projectId}`)
+      return false
+    }
+
+    await lockCollection.updateOne(
+      { databaseName: `aladdin-gather-${projectId}` },
+      {
+        $set: {
+          databaseName: `aladdin-gather-${projectId}`,
+          isLocked: true,
+          lockedAt: new Date(),
+          lockedBy,
+          reason,
+          migratedToSlug
+        }
+      },
+      { upsert: true }
+    )
+
+    console.log(`🔒 Locked gather database for project: ${projectId}`)
+    return true
+  }
+
+  /**
+   * Unlock gather database (admin operation)
+   */
+  async unlockDatabase(projectId: string, unlockedBy: string): Promise<boolean> {
+    const db = await this.getProjectDatabase(projectId)
+    const lockCollection = db.collection('_system_lock')
+
+    const result = await lockCollection.updateOne(
+      { databaseName: `aladdin-gather-${projectId}` },
+      {
+        $set: {
+          isLocked: false,
+          unlockedAt: new Date(),
+          unlockedBy
+        }
+      }
+    )
+
+    if (result.modifiedCount > 0) {
+      console.log(`🔓 Unlocked gather database for project: ${projectId}`)
+      return true
+    }
+
+    return false
+  }
+
+  /**
+   * Check if database is locked
+   */
+  async isLocked(projectId: string): Promise<boolean> {
+    const db = await this.getProjectDatabase(projectId)
+    const lockCollection = db.collection('_system_lock')
+
+    const lockDoc = await lockCollection.findOne({ databaseName: `aladdin-gather-${projectId}` })
+    return lockDoc?.isLocked ?? false
+  }
+
+  /**
+   * Get lock status with details
+   */
+  async getLockStatus(projectId: string): Promise<{
+    isLocked: boolean
+    lockedAt?: Date
+    lockedBy?: string
+    reason?: string
+    migratedToSlug?: string
+  }> {
+    const db = await this.getProjectDatabase(projectId)
+    const lockCollection = db.collection('_system_lock')
+
+    const lockDoc = await lockCollection.findOne({ databaseName: `aladdin-gather-${projectId}` })
+
+    if (!lockDoc) {
+      return { isLocked: false }
+    }
+
+    return {
+      isLocked: lockDoc.isLocked,
+      lockedAt: lockDoc.lockedAt,
+      lockedBy: lockDoc.lockedBy,
+      reason: lockDoc.reason,
+      migratedToSlug: lockDoc.migratedToSlug
+    }
+  }
+
+  /**
    * Close connection
    */
   async close(): Promise<void> {
@@ -372,4 +475,31 @@ export async function getGatherDatabase(projectId: string): Promise<Db> {
 
 export async function getGatherCollection(projectId: string): Promise<Collection<GatherItem>> {
   return gatherDB.getGatherCollection(projectId)
+}
+
+export async function lockGatherDatabase(
+  projectId: string,
+  lockedBy: string,
+  migratedToSlug: string,
+  reason?: string
+): Promise<boolean> {
+  return gatherDB.lockDatabase(projectId, lockedBy, migratedToSlug, reason)
+}
+
+export async function unlockGatherDatabase(projectId: string, unlockedBy: string): Promise<boolean> {
+  return gatherDB.unlockDatabase(projectId, unlockedBy)
+}
+
+export async function isGatherDatabaseLocked(projectId: string): Promise<boolean> {
+  return gatherDB.isLocked(projectId)
+}
+
+export async function getGatherLockStatus(projectId: string): Promise<{
+  isLocked: boolean
+  lockedAt?: Date
+  lockedBy?: string
+  reason?: string
+  migratedToSlug?: string
+}> {
+  return gatherDB.getLockStatus(projectId)
 }

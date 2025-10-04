@@ -9,7 +9,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Search, Filter } from 'lucide-react'
+import { Search, Filter, Trash2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
@@ -40,6 +40,7 @@ export default function GatherPageClient({ projectId, projectName }: GatherPageC
   const [sort, setSort] = useState<'latest' | 'oldest' | 'a-z' | 'z-a'>('latest')
   const [hasImage, setHasImage] = useState<boolean | undefined>(undefined)
   const [hasDocument, setHasDocument] = useState<boolean | undefined>(undefined)
+  const [isClearing, setIsClearing] = useState(false)
 
   // Fetch gather items
   const { data, isLoading, error, refetch } = useQuery({
@@ -97,6 +98,53 @@ export default function GatherPageClient({ projectId, projectName }: GatherPageC
     }
   }
 
+  const handleClearGather = async () => {
+    // Confirm with user
+    const confirmed = window.confirm(
+      `⚠️ WARNING: This will permanently delete ALL gather data for this project!\n\n` +
+        `This includes:\n` +
+        `• ${data?.total || 0} gather items from MongoDB\n` +
+        `• All associated data from Brain service\n\n` +
+        `This action CANNOT be undone!\n\n` +
+        `Are you sure you want to continue?`,
+    )
+
+    if (!confirmed) return
+
+    setIsClearing(true)
+    toast.info('Clearing all gather data...')
+
+    try {
+      const response = await fetch(`/api/v1/gather/${projectId}/clear`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to clear gather data')
+      }
+
+      const result = await response.json()
+
+      if (result.success) {
+        toast.success(
+          `Successfully cleared ${result.deleted.gather} gather items and ${result.deleted.brain} brain nodes`,
+        )
+        // Refetch to show empty state
+        refetch()
+      } else {
+        toast.warning(
+          `Partially cleared: ${result.deleted.gather} gather items, ${result.deleted.brain} brain nodes. Some errors occurred.`,
+        )
+        refetch()
+      }
+    } catch (error) {
+      console.error('[GatherPage] Clear error:', error)
+      toast.error('Failed to clear gather data')
+    } finally {
+      setIsClearing(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background text-white">
       {/* Mobile Navigation */}
@@ -125,9 +173,21 @@ export default function GatherPageClient({ projectId, projectName }: GatherPageC
                 </div>
                 <div className="flex items-center gap-4">
                   {data && (
-                    <div className="flex items-baseline gap-2 text-slate-200">
+                    <div className="flex items-baseline gap-3 text-slate-200">
                       <span className="text-lg text-slate-400">Items:</span>
                       <span className="text-3xl font-bold text-white">{data.total}</span>
+                      {data.total > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleClearGather}
+                          disabled={isClearing}
+                          className="ml-2 h-8 w-8 p-0 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                          title="Clear all gather data"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   )}
                   <div className="flex-shrink-0">
@@ -199,7 +259,10 @@ export default function GatherPageClient({ projectId, projectName }: GatherPageC
                   {isLoading ? (
                     <div className="space-y-4">
                       {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="h-24 animate-pulse rounded-xl border border-slate-800/60 bg-slate-900/50" />
+                        <div
+                          key={i}
+                          className="h-24 animate-pulse rounded-xl border border-slate-800/60 bg-slate-900/50"
+                        />
                       ))}
                     </div>
                   ) : error ? (

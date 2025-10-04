@@ -2,6 +2,7 @@ import React from 'react'
 import '@/app/globals.css'
 import { Inter, Space_Grotesk } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
+import { GlobalErrorBanner } from '@/components/errors/GlobalErrorBanner'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -31,6 +32,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body className="font-sans antialiased">
+        <GlobalErrorBanner />
         <main>{children}</main>
         <Toaster />
       </body>

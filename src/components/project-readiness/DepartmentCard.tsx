@@ -8,13 +8,14 @@
 
 import { useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
-import { Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Loader2, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { AnimatedProgress } from './AnimatedProgress'
+import { toast } from 'sonner'
 import type { DepartmentEvaluation } from '@/stores/projectReadinessStore'
 
 interface DepartmentCardProps {
@@ -34,6 +35,7 @@ export function DepartmentCard({
 }: DepartmentCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [showFullEvaluation, setShowFullEvaluation] = useState(false)
+  const [isEnhancing, setIsEnhancing] = useState(false)
 
   const isLoading = department.status === 'in_progress'
 
@@ -92,6 +94,44 @@ export function DepartmentCard({
   const getProgressBarColor = () => {
     if (!department.rating) return ''
     return department.rating >= department.threshold ? 'bg-green-500' : 'bg-yellow-500'
+  }
+
+  const handleAIEnhancement = async () => {
+    if (!department.evaluationResult || isEnhancing) return
+
+    setIsEnhancing(true)
+    toast.info('AI is analyzing the evaluation and generating improvements...')
+
+    try {
+      const response = await fetch(
+        `/api/v1/project-readiness/${projectId}/department/${department.departmentId}/enhance`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        },
+      )
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to enhance evaluation')
+      }
+
+      const result = await response.json()
+
+      toast.success(
+        `AI enhancement complete! Added ${result.itemsCreated} items to gather database. Re-evaluating...`,
+      )
+
+      // Trigger re-evaluation after a short delay
+      setTimeout(() => {
+        onEvaluate()
+      }, 1000)
+    } catch (error) {
+      console.error('AI enhancement failed:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to enhance evaluation')
+    } finally {
+      setIsEnhancing(false)
+    }
   }
 
   return (
@@ -173,10 +213,31 @@ export function DepartmentCard({
       {/* Expanded content */}
       {isExpanded && department.status === 'completed' && (
         <CardContent className="space-y-4 border-t pt-4">
-          {/* Evaluation Summary */}
+          {/* Evaluation Summary with AI Enhancement Button */}
           {department.evaluationSummary && (
             <div data-testid="evaluation-summary">
-              <h4 className="font-semibold mb-2 flex items-center gap-2">📊 Evaluation Summary</h4>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-semibold flex items-center gap-2">📊 Evaluation Summary</h4>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAIEnhancement}
+                  disabled={isEnhancing || isLoading}
+                  className="gap-2 border-purple-500/50 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300"
+                >
+                  {isEnhancing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Enhancing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      AI Enhance
+                    </>
+                  )}
+                </Button>
+              </div>
               <p className="text-sm">{department.evaluationSummary}</p>
             </div>
           )}

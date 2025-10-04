@@ -9,17 +9,19 @@
  */
 
 import { useEffect, useRef } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { useProjectReadinessStore } from '@/stores/projectReadinessStore'
 import { DepartmentCard } from '@/components/project-readiness/DepartmentCard'
 import { ReadinessOverview } from '@/components/project-readiness/ReadinessOverview'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
-import { AlertCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { AlertCircle, ArrowLeft, Package } from 'lucide-react'
 import { toast } from 'sonner'
 import { AutomatedGatherButton } from '@/components/automated-gather/AutomatedGatherButton'
 
 export default function ProjectReadinessPage() {
+  const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams()
   const projectId = params.id as string
@@ -106,6 +108,17 @@ export default function ProjectReadinessPage() {
     <div className="mx-auto max-w-6xl space-y-10 px-6 py-10 text-white">
       {/* Header */}
       <div className="space-y-6">
+        {/* Back to Gather Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push(`/dashboard/project/${projectId}/gather`)}
+          className="gap-2 text-slate-300 hover:text-white hover:bg-slate-800/50"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Gather
+        </Button>
+
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight text-white">
@@ -116,7 +129,16 @@ export default function ProjectReadinessPage() {
               via the AI chat, then trigger evaluations when you are ready.
             </p>
           </div>
-          <div className="flex-shrink-0">
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push(`/dashboard/project/${projectId}/gather`)}
+              className="gap-2 border-slate-700/70 bg-slate-900/60 text-slate-200 hover:border-sky-400/40 hover:bg-slate-900/80"
+            >
+              <Package className="h-4 w-4" />
+              View Gather ({gatherCount})
+            </Button>
             <AutomatedGatherButton projectId={projectId} gatherCount={gatherCount} />
           </div>
         </div>

@@ -136,7 +136,14 @@ export interface BrainClientOptions {
 
 export interface AddNodeRequest {
   type: string
-  properties: Record<string, any>
+  content: string // REQUIRED: Content to embed for semantic search
+  projectId: string // REQUIRED: Project isolation
+  properties?: Record<string, any>
+  relationships?: Array<{
+    type: string
+    targetId: string
+    properties?: Record<string, any>
+  }>
   embedding?: number[]
   generateEmbedding?: boolean
 }
@@ -157,6 +164,7 @@ export interface UpdateNodeRequest {
 
 export interface DeleteNodeRequest {
   nodeId: string
+  projectId?: string
   cascade?: boolean
 }
 

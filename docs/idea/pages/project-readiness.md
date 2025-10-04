@@ -40,6 +40,11 @@ This page enables users to:
 - **Center Panel**: Department evaluation cards in process flow order
 - **Right Sidebar**: AI chat integration with "Add to Gather" buttons
 
+### Navigation
+- **Back to Gather**: Arrow button at top-left to return to gather page
+- **View Gather Button**: Shows gather count and navigates to gather page
+- **Automated Gather Button**: Triggers automated content generation
+
 ---
 
 ## 🏗️ Architecture
