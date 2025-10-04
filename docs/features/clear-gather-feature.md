@@ -103,7 +103,8 @@ DELETE https://brain.ft.tc/api/v1/nodes/{node_id}?project_id={project_id}
 ```
 
 **Error Handling**:
-- 404 errors are ignored (node might not exist in brain)
+- 404 errors are treated as success (node already deleted or never existed)
+- 405 errors are logged as warnings (API doesn't support DELETE)
 - Other errors are logged but don't stop the process
 - All errors are collected and returned in the response
 

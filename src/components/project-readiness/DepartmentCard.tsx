@@ -119,13 +119,14 @@ export function DepartmentCard({
       const result = await response.json()
 
       toast.success(
-        `AI enhancement complete! Added ${result.itemsCreated} items to gather database. Re-evaluating...`,
+        `AI enhancement complete! Added ${result.itemsCreated} items to gather database. Refreshing...`,
       )
 
-      // Trigger re-evaluation after a short delay
+      // Reload the page to refresh all data (gather count, items, evaluations)
+      // This ensures the new items are immediately visible
       setTimeout(() => {
-        onEvaluate()
-      }, 1000)
+        window.location.reload()
+      }, 1500)
     } catch (error) {
       console.error('AI enhancement failed:', error)
       toast.error(error instanceof Error ? error.message : 'Failed to enhance evaluation')

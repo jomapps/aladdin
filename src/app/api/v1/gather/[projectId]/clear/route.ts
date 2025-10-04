@@ -73,9 +73,14 @@ export async function DELETE(
             brainDeletedCount++
             console.log(`[Gather Clear] Deleted from brain: ${nodeId}`)
           } catch (brainError: any) {
-            // 404 is okay - node might not exist in brain
+            // 404 is okay - node doesn't exist (already deleted or never existed)
+            // 405 means API doesn't support DELETE method
             if (brainError.message?.includes('404')) {
               console.log(`[Gather Clear] Node not found in brain (okay): ${nodeId}`)
+              brainDeletedCount++ // Count as success - node is gone
+            } else if (brainError.message?.includes('405')) {
+              console.warn(`[Gather Clear] Brain API doesn't support DELETE (skipping): ${nodeId}`)
+              // Don't add to errors - this is a known limitation
             } else {
               console.error(`[Gather Clear] Failed to delete from brain: ${nodeId}`, brainError)
               errors.push(`Brain delete failed for ${nodeId}: ${brainError.message}`)

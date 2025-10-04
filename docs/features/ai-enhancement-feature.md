@@ -71,7 +71,8 @@ POST /api/v1/project-readiness/[projectId]/department/[departmentId]/enhance
 4. **Save to Gather** - Store each deliverable in MongoDB gather collection using `gatherDB.createGatherItem()`
 5. **Enrich Data** - Use DataPreparationAgent to add context and relationships
 6. **Store in Brain** - Save to brain service with embeddings for semantic search
-7. **Auto Re-evaluate** - Trigger new evaluation after 1 second
+7. **Verify Save** - Check gather count to confirm items were saved
+8. **Refresh UI** - Reload page after 1.5 seconds to show new items
 
 **Important**: The gather data is stored in MongoDB (not PayloadCMS), in a project-specific database named `aladdin-gather-{projectId}`.
 
@@ -259,6 +260,51 @@ await brainClient.addNode({
 })
 ```
 
+## Troubleshooting
+
+### Items Not Showing After Enhancement
+
+**Symptom**: AI enhancement completes successfully (shows "Added X items"), but gather count doesn't increase.
+
+**Root Cause**: Frontend caching - The gather count and items list use React Query caching with 60-second TTL.
+
+**Solution**: The page now automatically reloads 1.5 seconds after enhancement completes to refresh all data.
+
+**Manual Verification**:
+```bash
+# Check if items were actually saved to MongoDB
+node scripts/check-gather-db.js <projectId>
+```
+
+This script will show:
+- Total gather items count
+- Recent items (last 10)
+- Items by department
+- AI enhancement items specifically
+
+**What to Check**:
+1. Look for items with `automationMetadata.model: 'ai-enhancement'`
+2. Verify `createdAt` timestamps match when you ran the enhancement
+3. Check that `projectId` matches your project
+
+**If Items Are Missing**:
+- Check MongoDB connection in `.env` (`DATABASE_URI_OPEN` or `DATABASE_URI`)
+- Verify MongoDB is running
+- Check server logs for `[EvaluationEnhancer]` errors
+- Ensure brain service is accessible (items save to gather first, then brain)
+
+### Enhancement Takes Too Long
+
+**Expected Duration**: 2-4 minutes for 9 items (4 issues + 5 suggestions)
+
+**Why It's Slow**:
+- Each item requires LLM generation (3-5 seconds)
+- Data preparation agent enriches each item (20-25 seconds)
+- Brain service embedding generation (2-3 seconds)
+- Total: ~30 seconds per item × 9 items = ~4.5 minutes
+
+**This is Normal**: The system prioritizes quality over speed.
+
 ## Future Enhancements
 
 - [ ] Allow users to specify which issues to address
@@ -266,4 +312,6 @@ await brainClient.addNode({
 - [ ] Add quality scoring for generated deliverables
 - [ ] Support for custom enhancement templates
 - [ ] Batch enhancement across multiple departments
+- [ ] Parallel processing of enhancement items
+- [ ] Progress indicator showing which item is being processed
 

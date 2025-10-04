@@ -197,6 +197,12 @@ class EvaluationEnhancer {
       }
     }
 
+    // Verify items were actually saved by checking the count
+    console.log('[EvaluationEnhancer] Verifying saved items...')
+    const verifyCount = await gatherDB.getGatherCount(projectId)
+    console.log('[EvaluationEnhancer] Current gather count:', verifyCount)
+    console.log('[EvaluationEnhancer] Items created this session:', itemsCreated)
+
     return {
       itemsCreated,
       message: `Successfully created ${itemsCreated} enhancement items addressing evaluation feedback`,
@@ -364,17 +370,27 @@ Return ONLY valid JSON (no markdown, no extra text):
 
     try {
       console.log('[EvaluationEnhancer] Calling LLM to generate improvements...')
-      const response = await llm.complete([
+      console.log('[EvaluationEnhancer] LLM client type:', llm.constructor.name)
+      console.log('[EvaluationEnhancer] Prompt length:', prompt.length)
+
+      // Use chat() method which accepts array of messages, not complete()
+      const response = await llm.chat(
+        [
+          {
+            role: 'system',
+            content:
+              'You are an expert movie production assistant. Generate detailed, production-ready content.',
+          },
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
         {
-          role: 'system',
-          content:
-            'You are an expert movie production assistant. Generate detailed, production-ready content.',
+          maxTokens: 4000, // Increase token limit for detailed responses
+          temperature: 0.7, // Slightly higher for more creative content
         },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ])
+      )
 
       console.log('[EvaluationEnhancer] LLM response received, length:', response.content.length)
 
@@ -411,12 +427,15 @@ Return ONLY valid JSON (no markdown, no extra text):
 
       return improvements
     } catch (error) {
-      console.error('[EvaluationEnhancer] LLM generation failed:', {
+      console.error('[EvaluationEnhancer] ❌ LLM generation failed:', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
+        errorType: error?.constructor?.name,
+        fullError: JSON.stringify(error, null, 2),
       })
       // Return fallback improvements
-      console.log('[EvaluationEnhancer] Using fallback improvements')
+      console.log('[EvaluationEnhancer] ⚠️ Using fallback improvements due to LLM failure')
+      console.log('[EvaluationEnhancer] ⚠️ This means the AI did NOT generate detailed content')
       return this.generateFallbackImprovements(issues, suggestions)
     }
   }

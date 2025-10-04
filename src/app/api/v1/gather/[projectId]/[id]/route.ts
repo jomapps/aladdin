@@ -11,6 +11,7 @@ import config from '@payload-config'
 import { gatherDB } from '@/lib/db/gatherDatabase'
 import { getGatherAIProcessor } from '@/lib/gather/aiProcessor'
 import { getBrainClient } from '@/lib/brain/client'
+import { authenticateRequest } from '@/lib/auth/devAuth'
 
 /**
  * GET /api/v1/gather/[projectId]/[id]
@@ -72,9 +73,9 @@ export async function PUT(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
-    // Get authenticated user
-    const { user } = await payload.auth({ headers: request.headers })
-    if (!user) {
+    // Authenticate user (auto-login in development mode)
+    const { userId } = await authenticateRequest(request, payload)
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -139,9 +140,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
-    // Get authenticated user
-    const { user } = await payload.auth({ headers: request.headers })
-    if (!user) {
+    // Authenticate user (auto-login in development mode)
+    const { userId } = await authenticateRequest(request, payload)
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

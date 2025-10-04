@@ -10,6 +10,7 @@ import config from '@payload-config'
 import { gatherDB } from '@/lib/db/gatherDatabase'
 import { getGatherAIProcessor } from '@/lib/gather/aiProcessor'
 import { getBrainClient } from '@/lib/brain/client'
+import { authenticateRequest } from '@/lib/auth/devAuth'
 
 /**
  * GET /api/v1/gather/[projectId]
@@ -97,9 +98,9 @@ export async function POST(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
-    // Get authenticated user
-    const { user } = await payload.auth({ headers: request.headers })
-    if (!user) {
+    // Authenticate user (auto-login in development mode)
+    const { userId } = await authenticateRequest(request, payload)
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -129,7 +130,7 @@ export async function POST(
       extractedText: processingResult.extractedText,
       iterationCount: processingResult.iterationCount,
       duplicateCheckScore: processingResult.duplicates[0]?.similarity,
-      createdBy: String(user.id), // Ensure string
+      createdBy: String(userId), // Ensure string
     }
 
     console.log('[Gather API] Creating item with data:', {
@@ -181,7 +182,7 @@ export async function POST(
           imageUrl,
           documentUrl,
           createdAt: new Date().toISOString(),
-          createdBy: user.id,
+          createdBy: userId,
         },
       })
       brainSaveSuccess = true
