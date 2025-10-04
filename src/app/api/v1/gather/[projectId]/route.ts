@@ -164,14 +164,19 @@ export async function POST(
 
     try {
       const brainClient = getBrainClient()
+
+      // Prepare content for Brain service - use summary + context for better semantic search
+      const brainContent = `${processingResult.summary}\n\n${processingResult.context}\n\n${contentString}`
+
       await brainClient.addNode({
         type: 'gather',
-        projectId,
+        content: brainContent, // REQUIRED: Content to embed for semantic search
+        projectId, // REQUIRED: Project isolation
         properties: {
+          // Additional metadata (not used for embedding)
           id: gatherItem._id?.toString(),
           summary: processingResult.summary,
           context: processingResult.context,
-          content: processingResult.enrichedContent,
           extractedText: processingResult.extractedText,
           imageUrl,
           documentUrl,

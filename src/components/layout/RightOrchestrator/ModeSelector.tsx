@@ -53,7 +53,7 @@ export default function ModeSelector() {
   }
 
   return (
-    <div className="flex border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
+    <div className="flex border-b border-white/10 bg-white/5">
       {modes.map((mode) => {
         const Icon = mode.icon
         const isActive = orchestratorMode === mode.id
@@ -63,14 +63,14 @@ export default function ModeSelector() {
             key={mode.id}
             onClick={() => handleModeChange(mode.id)}
             className={cn(
-              'flex-1 flex flex-col items-center gap-1.5 py-3 text-xs font-medium transition-all border-b-2',
+              'flex-1 flex flex-col items-center gap-1.5 py-3 text-xs font-semibold uppercase tracking-[0.2em] transition-all border-b-2',
               isActive
-                ? 'border-zinc-900 dark:border-zinc-100 text-zinc-900 dark:text-zinc-100 bg-white dark:bg-zinc-950'
-                : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800',
+                ? 'border-sky-300/70 bg-white/12 text-slate-100 shadow-[0_18px_45px_-35px_rgba(56,189,248,0.7)]'
+                : 'border-transparent text-slate-400 hover:text-sky-200 hover:bg-white/8',
             )}
             title={mode.description}
           >
-            <Icon className="h-4 w-4" />
+            <Icon className={cn('h-4 w-4', isActive ? 'text-sky-200' : 'text-slate-400')} />
             {mode.label}
           </button>
         )

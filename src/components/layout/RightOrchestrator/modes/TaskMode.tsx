@@ -10,18 +10,20 @@ import { cn } from '@/lib/utils'
 
 function Welcome() {
   return (
-    <div className="max-w-md mx-auto space-y-6 py-8">
+    <div className="mx-auto max-w-2xl space-y-8 rounded-3xl border border-white/12 bg-white/5 p-8 text-slate-100 shadow-[0_45px_140px_-90px_rgba(124,58,237,0.85)] backdrop-blur-xl">
       {/* Icon */}
       <div className="flex justify-center">
-        <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center">
-          <Zap className="w-8 h-8 text-orange-600" />
+        <div className="flex h-16 w-16 items-center justify-center rounded-full border border-amber-300/40 bg-amber-500/15 shadow-[0_25px_60px_-40px_rgba(249,115,22,0.8)]">
+          <Zap className="h-8 w-8 text-amber-200" />
         </div>
       </div>
 
       {/* Title */}
-      <div className="text-center space-y-2">
-        <h3 className="text-xl font-semibold text-gray-900">Task Execution Mode</h3>
-        <p className="text-sm text-gray-600">
+      <div className="space-y-3 text-center">
+        <h3 className="text-2xl font-semibold tracking-tight text-slate-100">
+          Task Execution Mode
+        </h3>
+        <p className="text-sm text-slate-300">
           Execute complex tasks with multi-agent orchestration. I&apos;ll coordinate departments to
           complete your request.
         </p>
@@ -29,7 +31,9 @@ function Welcome() {
 
       {/* Features */}
       <div className="space-y-3">
-        <p className="text-xs font-medium text-gray-500 uppercase text-center">Features</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-400 text-center">
+          Features
+        </p>
 
         <div className="space-y-2">
           {[
@@ -37,34 +41,39 @@ function Welcome() {
               icon: Layers,
               title: 'Department Coordination',
               description: 'Multiple specialized agents work together',
-              color: 'bg-purple-100 text-purple-600',
+              color: 'border border-violet-400/30 bg-violet-500/20 text-violet-100',
             },
             {
               icon: BarChart3,
               title: 'Quality Tracking',
               description: 'Real-time quality scores for each step',
-              color: 'bg-blue-100 text-blue-600',
+              color: 'border border-sky-400/30 bg-sky-500/20 text-sky-100',
             },
             {
               icon: CheckCircle,
               title: 'Progress Monitoring',
               description: 'Live updates as tasks complete',
-              color: 'bg-green-100 text-green-600',
+              color: 'border border-emerald-400/30 bg-emerald-500/20 text-emerald-100',
             },
           ].map((feature, index) => {
             const Icon = feature.icon
             return (
               <div
                 key={index}
-                className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 border border-gray-200"
+                className="group flex items-start gap-4 rounded-2xl border border-white/10 bg-white/8 p-4 transition duration-200 hover:border-white/20 hover:bg-white/12"
               >
-                <div className={cn('p-2 rounded-lg', feature.color)}>
-                  <Icon className="w-4 h-4" />
+                <div
+                  className={cn(
+                    'flex h-10 w-10 items-center justify-center rounded-xl shadow-[0_18px_45px_-40px_rgba(249,115,22,0.8)]',
+                    feature.color,
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
                 </div>
 
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900">{feature.title}</div>
-                  <div className="text-xs text-gray-600 mt-0.5">{feature.description}</div>
+                  <div className="text-sm font-semibold text-slate-100">{feature.title}</div>
+                  <div className="mt-1 text-sm text-slate-300">{feature.description}</div>
                 </div>
               </div>
             )
@@ -74,7 +83,9 @@ function Welcome() {
 
       {/* Example tasks */}
       <div className="space-y-3">
-        <p className="text-xs font-medium text-gray-500 uppercase text-center">Example tasks</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-400 text-center">
+          Example tasks
+        </p>
 
         <div className="space-y-2">
           {[
@@ -85,7 +96,7 @@ function Welcome() {
           ].map((task, index) => (
             <button
               key={index}
-              className="w-full text-left px-4 py-3 rounded-lg bg-white border border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-colors text-sm text-gray-700"
+              className="w-full rounded-xl border border-white/10 bg-white/8 px-4 py-3 text-left text-sm text-slate-200 transition duration-200 hover:border-amber-300/50 hover:bg-amber-500/15"
             >
               {task}
             </button>
@@ -95,7 +106,7 @@ function Welcome() {
 
       {/* Departments */}
       <div className="space-y-3">
-        <p className="text-xs font-medium text-gray-500 uppercase text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-400 text-center">
           Available departments
         </p>
 
@@ -103,7 +114,7 @@ function Welcome() {
           {['Character', 'Scene', 'Location', 'Prop', 'Dialogue', 'Export'].map((dept) => (
             <div
               key={dept}
-              className="px-2 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs text-center font-medium"
+              className="rounded-lg border border-white/12 bg-white/10 px-2 py-1.5 text-center text-xs font-medium text-slate-200"
             >
               {dept}
             </div>
@@ -114,6 +125,8 @@ function Welcome() {
   )
 }
 
-export default {
+const TaskMode = {
   Welcome,
 }
+
+export default TaskMode

@@ -83,7 +83,7 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
       <aside
         className={cn(
           'hidden lg:flex flex-col fixed top-0 right-0 h-screen z-[60]',
-          'border-l bg-white dark:bg-zinc-950 transition-all duration-300',
+          'border-l border-white/10 bg-slate-950/90 backdrop-blur-xl shadow-[0_40px_120px_-60px_rgba(56,189,248,0.6)] transition-all duration-300',
           isRightOrchestratorOpen ? 'w-[30%] min-w-[350px] max-w-[500px]' : 'w-0 overflow-hidden',
         )}
       >
@@ -96,9 +96,9 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
             className={cn(
               'absolute -left-10 top-1/2 -translate-y-1/2 z-10',
               'h-16 w-10 px-1 rounded-l-md rounded-r-none',
-              'bg-white dark:bg-zinc-950 border border-r-0 border-zinc-200 dark:border-zinc-800',
-              'hover:bg-zinc-50 dark:hover:bg-zinc-900',
-              'shadow-md',
+              'border border-r-0 border-white/15 bg-white/10 text-slate-100 backdrop-blur',
+              'hover:border-sky-400/40 hover:bg-slate-900/70',
+              'shadow-[0_24px_70px_-45px_rgba(56,189,248,0.7)]',
             )}
             title="Collapse AI Assistant"
           >
@@ -109,18 +109,16 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
         {/* Fixed height container */}
         <div className="flex flex-col h-full">
           {/* Header with mode selector */}
-          <div className="flex-shrink-0 border-b border-zinc-200 dark:border-zinc-800">
-            <div className="px-4 py-3 flex items-start justify-between gap-3">
-              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                AI Assistant
-              </h2>
+          <div className="flex-shrink-0 border-b border-white/10">
+            <div className="px-5 py-4 flex items-start justify-between gap-3">
+              <h2 className="text-lg font-semibold tracking-wide text-slate-100">AI Assistant</h2>
               <div className="flex items-center gap-2">
                 {messages.length > 0 && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={clearMessages}
-                    className="h-7 px-2 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                    className="h-7 px-2 text-xs text-slate-300 hover:text-sky-200"
                     title="Clear all messages"
                   >
                     <Trash2 className="h-3 w-3 mr-1" />
@@ -129,13 +127,11 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
                 )}
                 <div className="text-[11px] leading-tight text-right whitespace-pre-wrap break-words max-w-[60%]">
                   {projectName ? (
-                    <span className="font-semibold text-zinc-600 dark:text-zinc-300 animate-pulse">
-                      {projectName}
-                    </span>
+                    <span className="font-semibold text-sky-200 animate-pulse">{projectName}</span>
                   ) : (
                     <span className="relative inline-flex items-center">
-                      <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 animate-ping" />
-                      <span className="relative inline-flex font-bold text-blue-600 dark:text-blue-400 animate-pulse">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75 animate-ping" />
+                      <span className="relative inline-flex font-bold text-sky-300 animate-pulse">
                         GLOBAL
                       </span>
                     </span>
@@ -155,7 +151,7 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
           <GatherButtons projectId={projectId} />
 
           {/* Fixed input at bottom */}
-          <div className="flex-shrink-0 border-t border-zinc-200 dark:border-zinc-800">
+          <div className="flex-shrink-0 border-t border-white/10">
             <MessageInput onSend={sendMessage} isLoading={isLoading} />
           </div>
         </div>
@@ -169,13 +165,12 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
             'hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-40',
             'rounded-l-full rounded-r-none',
             'h-16 w-12 px-2',
-            'bg-zinc-900 dark:bg-zinc-100',
-            'text-white dark:text-black',
-            'hover:bg-zinc-800 dark:hover:bg-zinc-200',
-            'shadow-lg',
+            'bg-slate-950/90 text-slate-100',
+            'hover:bg-slate-900/80',
+            'shadow-[0_24px_70px_-45px_rgba(56,189,248,0.7)]',
             'transition-all duration-300',
             'flex-col items-center justify-center gap-1',
-            'border-l border-t border-b border-zinc-700 dark:border-zinc-300',
+            'border-l border-t border-b border-white/15',
           )}
           title="Open AI Assistant"
         >
@@ -191,15 +186,20 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
             className="fixed inset-0 z-[55] bg-background/80 backdrop-blur-sm lg:hidden"
             onClick={() => setMobileRightOverlay(false)}
           />
-          <aside className="fixed right-0 top-0 bottom-0 z-[60] w-[90%] max-w-md bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800 lg:hidden">
-            <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
-              <h2 className="text-lg font-semibold">AI Assistant</h2>
-              <Button variant="ghost" size="icon" onClick={() => setMobileRightOverlay(false)}>
+          <aside className="fixed right-0 top-0 bottom-0 z-[60] w-[90%] max-w-md border-l border-white/10 bg-slate-950/95 backdrop-blur-xl shadow-[0_40px_120px_-60px_rgba(56,189,248,0.6)] lg:hidden">
+            <div className="flex items-center justify-between border-b border-white/10 p-4">
+              <h2 className="text-lg font-semibold text-slate-100">AI Assistant</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-slate-300 hover:text-sky-200"
+                onClick={() => setMobileRightOverlay(false)}
+              >
                 <X className="h-5 w-5" />
               </Button>
             </div>
             <div className="flex flex-col h-[calc(100%-4rem)]">
-              <div className="flex-shrink-0 border-b border-zinc-200 dark:border-zinc-800">
+              <div className="flex-shrink-0 border-b border-white/10">
                 <ModeSelector />
               </div>
               <div className="flex-1 overflow-hidden">
@@ -207,7 +207,7 @@ export default function RightOrchestrator({ projectId, projectName }: RightOrche
               </div>
               {/* Gather Buttons - Conditional on route */}
               <GatherButtons projectId={projectId} />
-              <div className="flex-shrink-0 border-t border-zinc-200 dark:border-zinc-800">
+              <div className="flex-shrink-0 border-t border-white/10">
                 <MessageInput onSend={sendMessage} isLoading={isLoading} />
               </div>
             </div>

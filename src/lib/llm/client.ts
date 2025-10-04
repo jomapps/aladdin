@@ -139,6 +139,11 @@ export class LLMClient {
               messages,
               temperature: options.temperature ?? 0.3,
               max_tokens: options.maxTokens ?? 2000,
+              top_p: options.topP ?? 1,
+              frequency_penalty: options.frequencyPenalty ?? 0,
+              presence_penalty: options.presencePenalty ?? 0,
+              stop: options.stop,
+              stream: options.stream ?? false,
             })
 
             const choice = response.data.choices[0]
