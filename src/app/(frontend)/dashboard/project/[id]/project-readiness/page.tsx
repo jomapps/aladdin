@@ -8,18 +8,22 @@
  * @see {@link /docs/idea/pages/project-readiness.md} for specification
  */
 
-import { useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useEffect, useRef } from 'react'
+import { useParams, useSearchParams } from 'next/navigation'
 import { useProjectReadinessStore } from '@/stores/projectReadinessStore'
 import { DepartmentCard } from '@/components/project-readiness/DepartmentCard'
 import { ReadinessOverview } from '@/components/project-readiness/ReadinessOverview'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function ProjectReadinessPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const projectId = params.id as string
+  const evaluateDepartmentSlug = searchParams.get('evaluate')
+  const hasTriggeredEvaluation = useRef(false)
 
   const {
     gatherCount,
@@ -43,6 +47,26 @@ export default function ProjectReadinessPage() {
       stopPolling()
     }
   }, [projectId, startPolling, stopPolling])
+
+  // Auto-trigger evaluation from query parameter
+  useEffect(() => {
+    if (evaluateDepartmentSlug && departments.length > 0 && !hasTriggeredEvaluation.current) {
+      hasTriggeredEvaluation.current = true
+
+      // Find department by slug
+      const department = departments.find((d) => d.departmentSlug === evaluateDepartmentSlug)
+
+      if (department) {
+        console.log(
+          `[ProjectReadiness] Auto-triggering evaluation for ${department.departmentName}`,
+        )
+        toast.info(`Starting evaluation for ${department.departmentName} department...`)
+        handleEvaluate(department.departmentNumber)
+      } else {
+        console.warn(`[ProjectReadiness] Department not found for slug: ${evaluateDepartmentSlug}`)
+      }
+    }
+  }, [evaluateDepartmentSlug, departments])
 
   const handleEvaluate = async (departmentNumber: number) => {
     try {

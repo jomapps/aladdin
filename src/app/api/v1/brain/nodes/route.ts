@@ -19,12 +19,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { projectId, type, properties, relationships } = body;
+    const { projectId, type, content, properties, relationships } = body;
 
     // Validation
-    if (!projectId || !type || !properties) {
+    if (!projectId || !type || !content) {
       return NextResponse.json(
-        { error: 'Missing required fields: projectId, type, properties' },
+        { error: 'Missing required fields: projectId, type, content' },
         { status: 400 }
       );
     }
@@ -35,9 +35,10 @@ export async function POST(request: NextRequest) {
 
     // Add node to graph
     const node = await brainClient.addNode({
-      projectId,
       type,
-      properties,
+      content, // REQUIRED: Content to embed for semantic search
+      projectId, // REQUIRED: Project isolation
+      properties: properties || {},
       relationships: relationships || [],
     });
 

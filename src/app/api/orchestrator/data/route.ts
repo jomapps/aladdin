@@ -142,10 +142,11 @@ Return format:
     if (!confirmationRequired) {
       const addedNode = await brainClient.addNode({
         type: brainDocument.type,
+        content: brainDocument.text, // REQUIRED: Content to embed for semantic search
+        projectId, // REQUIRED: Project isolation
         properties: {
           ...brainDocument.metadata,
           text: brainDocument.text,
-          project_id: projectId,
         },
       })
 

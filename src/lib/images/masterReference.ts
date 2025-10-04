@@ -96,13 +96,16 @@ export async function generateMasterReference(
     const uploadTime = Date.now() - uploadStart
 
     // 6. Store in Brain for future reference
+    const masterRefContent = `Master reference for ${config.subjectType}: ${config.subjectId}\n${config.description}\nQuality score: ${(qualityScore * 100).toFixed(1)}%`
+
     await brainClient.addNode({
       type: 'concept',
+      content: masterRefContent, // REQUIRED
+      projectId: config.projectId, // REQUIRED
       properties: {
         entityType: 'master-reference',
         subjectId: config.subjectId,
         subjectType: config.subjectType,
-        projectId: config.projectId,
         mediaId: mediaRecord.id,
         imageUrl: mediaRecord.url,
         prompt: falRequest.prompt,

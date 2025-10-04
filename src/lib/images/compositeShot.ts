@@ -147,9 +147,10 @@ export async function generateCompositeShot(
     // 6. Store composite in Brain
     await brainClient.addNode({
       type: 'concept',
+      content: `Composite shot: ${config.description}\nPrompt: ${compositePrompt}`, // REQUIRED
+      projectId: config.projectId, // REQUIRED
       properties: {
         entityType: 'composite-shot',
-        projectId: config.projectId,
         mediaId: mediaRecord.id,
         imageUrl: mediaRecord.url,
         description: config.description,

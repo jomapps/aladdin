@@ -99,9 +99,15 @@ async function syncToBrain(params: {
       case 'create':
       case 'update':
         // Add or update node in Brain
+        // Generate content for embedding from doc data
+        const contentText = typeof doc === 'object'
+          ? JSON.stringify(doc).substring(0, 1000)
+          : String(doc).substring(0, 1000)
+
         await brainClient.addNode({
-          projectId: String(projectId),
           type,
+          content: contentText, // REQUIRED: Content to embed for semantic search
+          projectId: String(projectId), // REQUIRED: Project isolation
           properties: {
             id: doc.id,
             collection,

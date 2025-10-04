@@ -104,13 +104,16 @@ export async function verifyConsistency(
     const passed = overallConsistency >= overallThreshold
 
     // 9. Store verification result in Brain
+    const consistencyContent = `Consistency verification: ${passed ? 'PASSED' : 'FAILED'} (${(overallConsistency * 100).toFixed(1)}%)\nFacial: ${(facialScore * 100).toFixed(1)}%, Color: ${(colorScore * 100).toFixed(1)}%, Style: ${(styleScore * 100).toFixed(1)}%, Composition: ${(compositionScore * 100).toFixed(1)}%`
+
     await brainClient.addNode({
       type: 'concept',
+      content: consistencyContent, // REQUIRED
+      projectId: config.projectId, // REQUIRED
       properties: {
         entityType: 'consistency-verification',
         newImageId: config.newImageId,
         referenceSetId: config.referenceSetId,
-        projectId: config.projectId,
         passed,
         overallConsistency,
         scores: {

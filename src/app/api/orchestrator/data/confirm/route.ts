@@ -84,10 +84,11 @@ export async function POST(req: NextRequest) {
     // 5. Ingest to Brain service
     const addedNode = await brainClient.addNode({
       type: finalDocument.type,
+      content: finalDocument.text, // REQUIRED: Content to embed for semantic search
+      projectId: finalDocument.project_id, // REQUIRED: Project isolation
       properties: {
         ...finalDocument.metadata,
         text: finalDocument.text,
-        project_id: finalDocument.project_id,
       },
     })
 

@@ -114,12 +114,15 @@ export async function generate360Profile(
     }
 
     // 4. Store 360° profile set in Brain
+    const profile360Content = `360° profile set for subject ${config.subjectId}\nAngles: ${angles.join(', ')}\nTotal images: ${results.length}`
+
     await brainClient.addNode({
       type: 'concept',
+      content: profile360Content, // REQUIRED
+      projectId: config.projectId, // REQUIRED
       properties: {
         entityType: 'profile360',
         subjectId: config.subjectId,
-        projectId: config.projectId,
         masterReferenceId: config.masterReferenceId,
         images: results,
         angles,
