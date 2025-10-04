@@ -209,8 +209,12 @@ export class AgentWebSocketServer {
         console.log('[WebSocketServer] Redis subscriber reconnecting...')
       })
 
-      // Subscribe to all execution channels
-      await this.redisSubscriber.psubscribe('execution:*', 'conversation:*')
+      // Subscribe to all execution channels including automated gather
+      await this.redisSubscriber.psubscribe(
+        'execution:*',
+        'conversation:*',
+        'automated-gather:*',
+      )
 
       // Handle incoming messages
       this.redisSubscriber.on('pmessage', (pattern, channel, message) => {
@@ -242,6 +246,20 @@ export class AgentWebSocketServer {
         const wsMessage: WebSocketMessage = {
           type: 'event',
           conversationId: channelId,
+          event,
+          timestamp: new Date(),
+        }
+        clients.forEach((ws) => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(wsMessage))
+          }
+        })
+      } else if (channelType === 'automated-gather') {
+        // Broadcast automated gather progress events
+        const clients = this.clientManager.getAllClients()
+        const wsMessage: WebSocketMessage = {
+          type: 'event',
+          executionId: channelId,
           event,
           timestamp: new Date(),
         }

@@ -331,6 +331,67 @@ export class BrainClient {
   }
 
   /**
+   * Batch create multiple nodes
+   */
+  async batchCreateNodes(requests: AddNodeRequest[]): Promise<BrainNode[]> {
+    try {
+      const response = await this.axiosInstance.post('/api/v1/nodes/batch', { nodes: requests })
+      return response.data.nodes
+    } catch (error) {
+      throw this.handleError(error, 'batchCreateNodes')
+    }
+  }
+
+  /**
+   * Search for duplicate nodes based on semantic similarity
+   */
+  async searchDuplicates(
+    content: string,
+    projectId: string,
+    threshold = 0.85,
+  ): Promise<SemanticSearchResult[]> {
+    try {
+      const response = await this.axiosInstance.post('/api/v1/search/duplicates', {
+        content,
+        projectId,
+        threshold,
+      })
+      return response.data.results
+    } catch (error) {
+      throw this.handleError(error, 'searchDuplicates')
+    }
+  }
+
+  /**
+   * Get aggregated context for a department
+   */
+  async getDepartmentContext(
+    projectId: string,
+    department: string,
+    options: {
+      limit?: number
+      includeRelationships?: boolean
+    } = {},
+  ): Promise<{
+    nodes: BrainNode[]
+    summary: string
+    relationships: BrainRelationship[]
+  }> {
+    try {
+      const response = await this.axiosInstance.get(`/api/v1/departments/${department}/context`, {
+        params: {
+          projectId,
+          limit: options.limit || 50,
+          includeRelationships: options.includeRelationships ?? true,
+        },
+      })
+      return response.data
+    } catch (error) {
+      throw this.handleError(error, 'getDepartmentContext')
+    }
+  }
+
+  /**
    * UTILITY METHODS
    */
 

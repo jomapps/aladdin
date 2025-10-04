@@ -17,6 +17,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
+import { AutomatedGatherButton } from '@/components/automated-gather/AutomatedGatherButton'
 
 export default function ProjectReadinessPage() {
   const params = useParams()
@@ -105,14 +106,19 @@ export default function ProjectReadinessPage() {
     <div className="mx-auto max-w-6xl space-y-10 px-6 py-10 text-white">
       {/* Header */}
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-white">
-            Project Readiness Evaluation
-          </h1>
-          <p className="mt-2 max-w-3xl text-sm text-slate-300/90">
-            Validate each department sequentially to unlock production. Provide supporting context
-            via the AI chat, then trigger evaluations when you are ready.
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight text-white">
+              Project Readiness Evaluation
+            </h1>
+            <p className="mt-2 max-w-3xl text-sm text-slate-300/90">
+              Validate each department sequentially to unlock production. Provide supporting context
+              via the AI chat, then trigger evaluations when you are ready.
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <AutomatedGatherButton projectId={projectId} gatherCount={gatherCount} />
+          </div>
         </div>
 
         <Alert className="border-sky-400/40 bg-sky-500/10 text-sky-100">

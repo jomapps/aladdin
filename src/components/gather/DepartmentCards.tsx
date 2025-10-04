@@ -90,15 +90,16 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
 
             // Check if threshold was just crossed
             const prevEval = previousEvaluations.get(dept.departmentId)
-            const wasNotMeetingThreshold = !prevEval || (prevEval.rating !== null && prevEval.rating < prevEval.threshold)
+            const wasNotMeetingThreshold =
+              !prevEval || (prevEval.rating !== null && prevEval.rating < prevEval.threshold)
             const nowMeetsThreshold = newEval.rating !== null && newEval.rating >= newEval.threshold
 
             if (wasNotMeetingThreshold && nowMeetsThreshold && newEval.status === 'completed') {
-              setCelebratingDepts(prev => new Set(prev).add(dept.departmentId))
+              setCelebratingDepts((prev) => new Set(prev).add(dept.departmentId))
 
               // Show toast notification
               toast.success(`🎉 ${dept.departmentName} department reached threshold!`, {
-                description: `Score: ${newEval.rating}% (Threshold: ${newEval.threshold}%)`
+                description: `Score: ${newEval.rating}% (Threshold: ${newEval.threshold}%)`,
               })
             }
           })
@@ -176,7 +177,10 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
     return (
       <div className="grid grid-cols-1 gap-4">
         {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-          <Card key={i} className="animate-pulse rounded-2xl border border-slate-800/70 bg-slate-900/60">
+          <Card
+            key={i}
+            className="animate-pulse rounded-2xl border border-slate-800/70 bg-slate-900/60"
+          >
             <CardHeader className="pb-3">
               <div className="mb-2 h-10 w-10 rounded-xl bg-slate-800/70" />
               <div className="h-5 w-3/4 rounded bg-slate-800/60" />
@@ -224,20 +228,23 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
           const previousDept = departments[index - 1]
           previousDeptName = previousDept.name
           const previousEval = evaluations.get(previousDept.id)
-          previousDeptMetThreshold = previousEval?.rating !== null &&
-                                     previousEval.rating >= previousEval.threshold &&
-                                     previousEval.status === 'completed'
+          previousDeptMetThreshold =
+            previousEval?.rating !== null &&
+            previousEval.rating >= previousEval.threshold &&
+            previousEval.status === 'completed'
 
           // Debug logging
           console.log(`[DepartmentCards] Dept: ${dept.name} (${index})`, {
             previousDept: previousDeptName,
-            previousEval: previousEval ? {
-              rating: previousEval.rating,
-              threshold: previousEval.threshold,
-              status: previousEval.status,
-              meetsThreshold: previousDeptMetThreshold
-            } : 'No evaluation',
-            canEvaluate: isFirstDepartment || previousDeptMetThreshold
+            previousEval: previousEval
+              ? {
+                  rating: previousEval.rating,
+                  threshold: previousEval.threshold,
+                  status: previousEval.status,
+                  meetsThreshold: previousDeptMetThreshold,
+                }
+              : 'No evaluation',
+            canEvaluate: isFirstDepartment || previousDeptMetThreshold,
           })
         }
 
@@ -249,6 +256,7 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
         return (
           <Card
             key={dept.id}
+            data-testid={`department-card-${dept.slug}`}
             className={`min-h-[200px] flex flex-col border border-slate-800/70 bg-slate-900/70 text-white transition-all hover:border-sky-400/40 hover:shadow-[0_24px_80px_-45px_rgba(15,23,42,0.9)] ${!canEvaluate ? 'opacity-60' : ''}`}
             style={{ boxShadow: `inset 4px 0 0 ${dept.color || '#38bdf8'}` }}
           >
@@ -267,9 +275,7 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-xl font-semibold text-white break-words">
-                      {dept.name}
-                    </h3>
+                    <h3 className="text-xl font-semibold text-white break-words">{dept.name}</h3>
                     <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
                       Department {dept.codeDepNumber}
                     </p>
@@ -318,33 +324,47 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
 
             <CardFooter className="flex-col gap-3 pt-4 px-6 pb-6">
               {/* Congratulations Alert */}
-              {celebratingDepts.has(dept.id) && evaluation?.rating !== null && evaluation.rating >= evaluation.threshold && (
-                <Alert className="w-full border-emerald-400/40 bg-emerald-500/15 text-emerald-100">
-                  <PartyPopper className="h-4 w-4 text-emerald-200" />
-                  <AlertTitle className="text-emerald-200">Congratulations!</AlertTitle>
-                  <AlertDescription className="text-emerald-100/90">
-                    You can now move to the next department or add more info to this department.
-                  </AlertDescription>
-                </Alert>
-              )}
+              {celebratingDepts.has(dept.id) &&
+                evaluation?.rating !== null &&
+                evaluation.rating >= evaluation.threshold && (
+                  <Alert className="w-full border-emerald-400/40 bg-emerald-500/15 text-emerald-100">
+                    <PartyPopper className="h-4 w-4 text-emerald-200" />
+                    <AlertTitle className="text-emerald-200">Congratulations!</AlertTitle>
+                    <AlertDescription className="text-emerald-100/90">
+                      You can now move to the next department or add more info to this department.
+                    </AlertDescription>
+                  </Alert>
+                )}
 
               {/* Warning if previous department hasn't met threshold */}
               {!canEvaluate && !isFirstDepartment && (
                 <Alert className="w-full border-amber-400/40 bg-amber-500/15 text-amber-100">
                   <AlertCircle className="h-4 w-4 text-amber-200" />
-                  <AlertTitle className="text-sm text-amber-100">Previous Department Required</AlertTitle>
+                  <AlertTitle className="text-sm text-amber-100">
+                    Previous Department Required
+                  </AlertTitle>
                   <AlertDescription className="text-xs text-amber-100/80">
-                    Complete <strong>{previousDeptName}</strong> department and meet its threshold first to unlock evaluation.
+                    Complete <strong>{previousDeptName}</strong> department and meet its threshold
+                    first to unlock evaluation.
                   </AlertDescription>
                 </Alert>
               )}
 
               <Button
+                data-testid={`evaluate-button-${dept.slug}`}
                 onClick={(e) => handleEvaluateClick(e, dept.slug, dept.codeDepNumber)}
                 disabled={isEvaluating || !canEvaluate}
-                variant={evaluation?.status === 'completed' && evaluation.rating !== null && evaluation.rating >= evaluation.threshold ? 'outline' : 'default'}
+                variant={
+                  evaluation?.status === 'completed' &&
+                  evaluation.rating !== null &&
+                  evaluation.rating >= evaluation.threshold
+                    ? 'outline'
+                    : 'default'
+                }
                 className={`w-full ${
-                  evaluation?.status === 'completed' && evaluation.rating !== null && evaluation.rating >= evaluation.threshold
+                  evaluation?.status === 'completed' &&
+                  evaluation.rating !== null &&
+                  evaluation.rating >= evaluation.threshold
                     ? 'border-slate-700/70 bg-slate-900/60 text-white hover:border-sky-400/40 hover:bg-slate-900/80'
                     : 'bg-gradient-to-r from-sky-500 to-indigo-500 text-white hover:brightness-110'
                 }`}
@@ -360,7 +380,9 @@ export default function DepartmentCards({ projectId, onEvaluate }: DepartmentCar
                     <Clock className="mr-2 h-4 w-4" />
                     Locked
                   </>
-                ) : evaluation?.status === 'completed' && evaluation.rating !== null && evaluation.rating >= evaluation.threshold ? (
+                ) : evaluation?.status === 'completed' &&
+                  evaluation.rating !== null &&
+                  evaluation.rating >= evaluation.threshold ? (
                   <>
                     <TrendingUp className="mr-2 h-4 w-4" />
                     Re-evaluate

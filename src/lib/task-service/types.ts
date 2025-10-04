@@ -139,3 +139,35 @@ export interface HealthCheckResponse {
   }
   uptime: number
 }
+
+// ========== AUTOMATED GATHER ==========
+
+export interface AutomatedGatherTaskData {
+  projectId: string
+  department: string
+  departmentName: string
+  iteration: number
+  baseNodes: string[]
+  previousContent: string[]
+  targetQuality: number
+  model?: string
+  maxIterations?: number
+  userId?: string
+}
+
+export interface AutomatedGatherProgress {
+  iteration: number
+  stage: 'analyzing' | 'generating' | 'validating' | 'saving'
+  currentStep: string
+  qualityScore?: number
+  generatedContent?: string
+}
+
+export interface DepartmentAutomationStatus {
+  department: string
+  status: 'idle' | 'running' | 'completed' | 'failed'
+  currentIteration?: number
+  totalIterations?: number
+  lastUpdate?: string
+  taskId?: string
+}

@@ -21,8 +21,7 @@ export function ReadinessOverview({
 }: ReadinessOverviewProps) {
   const getRecommendation = (score: number) => {
     if (score >= 80) return { label: 'Ready for Production', variant: 'success' as const }
-    if (score >= 60)
-      return { label: 'Needs Improvement', variant: 'warning' as const }
+    if (score >= 60) return { label: 'Needs Improvement', variant: 'warning' as const }
     return { label: 'Not Ready', variant: 'destructive' as const }
   }
 
@@ -46,7 +45,9 @@ export function ReadinessOverview({
         <div className="space-y-4">
           {/* Score Display */}
           <div className="flex items-center gap-6">
-            <div className="text-6xl font-bold">{projectReadinessScore}</div>
+            <div data-testid="overall-readiness-score" className="text-6xl font-bold">
+              {projectReadinessScore}
+            </div>
             <div className="flex-1">
               <Progress value={projectReadinessScore} className="h-4">
                 <div
@@ -64,9 +65,8 @@ export function ReadinessOverview({
 
           {/* Info Text */}
           <div className="text-sm text-muted-foreground">
-            This score is calculated from all completed department evaluations.
-            There are <strong>{gatherLineCount}</strong> lines of information available
-            for processing.
+            This score is calculated from all completed department evaluations. There are{' '}
+            <strong>{gatherLineCount}</strong> lines of information available for processing.
           </div>
         </div>
       </CardContent>

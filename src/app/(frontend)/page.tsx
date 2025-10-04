@@ -10,11 +10,34 @@ export default async function HomePage() {
   const headers = await getHeaders()
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
-  const { user } = await payload.auth({ headers })
 
-  // If user is already authenticated, redirect to dashboard
-  if (user) {
-    redirect('/dashboard')
+  // In development, auto-login as first user
+  const isDevMode = process.env.NODE_ENV === 'development'
+
+  if (isDevMode) {
+    // Auto-login in development
+    const users = await payload.find({
+      collection: 'users',
+      limit: 1,
+      sort: 'createdAt',
+    })
+
+    if (users.docs.length > 0) {
+      console.log('[HomePage] Development mode: Auto-redirecting to dashboard')
+      redirect('/dashboard')
+    } else {
+      console.warn(
+        '[HomePage] Development mode: No users found. Run `pnpm db:seed` to create users.',
+      )
+    }
+  } else {
+    // Production: Check actual authentication
+    const { user } = await payload.auth({ headers })
+
+    // If user is already authenticated, redirect to dashboard
+    if (user) {
+      redirect('/dashboard')
+    }
   }
 
   return (
@@ -32,7 +55,10 @@ export default async function HomePage() {
             AI Production Suite
           </span>
           <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-slate-100 sm:text-5xl">
-            Direct the impossible with <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-indigo-200 to-purple-300">Aladdin</span>
+            Direct the impossible with{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-indigo-200 to-purple-300">
+              Aladdin
+            </span>
           </h1>
           <p className="mt-5 text-base text-slate-300 sm:text-lg">
             Orchestrate scripts, shots, and post-production through an agent-driven cinematic

@@ -13,11 +13,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { AnimatedProgress } from './AnimatedProgress'
 import type { DepartmentEvaluation } from '@/stores/projectReadinessStore'
 
@@ -59,13 +55,37 @@ export function DepartmentCard({
   const getStatusBadge = () => {
     switch (department.status) {
       case 'completed':
-        return <Badge variant="default" className="bg-green-600 hover:bg-green-700">✅ Completed</Badge>
+        return (
+          <Badge
+            data-testid="department-status"
+            variant="default"
+            className="bg-green-600 hover:bg-green-700"
+          >
+            ✅ Completed
+          </Badge>
+        )
       case 'in_progress':
-        return <Badge variant="default" className="bg-yellow-600 hover:bg-yellow-700">⏳ Evaluating</Badge>
+        return (
+          <Badge
+            data-testid="department-status"
+            variant="default"
+            className="bg-yellow-600 hover:bg-yellow-700"
+          >
+            ⏳ Evaluating
+          </Badge>
+        )
       case 'failed':
-        return <Badge variant="destructive">❌ Failed</Badge>
+        return (
+          <Badge data-testid="department-status" variant="destructive">
+            ❌ Failed
+          </Badge>
+        )
       default:
-        return <Badge variant="secondary">⏸️ Pending</Badge>
+        return (
+          <Badge data-testid="department-status" variant="secondary">
+            ⏸️ Pending
+          </Badge>
+        )
     }
   }
 
@@ -75,7 +95,10 @@ export function DepartmentCard({
   }
 
   return (
-    <Card className="mb-6 border border-slate-800/70 bg-slate-900/70 text-white shadow-[0_24px_80px_-50px_rgba(15,23,42,0.9)]">
+    <Card
+      data-testid={`department-${department.departmentSlug}`}
+      className="mb-6 border border-slate-800/70 bg-slate-900/70 text-white shadow-[0_24px_80px_-50px_rgba(15,23,42,0.9)]"
+    >
       <CardHeader className="px-6 py-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
@@ -97,10 +120,10 @@ export function DepartmentCard({
           <div className="flex items-center gap-4">
             {department.rating !== null && (
               <div className="text-right">
-                <div className="text-3xl font-bold text-white">{department.rating}</div>
-                <div className="text-xs text-slate-400">
-                  Threshold: {department.threshold}
+                <div data-testid="department-rating" className="text-3xl font-bold text-white">
+                  {department.rating}
                 </div>
+                <div className="text-xs text-slate-400">Threshold: {department.threshold}</div>
               </div>
             )}
 
@@ -152,10 +175,8 @@ export function DepartmentCard({
         <CardContent className="space-y-4 border-t pt-4">
           {/* Evaluation Summary */}
           {department.evaluationSummary && (
-            <div>
-              <h4 className="font-semibold mb-2 flex items-center gap-2">
-                📊 Evaluation Summary
-              </h4>
+            <div data-testid="evaluation-summary">
+              <h4 className="font-semibold mb-2 flex items-center gap-2">📊 Evaluation Summary</h4>
               <p className="text-sm">{department.evaluationSummary}</p>
             </div>
           )}
@@ -175,9 +196,7 @@ export function DepartmentCard({
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="mt-2 p-3 bg-muted rounded-md">
-                  <p className="text-sm whitespace-pre-wrap">
-                    {department.evaluationResult}
-                  </p>
+                  <p className="text-sm whitespace-pre-wrap">{department.evaluationResult}</p>
                 </div>
               </CollapsibleContent>
             </Collapsible>
@@ -185,7 +204,7 @@ export function DepartmentCard({
 
           {/* Issues */}
           {department.issues && department.issues.length > 0 && (
-            <div>
+            <div data-testid="evaluation-issues">
               <h4 className="font-semibold mb-2 flex items-center gap-2">
                 ⚠️ Issues ({department.issues.length})
               </h4>
@@ -201,16 +220,14 @@ export function DepartmentCard({
 
           {/* Suggestions */}
           {department.suggestions && department.suggestions.length > 0 && (
-            <div>
+            <div data-testid="evaluation-suggestions">
               <h4 className="font-semibold mb-2 flex items-center gap-2">
                 💡 Suggestions ({department.suggestions.length})
               </h4>
               <ul className="list-disc list-inside space-y-1">
                 {department.suggestions.map((suggestion, idx) => (
                   <li key={idx} className="text-sm">
-                    {typeof suggestion === 'string'
-                      ? suggestion
-                      : (suggestion as any).suggestion}
+                    {typeof suggestion === 'string' ? suggestion : (suggestion as any).suggestion}
                   </li>
                 ))}
               </ul>
@@ -233,12 +250,9 @@ export function DepartmentCard({
       {!canEvaluate() && department.departmentNumber > 1 && (
         <CardContent className="border-t pt-4">
           <div className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
-            ℹ️ Previous department must score ≥{department.threshold} to unlock this
-            evaluation
+            ℹ️ Previous department must score ≥{department.threshold} to unlock this evaluation
             {previousDepartment && previousDepartment.rating !== null && (
-              <span className="ml-1">
-                (currently: {previousDepartment.rating})
-              </span>
+              <span className="ml-1">(currently: {previousDepartment.rating})</span>
             )}
           </div>
         </CardContent>
@@ -246,11 +260,7 @@ export function DepartmentCard({
 
       <CardFooter className="flex justify-between border-t">
         {department.status === 'completed' && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
+          <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)}>
             {isExpanded ? (
               <>
                 Collapse <ChevronUp className="ml-2 h-4 w-4" />

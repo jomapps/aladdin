@@ -22,7 +22,16 @@
     "test:e2e:dashboard": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test --config=tests/e2e/dashboard.config.ts",
     "test:e2e:dashboard:ui": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test --config=tests/e2e/dashboard.config.ts --ui",
     "test:e2e:dashboard:headed": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test --config=tests/e2e/dashboard.config.ts --headed",
-    "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts"
+    "test:e2e:evaluation": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test --config=tests/e2e/evaluation.config.ts",
+    "test:e2e:evaluation:ui": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test --config=tests/e2e/evaluation.config.ts --ui",
+    "test:e2e:evaluation:headed": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test --config=tests/e2e/evaluation.config.ts --headed",
+    "test:e2e:automated-gather": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test tests/e2e/automated-gather.spec.ts",
+    "test:e2e:automated-gather:ui": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test tests/e2e/automated-gather.spec.ts --ui",
+    "test:e2e:automated-gather:headed": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test tests/e2e/automated-gather.spec.ts --headed",
+    "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts",
+    "test:celery": "cd celery-redis && ./run-tests.sh",
+    "test:celery:coverage": "cd celery-redis && ./run-tests.sh coverage",
+    "test:celery:fast": "cd celery-redis && ./run-tests.sh fast"
   },
   "dependencies": {
     "@codebuff/sdk": "^0.3.12",

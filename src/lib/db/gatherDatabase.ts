@@ -6,6 +6,16 @@
 
 import { MongoClient, Db, Collection, ObjectId } from 'mongodb'
 
+export interface AutomationMetadata {
+  taskId: string
+  department: string
+  departmentName: string
+  iteration: number
+  qualityScore: number
+  basedOnNodes: string[]
+  model: string
+}
+
 export interface GatherItem {
   _id?: ObjectId
   projectId: string
@@ -20,6 +30,8 @@ export interface GatherItem {
   iterationCount?: number
   createdAt: Date
   createdBy: string
+  isAutomated?: boolean
+  automationMetadata?: AutomationMetadata
 }
 
 export interface GatherQueryOptions {
@@ -29,6 +41,8 @@ export interface GatherQueryOptions {
   sort?: 'latest' | 'oldest' | 'a-z' | 'z-a'
   hasImage?: boolean
   hasDocument?: boolean
+  isAutomated?: boolean
+  department?: string
 }
 
 export interface GatherQueryResult {
@@ -99,6 +113,19 @@ class GatherDatabaseManager {
               iterationCount: { bsonType: 'number' },
               createdAt: { bsonType: 'date' },
               createdBy: { bsonType: 'string' },
+              isAutomated: { bsonType: 'bool' },
+              automationMetadata: {
+                bsonType: 'object',
+                properties: {
+                  taskId: { bsonType: 'string' },
+                  department: { bsonType: 'string' },
+                  departmentName: { bsonType: 'string' },
+                  iteration: { bsonType: 'number' },
+                  qualityScore: { bsonType: 'number' },
+                  basedOnNodes: { bsonType: 'array', items: { bsonType: 'string' } },
+                  model: { bsonType: 'string' },
+                },
+              },
             },
           },
         },
@@ -111,6 +138,9 @@ class GatherDatabaseManager {
         { key: { lastUpdated: -1 } },
         { key: { createdAt: -1 } },
         { key: { summary: 'text', context: 'text', content: 'text' } },
+        { key: { isAutomated: 1 } },
+        { key: { 'automationMetadata.department': 1 } },
+        { key: { 'automationMetadata.taskId': 1 } },
       ])
 
       console.log(`✅ Created gather collection for project: ${projectId}`)
@@ -180,6 +210,14 @@ class GatherDatabaseManager {
 
     if (hasDocument !== undefined) {
       query.documentUrl = hasDocument ? { $exists: true, $ne: null } : { $exists: false }
+    }
+
+    if (options.isAutomated !== undefined) {
+      query.isAutomated = options.isAutomated
+    }
+
+    if (options.department) {
+      query['automationMetadata.department'] = options.department
     }
 
     // Build sort
@@ -287,6 +325,29 @@ class GatherDatabaseManager {
     )
 
     return result.modifiedCount > 0
+  }
+
+  /**
+   * Get automated gather items
+   */
+  async getAutomatedItems(projectId: string, limit = 100): Promise<GatherItem[]> {
+    const collection = await this.getGatherCollection(projectId)
+    return collection.find({ projectId, isAutomated: true }).limit(limit).toArray()
+  }
+
+  /**
+   * Get items by department
+   */
+  async getItemsByDepartment(
+    projectId: string,
+    department: string,
+    limit = 100,
+  ): Promise<GatherItem[]> {
+    const collection = await this.getGatherCollection(projectId)
+    return collection
+      .find({ projectId, 'automationMetadata.department': department })
+      .limit(limit)
+      .toArray()
   }
 
   /**

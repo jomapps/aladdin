@@ -25,6 +25,7 @@ import DepartmentCards from '@/components/gather/DepartmentCards'
 import GatherList from '@/components/gather/GatherList'
 import GatherPagination from '@/components/gather/GatherPagination'
 import { GatherQueryOptions } from '@/lib/gather/types'
+import { AutomatedGatherButton } from '@/components/automated-gather/AutomatedGatherButton'
 
 interface GatherPageClientProps {
   projectId: string
@@ -115,19 +116,28 @@ export default function GatherPageClient({ projectId, projectName }: GatherPageC
           <div className="flex min-h-full flex-col">
             {/* Header */}
             <div className="border-b border-slate-800/70 bg-slate-950/80 px-6 py-5 shadow-[0_24px_80px_-45px_rgba(15,23,42,0.9)]">
-              <div className="mb-4 flex items-center justify-between">
-                <div>
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <div className="flex-1">
                   <h1 className="text-3xl font-semibold tracking-tight text-white">Gather</h1>
                   <p className="mt-1 text-sm text-slate-300/90">
                     Unqualified Content Collection for {projectName}
                   </p>
                 </div>
-                {data && (
-                  <div className="flex items-baseline gap-2 text-slate-200">
-                    <span className="text-lg text-slate-400">Items:</span>
-                    <span className="text-3xl font-bold text-white">{data.total}</span>
+                <div className="flex items-center gap-4">
+                  {data && (
+                    <div className="flex items-baseline gap-2 text-slate-200">
+                      <span className="text-lg text-slate-400">Items:</span>
+                      <span className="text-3xl font-bold text-white">{data.total}</span>
+                    </div>
+                  )}
+                  <div className="flex-shrink-0">
+                    <AutomatedGatherButton
+                      projectId={projectId}
+                      gatherCount={data?.total || 0}
+                      onStart={() => refetch()}
+                    />
                   </div>
-                )}
+                </div>
               </div>
 
               {/* Search and Filters */}

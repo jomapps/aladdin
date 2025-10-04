@@ -15,11 +15,35 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
   const headers = await getHeaders()
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
-  const { user } = await payload.auth({ headers })
 
-  // If user is not authenticated, redirect to home page
-  if (!user) {
-    redirect('/')
+  // In development, auto-login as first user
+  const isDevMode = process.env.NODE_ENV === 'development'
+  let user = null
+
+  if (isDevMode) {
+    // Auto-login in development
+    const users = await payload.find({
+      collection: 'users',
+      limit: 1,
+      sort: 'createdAt',
+    })
+
+    if (users.docs.length > 0) {
+      user = users.docs[0]
+      console.log('[DashboardLayout] Development mode: Auto-logged in as', user.email)
+    } else {
+      console.warn('[DashboardLayout] Development mode: No users found. Redirecting to homepage.')
+      redirect('/')
+    }
+  } else {
+    // Production: Check actual authentication
+    const authResult = await payload.auth({ headers })
+    user = authResult.user
+
+    // If user is not authenticated, redirect to home page
+    if (!user) {
+      redirect('/')
+    }
   }
 
   return (
