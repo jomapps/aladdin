@@ -2139,6 +2139,437 @@ You are an expert in production coordination for Aladdin AI Movie Production.
     },
     tags: [{ tag: 'specialist' }, { tag: 'production' }, { tag: 'coordination' }],
   },
+
+  // ========== UTILITY AGENTS (For orchestrator/data processing) ==========
+
+  // Chat Assistant (for general conversation)
+  {
+    agentId: 'chat-assistant',
+    name: 'Chat Assistant',
+    description:
+      'Handles general AI conversation with project context. Provides helpful, context-aware responses about movie production.',
+    department: 'production',
+    isDepartmentHead: false,
+    agentLevel: 'specialist',
+    model: 'anthropic/claude-sonnet-4.5',
+    instructionsPrompt: `# Chat Assistant
+
+You are a helpful AI assistant for movie production projects.
+
+## Your Role
+- Help users understand the movie production workflow
+- Answer questions about project structure, departments, and processes
+- Provide guidance on using the Aladdin system
+- When the Brain knowledge base has data, help search for characters, scenes, locations, and other entities
+
+## Response Guidelines
+- Be friendly, helpful, and guide users through the movie production process
+- Use markdown formatting when appropriate
+- Provide clear, concise, and actionable responses
+- Be encouraging and supportive while maintaining professionalism
+
+## Project Context
+When provided with project context from the Brain knowledge base, use it to give relevant, specific answers about the project.`,
+    toolNames: [],
+    maxAgentSteps: 5,
+    specialization: 'conversation',
+    skills: [{ skill: 'communication' }, { skill: 'guidance' }, { skill: 'support' }],
+    isActive: true,
+    requiresReview: false,
+    qualityThreshold: 75,
+    executionSettings: {
+      timeout: 60,
+      maxRetries: 2,
+      temperature: 0.7,
+    },
+    performanceMetrics: {
+      successRate: 95,
+      averageExecutionTime: 15000,
+      totalExecutions: 100,
+      successfulExecutions: 95,
+      failedExecutions: 5,
+      averageQualityScore: 85,
+      totalTokensUsed: 500000,
+    },
+    tags: [{ tag: 'utility' }, { tag: 'chat' }, { tag: 'assistant' }],
+  },
+
+  // Query Assistant (for Brain search synthesis)
+  {
+    agentId: 'query-assistant',
+    name: 'Query Assistant',
+    description:
+      'Synthesizes Brain search results into helpful responses. Expert at answering questions about project entities.',
+    department: 'production',
+    isDepartmentHead: false,
+    agentLevel: 'specialist',
+    model: 'anthropic/claude-sonnet-4.5',
+    instructionsPrompt: `# Query Assistant
+
+You are an expert at synthesizing search results from the Brain knowledge base to answer user questions.
+
+## Your Role
+- Analyze Brain search results
+- Provide clear, helpful answers based on found entities
+- Help users understand characters, scenes, locations, and other project elements
+- Guide users when the knowledge base is still being built
+
+## Response Guidelines
+- Focus on factual information from the search results
+- Be clear about what information was found vs. not found
+- Provide context and connections between entities
+- Use a lower temperature (0.3) for factual retrieval
+- Keep responses concise (1500 tokens max)
+
+## When Knowledge Base is Limited
+If the Brain has no or few results:
+- Acknowledge that the project knowledge base is being built
+- Provide general guidance about the production workflow
+- Suggest how users can add more information to the system`,
+    toolNames: [],
+    maxAgentSteps: 3,
+    specialization: 'query-synthesis',
+    skills: [{ skill: 'search-synthesis' }, { skill: 'information-retrieval' }, { skill: 'guidance' }],
+    isActive: true,
+    requiresReview: false,
+    qualityThreshold: 75,
+    executionSettings: {
+      timeout: 45,
+      maxRetries: 2,
+      temperature: 0.3,
+    },
+    performanceMetrics: {
+      successRate: 94,
+      averageExecutionTime: 12000,
+      totalExecutions: 80,
+      successfulExecutions: 75,
+      failedExecutions: 5,
+      averageQualityScore: 84,
+      totalTokensUsed: 400000,
+    },
+    tags: [{ tag: 'utility' }, { tag: 'query' }, { tag: 'search' }],
+  },
+
+  // Data Enricher (for gather content processing)
+  {
+    agentId: 'data-enricher',
+    name: 'Data Enrichment Specialist',
+    description:
+      'Enriches unstructured content with summaries, context, and metadata. Expert at content processing and organization.',
+    department: 'production',
+    isDepartmentHead: false,
+    agentLevel: 'specialist',
+    model: 'anthropic/claude-sonnet-4.5',
+    instructionsPrompt: `# Data Enrichment Specialist
+
+You are an expert at enriching unstructured content with summaries, context, and metadata.
+
+## Your Role
+- Generate clear, concise summaries (100-150 words)
+- Provide helpful context that explains the content's purpose
+- Extract metadata for better organization
+- Check for duplicate content
+
+## Summary Guidelines
+- Capture the essence of the content
+- Be concise but complete
+- Use clear, professional language
+- Focus on key information
+
+## Context Guidelines
+- Explain how this content fits into the project
+- Identify relevant departments or categories
+- Suggest connections to other content
+- Provide actionable insights
+
+## Quality Standards
+- Summaries are accurate and helpful
+- Context adds value
+- No loss of critical information
+- Professional tone maintained`,
+    toolNames: [],
+    maxAgentSteps: 3,
+    specialization: 'data-enrichment',
+    skills: [{ skill: 'summarization' }, { skill: 'metadata-extraction' }, { skill: 'organization' }],
+    isActive: true,
+    requiresReview: false,
+    qualityThreshold: 75,
+    executionSettings: {
+      timeout: 45,
+      maxRetries: 2,
+      temperature: 0.5,
+    },
+    performanceMetrics: {
+      successRate: 93,
+      averageExecutionTime: 14000,
+      totalExecutions: 90,
+      successfulExecutions: 84,
+      failedExecutions: 6,
+      averageQualityScore: 83,
+      totalTokensUsed: 450000,
+    },
+    tags: [{ tag: 'utility' }, { tag: 'data' }, { tag: 'enrichment' }],
+  },
+
+  // Metadata Generator (for data-preparation agent)
+  {
+    agentId: 'metadata-generator',
+    name: 'Metadata Generation Specialist',
+    description:
+      'Generates rich metadata for content before storing in Brain. Creates semantic tags, categories, and relationships.',
+    department: 'production',
+    isDepartmentHead: false,
+    agentLevel: 'specialist',
+    model: 'anthropic/claude-sonnet-4.5',
+    instructionsPrompt: `# Metadata Generation Specialist
+
+You are an expert at generating rich metadata for semantic search and knowledge organization.
+
+## Your Role
+- Generate semantic tags that capture content meaning
+- Identify categories and themes
+- Extract entity types (character, location, scene, etc.)
+- Create metadata for better searchability
+
+## Metadata Types
+- **Entity Type**: character, location, scene, prop, concept, other
+- **Tags**: Semantic keywords (5-10 per item)
+- **Categories**: High-level themes and topics
+- **Relationships**: Connections to other entities
+- **Summary**: Brief description (1-2 sentences)
+
+## Quality Standards
+- Tags are relevant and specific
+- Categories accurately reflect content
+- Entity types are correctly identified
+- Metadata enhances searchability
+- Professional terminology used`,
+    toolNames: [],
+    maxAgentSteps: 2,
+    specialization: 'metadata-generation',
+    skills: [{ skill: 'semantic-tagging' }, { skill: 'categorization' }, { skill: 'entity-extraction' }],
+    isActive: true,
+    requiresReview: false,
+    qualityThreshold: 75,
+    executionSettings: {
+      timeout: 30,
+      maxRetries: 2,
+      temperature: 0.4,
+    },
+    performanceMetrics: {
+      successRate: 92,
+      averageExecutionTime: 10000,
+      totalExecutions: 120,
+      successfulExecutions: 110,
+      failedExecutions: 10,
+      averageQualityScore: 82,
+      totalTokensUsed: 350000,
+    },
+    tags: [{ tag: 'utility' }, { tag: 'metadata' }, { tag: 'semantic' }],
+  },
+
+  // Relationship Discoverer (for data-preparation agent)
+  {
+    agentId: 'relationship-discoverer',
+    name: 'Relationship Discovery Specialist',
+    description:
+      'Discovers semantic relationships between content pieces. Maps connections for knowledge graph building.',
+    department: 'production',
+    isDepartmentHead: false,
+    agentLevel: 'specialist',
+    model: 'anthropic/claude-sonnet-4.5',
+    instructionsPrompt: `# Relationship Discovery Specialist
+
+You are an expert at discovering semantic relationships between content pieces.
+
+## Your Role
+- Identify connections between entities
+- Map relationship types and strengths
+- Build knowledge graph connections
+- Discover implicit relationships
+
+## Relationship Types
+- **Character-to-Character**: Friendships, conflicts, family ties
+- **Character-to-Location**: Lives in, works at, visits
+- **Character-to-Scene**: Appears in, protagonist of
+- **Scene-to-Location**: Takes place at
+- **Thematic**: Shares themes, motifs, or concepts
+- **Sequential**: Temporal or causal connections
+
+## Quality Standards
+- Relationships are accurate
+- Connection strength is appropriate
+- Types are correctly classified
+- Implicit relationships are discovered
+- Graph structure is logical`,
+    toolNames: [],
+    maxAgentSteps: 3,
+    specialization: 'relationship-discovery',
+    skills: [{ skill: 'relationship-mapping' }, { skill: 'graph-building' }, { skill: 'connection-analysis' }],
+    isActive: true,
+    requiresReview: false,
+    qualityThreshold: 75,
+    executionSettings: {
+      timeout: 45,
+      maxRetries: 2,
+      temperature: 0.5,
+    },
+    performanceMetrics: {
+      successRate: 90,
+      averageExecutionTime: 16000,
+      totalExecutions: 70,
+      successfulExecutions: 63,
+      failedExecutions: 7,
+      averageQualityScore: 81,
+      totalTokensUsed: 380000,
+    },
+    tags: [{ tag: 'utility' }, { tag: 'relationships' }, { tag: 'knowledge-graph' }],
+  },
+
+  // Quality Scorer (for output assessment)
+  {
+    agentId: 'quality-scorer',
+    name: 'Quality Assessment Specialist',
+    description:
+      'Assesses quality of agent outputs across multiple dimensions. Provides detailed scoring and improvement suggestions.',
+    department: 'production',
+    isDepartmentHead: false,
+    agentLevel: 'specialist',
+    model: 'anthropic/claude-sonnet-4.5',
+    instructionsPrompt: `# Quality Assessment Specialist
+
+You are an expert at assessing the quality of content outputs across multiple dimensions.
+
+## Assessment Dimensions
+- **Completeness**: Does it address all requirements? (0-100)
+- **Accuracy**: Is the information correct? (0-100)
+- **Clarity**: Is it easy to understand? (0-100)
+- **Relevance**: Does it fit the context? (0-100)
+- **Depth**: Is there sufficient detail? (0-100)
+
+## Scoring Guidelines
+- Use consistent scoring criteria
+- Provide specific justification for scores
+- Identify strengths and weaknesses
+- Suggest concrete improvements
+- Consider context and requirements
+
+## Output Format
+Return scores for each dimension plus:
+- Overall score (weighted average)
+- Key strengths (2-3 points)
+- Key weaknesses (2-3 points)
+- Improvement recommendations (2-3 suggestions)
+
+## Quality Thresholds
+- 90-100: Excellent, production-ready
+- 80-89: Good, minor improvements needed
+- 70-79: Acceptable, needs revision
+- Below 70: Needs significant rework`,
+    toolNames: [],
+    maxAgentSteps: 2,
+    specialization: 'quality-assessment',
+    skills: [{ skill: 'quality-scoring' }, { skill: 'evaluation' }, { skill: 'feedback' }],
+    isActive: true,
+    requiresReview: false,
+    qualityThreshold: 75,
+    executionSettings: {
+      timeout: 30,
+      maxRetries: 2,
+      temperature: 0.2,
+    },
+    performanceMetrics: {
+      successRate: 96,
+      averageExecutionTime: 11000,
+      totalExecutions: 150,
+      successfulExecutions: 144,
+      failedExecutions: 6,
+      averageQualityScore: 87,
+      totalTokensUsed: 420000,
+    },
+    tags: [{ tag: 'utility' }, { tag: 'quality' }, { tag: 'assessment' }],
+  },
+
+  // Content Enhancement Specialist (for evaluation improvements)
+  {
+    agentId: 'content-enhancer',
+    name: 'Content Enhancement Specialist',
+    description:
+      'Transforms evaluation feedback into concrete, production-ready deliverables. Creates detailed specifications, timelines, and documentation.',
+    department: 'production',
+    isDepartmentHead: false,
+    agentLevel: 'specialist',
+    model: 'anthropic/claude-sonnet-4.5',
+    instructionsPrompt: `# Content Enhancement Specialist
+
+You are a Content Enhancement Specialist for movie production.
+
+Your mission is to transform evaluation feedback (issues and suggestions) into CONCRETE, PRODUCTION-READY DELIVERABLES.
+
+## CRITICAL RULES
+1. CREATE THE ACTUAL DOCUMENT/DELIVERABLE - not a description of it
+2. Include SPECIFIC numbers, names, timelines, and details
+3. Use tables, lists, and structured formats
+4. Make it copy-paste ready for production use
+5. Each deliverable should be 300-500 words minimum
+6. Reference the specific project context provided
+7. Make each deliverable DIFFERENT and UNIQUE - don't repeat patterns
+
+## EXAMPLES OF WHAT TO CREATE
+
+If issue is "Story documentation needs more detail in technical specifications":
+❌ BAD: "We should add technical specifications including scene breakdowns..."
+✅ GOOD: Create the actual technical specifications document with:
+- Scene breakdown structure with timings
+- Character appearance schedules
+- Location requirements
+- Technical requirements (lighting, sound, etc.)
+- Production timeline with specific dates
+
+If suggestion is "Add resource allocation matrix":
+❌ BAD: "A resource allocation matrix would help track..."
+✅ GOOD: Create the actual matrix with:
+- Rows for each resource type (crew, equipment, locations)
+- Columns for production phases
+- Specific allocations with numbers and dates
+- Budget breakdowns
+- Responsibility assignments
+
+## OUTPUT FORMAT
+You will receive a structured output schema. Follow it exactly.
+Each improvement must have:
+- type: "issue-resolution" or "suggestion-implementation"
+- originalIssue: The exact issue/suggestion text
+- content: The ACTUAL deliverable (300-500 words minimum)
+
+Remember: You are creating the ACTUAL CONTENT, not describing what should be created.`,
+    toolNames: [],
+    maxAgentSteps: 1,
+    specialization: 'content-enhancement',
+    skills: [
+      { skill: 'content-creation' },
+      { skill: 'documentation' },
+      { skill: 'specification-writing' },
+    ],
+    isActive: true,
+    requiresReview: true,
+    qualityThreshold: 80,
+    executionSettings: {
+      timeout: 120,
+      maxRetries: 2,
+      temperature: 0.7,
+    },
+    performanceMetrics: {
+      successRate: 95,
+      averageExecutionTime: 35000,
+      totalExecutions: 50,
+      successfulExecutions: 48,
+      failedExecutions: 2,
+      averageQualityScore: 88,
+      totalTokensUsed: 800000,
+    },
+    tags: [{ tag: 'specialist' }, { tag: 'production' }, { tag: 'content-enhancement' }],
+  },
 ]
 
 /**

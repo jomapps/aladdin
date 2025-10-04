@@ -2,12 +2,10 @@
  * Chat Mode Handler
  * Handles general AI conversation with optional project context via Brain service
  *
- * NOTE: Chat handler uses direct LLM client for simple conversations.
- * For complex workflows with tools/agents, use AladdinAgentRunner.
- * See /docs/migration/LLM_CLIENT_TO_AGENT_RUNNER.md
+ * Uses AladdinAgentRunner with chat-assistant agent
  */
 
-import { getLLMClient, type LLMMessage } from '@/lib/llm/client'
+import { AladdinAgentRunner } from '@/lib/agents/AladdinAgentRunner'
 import { getBrainClient } from '@/lib/brain/client'
 import {
   GLOBAL_PROJECT_ID,
@@ -55,7 +53,6 @@ export async function handleChat(options: ChatHandlerOptions): Promise<ChatHandl
   } = options
 
   // 1. Initialize clients
-  const llmClient = getLLMClient()
   const brainClient = getBrainClient()
   const payload = await getPayload({ config: await configPromise })
 
@@ -73,7 +70,7 @@ export async function handleChat(options: ChatHandlerOptions): Promise<ChatHandl
 
   // 2. Load or create conversation
   let actualConversationId = conversationId
-  let conversationHistory: LLMMessage[] = []
+  let conversationHistory: string = ''
   let conversationProjectId: string | undefined
 
   if (conversationId) {
@@ -84,10 +81,9 @@ export async function handleChat(options: ChatHandlerOptions): Promise<ChatHandl
       })
 
       if (conversation && conversation.messages) {
-        conversationHistory = conversation.messages.map((msg: any) => ({
-          role: msg.role as 'user' | 'assistant' | 'system',
-          content: msg.content,
-        }))
+        conversationHistory = conversation.messages
+          .map((msg: any) => `${msg.role}: ${msg.content}`)
+          .join('\n\n')
       }
 
       // Capture project association if present
@@ -150,41 +146,6 @@ export async function handleChat(options: ChatHandlerOptions): Promise<ChatHandl
     // Continue without Brain context - service may not have data yet
   }
 
-  // 5. Build messages array with system prompt (enhanced with Brain context)
-  const systemPrompt = isProjectContext
-    ? `You are a helpful AI assistant for a movie production project. You can help with:
-- Understanding project details (characters, scenes, locations, plot)
-- Creative writing and storytelling within the project context
-- Brainstorming ideas and overcoming writer's block
-- Providing constructive feedback on the project
-
-${brainContext ? brainContext : 'The project knowledge base is being built. I can still help with general creative guidance.'}
-
-Provide clear, concise, and helpful responses. Use markdown formatting when appropriate.
-Be encouraging and supportive while maintaining professionalism.`
-    : `You are a helpful AI assistant for creative professionals. You can help with:
-- Creative writing and storytelling
-- Brainstorming ideas and overcoming writer's block
-- General questions about narrative structure and techniques
-- Providing constructive feedback and suggestions
-
-${brainContext ? brainContext : ''}
-
-Provide clear, concise, and helpful responses. Use markdown formatting when appropriate.
-Be encouraging and supportive while maintaining professionalism.`
-
-  const messages: LLMMessage[] = [
-    {
-      role: 'system',
-      content: systemPrompt,
-    },
-    ...conversationHistory,
-    {
-      role: 'user',
-      content,
-    },
-  ]
-
   // Intercept "what should I do next"-type intents to provide deterministic guidance
   if (isNextStepIntent(content)) {
     const suggestion = await computeNextDepartmentSuggestion(payload, conversationProjectId)
@@ -231,20 +192,49 @@ Be encouraging and supportive while maintaining professionalism.`
     }
   }
 
-  // 6. Get LLM response
-  const llmResponse = await llmClient.chat(messages, {
-    temperature,
-    maxTokens,
+  // 5. Build prompt with context
+  const contextualPrompt = isProjectContext
+    ? `You are helping with a movie production project.
+
+${brainContext ? brainContext : 'The project knowledge base is being built.'}
+
+Conversation History:
+${conversationHistory}
+
+User Question: ${content}
+
+Provide a helpful, friendly response. Use markdown formatting when appropriate.`
+    : `You are a helpful AI assistant for creative professionals.
+
+${brainContext ? brainContext : ''}
+
+Conversation History:
+${conversationHistory}
+
+User Question: ${content}
+
+Provide a helpful, friendly response. Use markdown formatting when appropriate.`
+
+  // 6. Execute agent
+  const runner = new AladdinAgentRunner(payload)
+  const result = await runner.execute({
+    agentId: 'chat-assistant',
+    prompt: contextualPrompt,
+    context: {
+      projectId: projectId || 'global',
+      conversationId: actualConversationId,
+      userId,
+    },
   })
 
-  console.log('[ChatHandler] LLM response generated:', {
-    tokens: llmResponse.usage.totalTokens,
-    model: llmResponse.model,
+  console.log('[ChatHandler] Agent response generated:', {
+    tokens: result.usage.totalTokens,
+    model: result.model,
     brainResultsUsed: brainResults.length,
   })
 
   // 7. Generate contextual suggestions
-  const suggestions = generateChatSuggestions(content, llmResponse.content)
+  const suggestions = generateChatSuggestions(content, result.content)
 
   // 8. Save messages to conversation
   try {
@@ -252,23 +242,25 @@ Be encouraging and supportive while maintaining professionalism.`
       collection: 'conversations',
       id: actualConversationId,
       data: {
-        messages: [
-          ...conversationHistory,
-          {
-            id: `msg-${Date.now()}-user`,
-            role: 'user',
-            content,
-            timestamp: new Date(),
-          },
-          {
-            id: `msg-${Date.now()}-assistant`,
-            role: 'assistant',
-            content: llmResponse.content,
-            timestamp: new Date(),
-            metadata:
-              brainResults.length > 0 ? { brainResultsCount: brainResults.length } : undefined,
-          },
-        ],
+        messages: {
+          // @ts-ignore
+          append: [
+            {
+              id: `msg-${Date.now()}-user`,
+              role: 'user',
+              content,
+              timestamp: new Date(),
+            },
+            {
+              id: `msg-${Date.now()}-assistant`,
+              role: 'assistant',
+              content: result.content,
+              timestamp: new Date(),
+              metadata:
+                brainResults.length > 0 ? { brainResultsCount: brainResults.length } : undefined,
+            },
+          ],
+        },
         lastMessageAt: new Date(),
         updatedAt: new Date(),
       },
@@ -280,12 +272,12 @@ Be encouraging and supportive while maintaining professionalism.`
   // 9. Return result
   return {
     conversationId: actualConversationId,
-    message: llmResponse.content,
-    model: llmResponse.model,
+    message: result.content,
+    model: result.model,
     usage: {
-      promptTokens: llmResponse.usage.promptTokens,
-      completionTokens: llmResponse.usage.completionTokens,
-      totalTokens: llmResponse.usage.totalTokens,
+      promptTokens: result.usage.promptTokens,
+      completionTokens: result.usage.completionTokens,
+      totalTokens: result.usage.totalTokens,
     },
     suggestions,
   }

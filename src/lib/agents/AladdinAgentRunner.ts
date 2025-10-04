@@ -1,5 +1,11 @@
-import { CodebuffClient } from '@codebuff/sdk'
-import type { AgentDefinition, RunState } from '@codebuff/sdk'
+/**
+ * Aladdin Agent Runner
+ * Core agent execution engine using Vercel AI SDK with PayloadCMS integration
+ */
+
+import { AIAgentExecutor } from '@/lib/ai/agent-executor'
+import { getTools } from '@/lib/ai/tools'
+import type { AIAgentResult, AgentExecutionOptions } from '@/lib/ai/types'
 import type { Payload } from 'payload'
 
 /**
@@ -9,7 +15,6 @@ export interface AgentExecutionContext {
   projectId: string
   episodeId?: string
   conversationId: string
-  previousRun?: RunState
   metadata?: Record<string, unknown>
 }
 
@@ -18,8 +23,8 @@ export interface AgentExecutionContext {
  */
 export interface AgentExecutionResult {
   executionId: string
-  output: unknown
-  runState: RunState
+  output: string
+  object?: any
   qualityScore?: number
   executionTime: number
   tokenUsage?: {
@@ -44,76 +49,174 @@ export type AgentEventHandler = (event: unknown) => void | Promise<void>
 /**
  * AladdinAgentRunner
  *
- * Core agent execution engine integrating PayloadCMS with @codebuff/sdk.
+ * Core agent execution engine integrating PayloadCMS with Vercel AI SDK.
  * Handles:
  * - Dynamic agent execution from CMS definitions
  * - Custom tool loading and registration
  * - Real-time event streaming
- * - Execution tracking and audit trail
- * - Error handling and retries
- * - Performance metrics
- *
- * @example
- * ```typescript
- * const runner = new AladdinAgentRunner(apiKey, payload);
- *
- * const result = await runner.executeAgent('story-head-001', 'Create a dramatic opening scene', {
- *   projectId: 'proj-123',
- *   conversationId: 'conv-456',
- * });
- * ```
+ * - Execution tracking and metrics
+ * - Quality scoring and validation
  */
 export class AladdinAgentRunner {
-  private client: CodebuffClient
+  private executor: AIAgentExecutor
   private payload: Payload
 
-  /**
-   * Create a new AladdinAgentRunner
-   *
-   * @param apiKey - Codebuff API key (or OpenRouter API key if using OpenRouter)
-   * @param payload - PayloadCMS instance
-   * @param cwd - Current working directory for file operations
-   */
-  constructor(apiKey: string, payload: Payload, cwd?: string) {
-    // Use OpenRouter if OPENROUTER_BASE_URL is configured
-    const useOpenRouter = !!process.env.OPENROUTER_BASE_URL
-    const finalApiKey = useOpenRouter
-      ? process.env.OPENROUTER_API_KEY || apiKey
-      : apiKey
-
-    this.client = new CodebuffClient({
-      apiKey: finalApiKey,
-      baseURL: useOpenRouter ? process.env.OPENROUTER_BASE_URL : undefined,
-      cwd: cwd || process.cwd(),
-    })
+  constructor(payload: Payload) {
+    this.executor = new AIAgentExecutor(payload)
     this.payload = payload
-
-    console.log(
-      useOpenRouter
-        ? `🌐 Using OpenRouter API at ${process.env.OPENROUTER_BASE_URL}`
-        : '🤖 Using direct Anthropic API'
-    )
   }
 
   /**
    * Execute an agent by ID
    *
-   * @param agentId - Agent ID from PayloadCMS
-   * @param prompt - User or system prompt
-   * @param context - Execution context (project, episode, conversation)
-   * @param onEvent - Optional event handler for real-time updates
-   * @returns Promise resolving to execution result
+   * @param agentId - Agent identifier from PayloadCMS
+   * @param prompt - User prompt or instruction
+   * @param context - Execution context with project/conversation IDs
+   * @param eventHandler - Optional callback for real-time events
+   * @returns Execution result with output and metrics
    */
   async executeAgent(
     agentId: string,
     prompt: string,
     context: AgentExecutionContext,
-    onEvent?: AgentEventHandler
+    eventHandler?: AgentEventHandler,
   ): Promise<AgentExecutionResult> {
-    const startTime = Date.now()
+    console.log(`[AladdinAgentRunner] Executing agent: ${agentId}`)
 
-    // 1. Fetch agent from PayloadCMS
-    const agentDoc = await this.payload.find({
+    try {
+      // 1. Load agent from PayloadCMS
+      const agent = await this.loadAgent(agentId)
+
+      // 2. Load custom tools for this agent
+      const tools = getTools(agent.toolNames || [])
+
+      // 3. Build execution options
+      const options: AgentExecutionOptions = {
+        agentId,
+        prompt,
+        context: {
+          projectId: context.projectId,
+          conversationId: context.conversationId,
+          userId: context.metadata?.userId as string | undefined,
+          metadata: context.metadata,
+        },
+        tools,
+        maxSteps: agent.maxAgentSteps || 20,
+        temperature: agent.executionSettings?.temperature || 0.7,
+        maxTokens: agent.executionSettings?.maxTokens || 16000,
+      }
+
+      // 4. Execute agent
+      const result = await this.executor.execute(options)
+
+      // 5. Calculate quality score if needed
+      let qualityScore: number | undefined
+      if (agent.requiresReview) {
+        qualityScore = await this.calculateQualityScore(result, agent)
+      }
+
+      // 6. Emit event if handler provided
+      if (eventHandler) {
+        await eventHandler({
+          type: 'execution_complete',
+          agentId,
+          executionId: result.executionId,
+          output: result.text,
+          qualityScore,
+        })
+      }
+
+      // 7. Return formatted result
+      return {
+        executionId: result.executionId!,
+        output: result.text,
+        object: result.object,
+        qualityScore,
+        executionTime: result.executionTime!,
+        tokenUsage: {
+          inputTokens: result.usage.promptTokens,
+          outputTokens: result.usage.completionTokens,
+          totalTokens: result.usage.totalTokens,
+          estimatedCost: this.calculateCost(result.usage.totalTokens, agent.model),
+        },
+      }
+    } catch (error) {
+      console.error(`[AladdinAgentRunner] Execution failed:`, error)
+
+      // Emit error event if handler provided
+      if (eventHandler) {
+        await eventHandler({
+          type: 'execution_error',
+          agentId,
+          error: error instanceof Error ? error.message : String(error),
+        })
+      }
+
+      return {
+        executionId: `error-${Date.now()}`,
+        output: '',
+        executionTime: 0,
+        error: {
+          message: error instanceof Error ? error.message : String(error),
+          code: 'EXECUTION_ERROR',
+          stack: error instanceof Error ? error.stack : undefined,
+        },
+      }
+    }
+  }
+
+  /**
+   * Execute multiple agents in parallel
+   */
+  async executeAgentsParallel(
+    executions: Array<{
+      agentId: string
+      prompt: string
+      context: AgentExecutionContext
+    }>,
+    eventHandler?: AgentEventHandler,
+  ): Promise<AgentExecutionResult[]> {
+    console.log(`[AladdinAgentRunner] Executing ${executions.length} agents in parallel`)
+
+    return await Promise.all(
+      executions.map((exec) => this.executeAgent(exec.agentId, exec.prompt, exec.context, eventHandler)),
+    )
+  }
+
+  /**
+   * Execute multiple agents in sequence
+   */
+  async executeAgentsSequential(
+    executions: Array<{
+      agentId: string
+      prompt: string
+      context: AgentExecutionContext
+    }>,
+    eventHandler?: AgentEventHandler,
+  ): Promise<AgentExecutionResult[]> {
+    console.log(`[AladdinAgentRunner] Executing ${executions.length} agents sequentially`)
+
+    const results: AgentExecutionResult[] = []
+
+    for (const exec of executions) {
+      const result = await this.executeAgent(exec.agentId, exec.prompt, exec.context, eventHandler)
+      results.push(result)
+
+      // Stop if error occurred
+      if (result.error) {
+        console.error(`[AladdinAgentRunner] Stopping sequential execution due to error`)
+        break
+      }
+    }
+
+    return results
+  }
+
+  /**
+   * Load agent from PayloadCMS
+   */
+  private async loadAgent(agentId: string) {
+    const result = await this.payload.find({
       collection: 'agents',
       where: {
         agentId: { equals: agentId },
@@ -122,307 +225,59 @@ export class AladdinAgentRunner {
       limit: 1,
     })
 
-    if (!agentDoc.docs.length) {
+    if (!result.docs.length) {
       throw new Error(`Agent not found or inactive: ${agentId}`)
     }
 
-    const agent = agentDoc.docs[0]
-
-    // 2. Fetch department
-    const department = await this.payload.findByID({
-      collection: 'departments',
-      id: agent.department as string,
-    })
-
-    // 3. Load custom tools for this agent
-    const tools = await this.loadCustomTools(agent)
-
-    // 4. Create agent definition
-    const agentDefinition = this.createAgentDefinition(agent)
-
-    // 5. Create execution record
-    const execution = await this.payload.create({
-      collection: 'agent-executions',
-      data: {
-        agent: agent.id,
-        department: department.id,
-        project: context.projectId,
-        episode: context.episodeId,
-        conversationId: context.conversationId,
-        prompt,
-        params: context.metadata,
-        status: 'running',
-        startedAt: new Date(),
-        retryCount: 0,
-        maxRetries: agent.executionSettings?.maxRetries || 3,
-      },
-    })
-
-    try {
-      // 6. Execute with @codebuff/sdk
-      const result = await this.client.run({
-        agent: agent.agentId,
-        prompt,
-        agentDefinitions: [agentDefinition],
-        customToolDefinitions: tools,
-        previousRun: context.previousRun,
-        maxAgentSteps: agent.maxAgentSteps || 20,
-        handleEvent: async (event) => {
-          // Store event in database
-          await this.handleAgentEvent(execution.id, event)
-
-          // Call external event handler if provided
-          if (onEvent) {
-            await onEvent(event)
-          }
-        },
-      })
-
-      const executionTime = Date.now() - startTime
-
-      // 7. Update execution with results
-      await this.payload.update({
-        collection: 'agent-executions',
-        id: execution.id,
-        data: {
-          status: 'completed',
-          completedAt: new Date(),
-          output: result.output,
-          runState: result as unknown as Record<string, unknown>,
-          executionTime,
-          tokenUsage: this.extractTokenUsage(result),
-        },
-      })
-
-      // 8. Update agent performance metrics
-      await this.updateAgentMetrics(agent.id, true, executionTime)
-
-      return {
-        executionId: execution.id,
-        output: result.output,
-        runState: result,
-        executionTime,
-        tokenUsage: this.extractTokenUsage(result),
-      }
-    } catch (error) {
-      const executionTime = Date.now() - startTime
-      const errorDetails = {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        code: (error as { code?: string })?.code,
-        stack: error instanceof Error ? error.stack : undefined,
-        details: error,
-      }
-
-      // Update execution with error
-      await this.payload.update({
-        collection: 'agent-executions',
-        id: execution.id,
-        data: {
-          status: 'failed',
-          error: errorDetails,
-          completedAt: new Date(),
-          executionTime,
-        },
-      })
-
-      // Update agent performance metrics
-      await this.updateAgentMetrics(agent.id, false, executionTime)
-
-      // Check if we should retry
-      const currentRetryCount = (execution.retryCount as number) || 0
-      const maxRetries = (execution.maxRetries as number) || 3
-
-      if (currentRetryCount < maxRetries) {
-        // Increment retry count
-        await this.payload.update({
-          collection: 'agent-executions',
-          id: execution.id,
-          data: {
-            retryCount: currentRetryCount + 1,
-            status: 'pending',
-          },
-        })
-
-        // Exponential backoff
-        const delay = Math.pow(2, currentRetryCount) * 1000
-        await new Promise((resolve) => setTimeout(resolve, delay))
-
-        // Retry execution
-        return this.executeAgent(agentId, prompt, context, onEvent)
-      }
-
-      return {
-        executionId: execution.id,
-        output: null,
-        runState: {} as RunState,
-        executionTime,
-        error: errorDetails,
-      }
-    }
+    return result.docs[0]
   }
 
   /**
-   * Load custom tools for an agent
-   *
-   * @param agent - Agent document from PayloadCMS
-   * @returns Array of custom tool definitions
+   * Calculate quality score for agent output
    */
-  private async loadCustomTools(agent: any): Promise<any[]> {
-    // Query for tools this agent can use
-    const toolsQuery = await this.payload.find({
-      collection: 'custom-tools',
-      where: {
-        and: [
-          {
-            or: [
-              { isGlobal: { equals: true } },
-              { departments: { contains: agent.department } },
-            ],
-          },
-          { isActive: { equals: true } },
-        ],
-      },
-      limit: 100,
-    })
+  private async calculateQualityScore(result: AIAgentResult, agent: any): Promise<number> {
+    // Simple quality scoring based on output characteristics
+    // Can be enhanced with more sophisticated scoring logic
 
-    // Filter by agent's toolNames if specified
-    const agentToolNames = agent.toolNames?.map((t: any) => t.toolName) || []
-    const tools = agentToolNames.length
-      ? toolsQuery.docs.filter((tool) => agentToolNames.includes(tool.toolName))
-      : toolsQuery.docs
+    let score = 0.7 // Base score
 
-    // Convert to @codebuff/sdk tool definitions
-    return tools.map((tool) => {
-      try {
-        // Parse and create executable function
-        const executeFunction = new Function(`return ${tool.executeFunction}`)()
+    // Check output length
+    if (result.text.length > 500) score += 0.1
+    if (result.text.length > 1000) score += 0.1
 
-        return {
-          toolName: tool.toolName,
-          description: tool.description,
-          inputSchema: tool.inputSchema,
-          exampleInputs: tool.exampleInputs?.map((e: any) => e.example) || [],
-          execute: executeFunction,
-        }
-      } catch (error) {
-        console.error(`Failed to load tool ${tool.toolName}:`, error)
-        return null
-      }
-    }).filter(Boolean)
+    // Check if structured output was used
+    if (result.object) score += 0.1
+
+    // Ensure score is within bounds
+    return Math.min(Math.max(score, 0), 1)
   }
 
   /**
-   * Create agent definition from PayloadCMS agent
-   *
-   * @param agent - Agent document from PayloadCMS
-   * @returns Agent definition for @codebuff/sdk
+   * Calculate estimated cost based on token usage
    */
-  private createAgentDefinition(agent: any): AgentDefinition {
-    return {
-      id: agent.agentId,
-      model: agent.model,
-      displayName: agent.name,
-      toolNames: agent.toolNames?.map((t: any) => t.toolName) || [],
-      instructionsPrompt: agent.instructionsPrompt,
+  private calculateCost(totalTokens: number, model: string): number {
+    // Rough cost estimates (per 1M tokens)
+    const costPer1M: Record<string, number> = {
+      'anthropic/claude-sonnet-4.5': 3.0,
+      'anthropic/claude-3.5-sonnet': 3.0,
+      'openai/gpt-4': 30.0,
+      'openai/gpt-3.5-turbo': 0.5,
     }
-  }
 
-  /**
-   * Handle agent event (store in database)
-   *
-   * @param executionId - Execution ID
-   * @param event - Event data
-   */
-  private async handleAgentEvent(executionId: string, event: unknown): Promise<void> {
-    try {
-      const execution = await this.payload.findByID({
-        collection: 'agent-executions',
-        id: executionId,
-      })
-
-      const events = (execution.events as any[]) || []
-      events.push({ event })
-
-      await this.payload.update({
-        collection: 'agent-executions',
-        id: executionId,
-        data: {
-          events,
-        },
-      })
-    } catch (error) {
-      console.error('Failed to store event:', error)
-    }
-  }
-
-  /**
-   * Update agent performance metrics
-   *
-   * @param agentId - Agent ID
-   * @param success - Whether execution was successful
-   * @param executionTime - Execution time in milliseconds
-   */
-  private async updateAgentMetrics(
-    agentId: string,
-    success: boolean,
-    executionTime: number
-  ): Promise<void> {
-    try {
-      const agent = await this.payload.findByID({
-        collection: 'agents',
-        id: agentId,
-      })
-
-      const metrics = agent.performanceMetrics || {}
-      const totalExecutions = (metrics.totalExecutions || 0) + 1
-      const successfulExecutions = (metrics.successfulExecutions || 0) + (success ? 1 : 0)
-      const failedExecutions = (metrics.failedExecutions || 0) + (success ? 0 : 1)
-      const currentAvgTime = metrics.averageExecutionTime || 0
-      const averageExecutionTime =
-        (currentAvgTime * (totalExecutions - 1) + executionTime) / totalExecutions
-      const successRate = (successfulExecutions / totalExecutions) * 100
-
-      await this.payload.update({
-        collection: 'agents',
-        id: agentId,
-        data: {
-          performanceMetrics: {
-            totalExecutions,
-            successfulExecutions,
-            failedExecutions,
-            averageExecutionTime: Math.round(averageExecutionTime),
-            successRate: Math.round(successRate * 100) / 100,
-          },
-          lastExecutedAt: new Date(),
-        },
-      })
-    } catch (error) {
-      console.error('Failed to update agent metrics:', error)
-    }
-  }
-
-  /**
-   * Extract token usage from RunState
-   *
-   * @param result - RunState from @codebuff/sdk
-   * @returns Token usage object
-   */
-  private extractTokenUsage(result: RunState): {
-    inputTokens: number
-    outputTokens: number
-    totalTokens: number
-    estimatedCost?: number
-  } | undefined {
-    // Extract token usage from result if available
-    // This is a placeholder - actual implementation depends on @codebuff/sdk structure
-    const usage = (result as any)?.usage
-    if (!usage) return undefined
-
-    return {
-      inputTokens: usage.inputTokens || 0,
-      outputTokens: usage.outputTokens || 0,
-      totalTokens: usage.totalTokens || 0,
-      estimatedCost: usage.estimatedCost,
-    }
+    const cost = costPer1M[model] || 3.0
+    return (totalTokens / 1_000_000) * cost
   }
 }
+
+/**
+ * Get or create global runner instance
+ */
+let runnerInstance: AladdinAgentRunner | null = null
+
+export async function getAladdinAgentRunner(payload: Payload): Promise<AladdinAgentRunner> {
+  if (!runnerInstance) {
+    runnerInstance = new AladdinAgentRunner(payload)
+  }
+  return runnerInstance
+}
+

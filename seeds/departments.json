@@ -58,7 +58,7 @@
     "codeDepNumber": 3,
     "isActive": true,
     "coreDepartment": true,
-    "gatherCheck": true,
+    "gatherCheck": false,
     "defaultModel": "anthropic/claude-sonnet-4.5",
     "maxAgentSteps": 20,
     "coordinationSettings": {
@@ -83,7 +83,7 @@
     "codeDepNumber": 4,
     "isActive": true,
     "coreDepartment": true,
-    "gatherCheck": true,
+    "gatherCheck": false,
     "defaultModel": "anthropic/claude-sonnet-4.5",
     "maxAgentSteps": 20,
     "coordinationSettings": {
@@ -108,7 +108,7 @@
     "codeDepNumber": 5,
     "isActive": true,
     "coreDepartment": true,
-    "gatherCheck": true,
+    "gatherCheck": false,
     "defaultModel": "anthropic/claude-sonnet-4.5",
     "maxAgentSteps": 20,
     "coordinationSettings": {
@@ -133,7 +133,7 @@
     "codeDepNumber": 6,
     "isActive": true,
     "coreDepartment": true,
-    "gatherCheck": true,
+    "gatherCheck": false,
     "defaultModel": "anthropic/claude-sonnet-4.5",
     "maxAgentSteps": 20,
     "coordinationSettings": {
@@ -158,7 +158,7 @@
     "codeDepNumber": 7,
     "isActive": true,
     "coreDepartment": true,
-    "gatherCheck": true,
+    "gatherCheck": false,
     "defaultModel": "qwen/qwen3-vl-235b-a22b-thinking",
     "maxAgentSteps": 15,
     "coordinationSettings": {
@@ -175,4 +175,3 @@
     }
   }
 ]
-

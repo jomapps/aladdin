@@ -6,7 +6,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
-import { getLLMClient } from '@/lib/llm/client'
 import { TaskExecutionRequestSchema, type TaskExecutionResponse } from '../types'
 import { handleUserRequest } from '@/lib/agents/orchestrator'
 

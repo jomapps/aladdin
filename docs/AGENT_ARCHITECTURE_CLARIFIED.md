@@ -49,15 +49,13 @@ src/lib/agents/DepartmentHeadAgent.ts   # Department coordination
 
 **Code Example**:
 ```typescript
-import { CodebuffClient } from '@codebuff/sdk'
+import { AIAgentExecutor } from '@/lib/ai/agent-executor'
 
-const codebuff = new CodebuffClient({ 
-  apiKey: process.env.CODEBUFF_API_KEY 
-})
+const executor = new AIAgentExecutor(payload)
 
 // Hierarchical execution
-const result = await codebuff.run({
-  agent: masterOrchestratorAgent.id,
+const result = await executor.execute({
+  agentId: masterOrchestratorAgent.agentId,
   prompt: userPrompt,
   customToolDefinitions: [
     routeToDepartmentTool,

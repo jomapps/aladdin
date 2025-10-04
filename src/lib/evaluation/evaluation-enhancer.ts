@@ -3,12 +3,13 @@
  * Uses AI agents to analyze evaluation results and generate improvements
  */
 
-import { AladdinAgentRunner } from '@/lib/agents/AladdinAgentRunner'
+import { AIAgentExecutor } from '@/lib/ai/agent-executor'
 import { getDataPreparationAgent } from '@/lib/agents/data-preparation/agent'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getBrainClient } from '@/lib/brain/client'
 import { gatherDB } from '@/lib/db/gatherDatabase'
+import { z } from 'zod'
 
 export interface EnhanceOptions {
   projectId: string
@@ -219,7 +220,7 @@ class EvaluationEnhancer {
   }
 
   /**
-   * Generate improvements using AladdinAgentRunner
+   * Generate improvements using Vercel AI SDK with structured outputs
    */
   private async generateImprovements(
     project: any,
@@ -377,109 +378,67 @@ Return ONLY valid JSON (no markdown, no extra text):
   }
 ]`
 
+    // Define structured output schema
+    const improvementSchema = z.object({
+      improvements: z.array(
+        z.object({
+          type: z.enum(['issue-resolution', 'suggestion-implementation']),
+          originalIssue: z.string(),
+          content: z.string().min(300).max(3000),
+        }),
+      ),
+    })
+
     try {
       console.log('[EvaluationEnhancer] ========================================')
-      console.log('[EvaluationEnhancer] 🚀 STARTING AGENT EXECUTION')
+      console.log('[EvaluationEnhancer] 🚀 STARTING AI AGENT EXECUTION')
       console.log('[EvaluationEnhancer] ========================================')
       console.log('[EvaluationEnhancer] Prompt length:', prompt.length)
       console.log('[EvaluationEnhancer] Issues count:', issues.length)
       console.log('[EvaluationEnhancer] Suggestions count:', suggestions.length)
-      console.log('[EvaluationEnhancer] Prompt preview:', prompt.slice(0, 500))
 
       // Get PayloadCMS instance
       const payload = await getPayload({ config })
 
-      // Initialize AladdinAgentRunner
-      const apiKey = process.env.OPENROUTER_API_KEY || process.env.ANTHROPIC_API_KEY
-      if (!apiKey) {
-        throw new Error('Missing API key: Set OPENROUTER_API_KEY or ANTHROPIC_API_KEY')
-      }
+      // Initialize AI Agent Executor
+      const executor = new AIAgentExecutor(payload)
 
-      const runner = new AladdinAgentRunner(apiKey, payload)
-
-      // Find evaluation enhancer agent
-      const agents = await payload.find({
-        collection: 'agents',
-        where: {
-          or: [
-            { slug: { equals: 'evaluation-enhancer-agent' } },
-            { slug: { equals: 'quality-enhancer-agent' } }
-          ],
-          isActive: { equals: true }
-        },
-        limit: 1
-      })
-
-      if (!agents.docs.length) {
-        throw new Error('Evaluation enhancer agent not found. Please create evaluation-enhancer-agent in PayloadCMS.')
-      }
-
-      // Execute agent
-      console.log('[EvaluationEnhancer] 📤 Executing agent:', agents.docs[0].agentId)
-      const result = await runner.executeAgent(
-        agents.docs[0].agentId,
+      // Execute with structured output (no JSON parsing needed!)
+      console.log('[EvaluationEnhancer] 📤 Executing agent with structured output...')
+      const result = await executor.execute({
+        agentId: 'content-enhancer', // Must exist in PayloadCMS
         prompt,
-        {
+        context: {
           projectId,
           conversationId: `eval-enhance-${Date.now()}`,
           metadata: {
             departmentName,
             rating,
             issuesCount: issues.length,
-            suggestionsCount: suggestions.length
-          }
-        }
-      )
+            suggestionsCount: suggestions.length,
+          },
+        },
+        structuredOutput: {
+          schema: improvementSchema,
+          description: 'Generate production-ready deliverables for evaluation issues',
+        },
+        maxSteps: 1, // Single-step generation
+        temperature: 0.7,
+        maxTokens: 16000,
+      })
 
       console.log('[EvaluationEnhancer] ========================================')
-      console.log('[EvaluationEnhancer] ✅ AGENT RESPONSE RECEIVED!')
+      console.log('[EvaluationEnhancer] ✅ AI AGENT RESPONSE RECEIVED!')
       console.log('[EvaluationEnhancer] ========================================')
-      console.log('[EvaluationEnhancer] Output type:', typeof result.output)
       console.log('[EvaluationEnhancer] Execution time:', result.executionTime, 'ms')
-      console.log('[EvaluationEnhancer] Token usage:', result.tokenUsage)
+      console.log('[EvaluationEnhancer] Token usage:', result.usage)
+      console.log('[EvaluationEnhancer] Improvements generated:', result.object.improvements.length)
 
-      // Parse JSON response
-      let content = typeof result.output === 'string' ? result.output.trim() : JSON.stringify(result.output)
-      console.log('[EvaluationEnhancer] Response preview:', content.slice(0, 200))
+      // No JSON parsing needed! Structured output is already validated by Zod
+      const improvements = result.object.improvements
 
-      // Remove markdown code blocks if present
-      console.log('[EvaluationEnhancer] Cleaning markdown code blocks...')
-      if (content.startsWith('```json')) {
-        content = content.replace(/^```json\n?/, '').replace(/\n?```$/, '')
-        console.log('[EvaluationEnhancer] Removed ```json wrapper')
-      } else if (content.startsWith('```')) {
-        content = content.replace(/^```\n?/, '').replace(/\n?```$/, '')
-        console.log('[EvaluationEnhancer] Removed ``` wrapper')
-      }
-
-      console.log('[EvaluationEnhancer] Cleaned content preview:', content.slice(0, 200))
-
-      const jsonMatch = content.match(/\[[\s\S]*\]/)
-      if (!jsonMatch) {
-        console.error(
-          '[EvaluationEnhancer] Failed to find JSON array in response:',
-          content.slice(0, 500),
-        )
-        throw new Error('Failed to parse agent response as JSON - no array found')
-      }
-
-      console.log('[EvaluationEnhancer] Parsing JSON array...')
-      const improvements = JSON.parse(jsonMatch[0])
-      console.log('[EvaluationEnhancer] Successfully parsed improvements:', improvements.length)
-
-      // Validate improvements structure
-      if (!Array.isArray(improvements) || improvements.length === 0) {
-        console.error('[EvaluationEnhancer] Invalid improvements structure:', improvements)
-        throw new Error('Agent returned invalid improvements structure')
-      }
-
-      // Validate each improvement has required fields
-      for (const imp of improvements) {
-        if (!imp.type || !imp.originalIssue || !imp.content) {
-          console.error('[EvaluationEnhancer] Invalid improvement missing fields:', imp)
-          throw new Error('Improvement missing required fields')
-        }
-      }
+      console.log('[EvaluationEnhancer] ✅ Structured output validated by Zod schema')
+      console.log('[EvaluationEnhancer] Improvements:', improvements.length)
 
       return improvements
     } catch (error) {

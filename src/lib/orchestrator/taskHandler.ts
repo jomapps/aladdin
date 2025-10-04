@@ -47,7 +47,7 @@ async function routeTaskToAgent(
   content: string,
   projectId: string,
   agentId?: string,
-  departmentSlug?: string
+  departmentSlug?: string,
 ): Promise<{ agentId: string; departmentId: string }> {
   const payload = await getPayload({ config: await configPromise })
 
@@ -148,7 +148,7 @@ async function routeTaskToAgent(
  * Analyze task content to determine appropriate department
  */
 async function analyzeTaskContent(
-  content: string
+  content: string,
 ): Promise<{ departmentSlug: string; confidence: number }> {
   const keywords = {
     story: ['plot', 'story', 'narrative', 'arc', 'chapter', 'scene structure'],
@@ -187,17 +187,8 @@ async function analyzeTaskContent(
 /**
  * Handle task execution
  */
-export async function handleTask(
-  options: TaskHandlerOptions
-): Promise<TaskHandlerResult> {
-  const {
-    content,
-    projectId,
-    conversationId,
-    userId,
-    agentId,
-    departmentSlug,
-  } = options
+export async function handleTask(options: TaskHandlerOptions): Promise<TaskHandlerResult> {
+  const { content, projectId, conversationId, userId, agentId, departmentSlug } = options
 
   const payload = await getPayload({ config: await configPromise })
 
@@ -225,12 +216,7 @@ export async function handleTask(
   console.log('[TaskHandler] Routed to agent:', route.agentId)
 
   // 3. Initialize agent runner
-  const apiKey = process.env.CODEBUFF_API_KEY || process.env.OPENROUTER_API_KEY
-  if (!apiKey) {
-    throw new Error('CODEBUFF_API_KEY or OPENROUTER_API_KEY required')
-  }
-
-  const runner = new AladdinAgentRunner(apiKey, payload)
+  const runner = new AladdinAgentRunner(payload)
 
   // 4. Execute agent
   const context: AgentExecutionContext = {
@@ -263,15 +249,10 @@ export async function handleTask(
   }
 
   // Execute with event handler for real-time updates
-  const result = await runner.executeAgent(
-    route.agentId,
-    content,
-    context,
-    async (event: any) => {
-      // Handle real-time events (will implement in streaming)
-      console.log('[TaskHandler] Agent event:', event)
-    }
-  )
+  const result = await runner.executeAgent(route.agentId, content, context, async (event: any) => {
+    // Handle real-time events (will implement in streaming)
+    console.log('[TaskHandler] Agent event:', event)
+  })
 
   // 5. Update progress
   taskProgress.status = result.error ? 'failed' : 'complete'
@@ -286,9 +267,8 @@ export async function handleTask(
   taskProgress.overallQuality = result.qualityScore
 
   // 6. Format output message
-  const outputMessage = typeof result.output === 'string'
-    ? result.output
-    : JSON.stringify(result.output, null, 2)
+  const outputMessage =
+    typeof result.output === 'string' ? result.output : JSON.stringify(result.output, null, 2)
 
   const message = result.error
     ? `Task failed: ${result.error.message}`

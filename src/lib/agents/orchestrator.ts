@@ -1,263 +1,378 @@
 /**
- * Main Orchestration Logic
- * Handles hierarchical agent execution and coordination
+ * Master Orchestrator
+ * Coordinates multi-agent workflows and department routing
  */
 
-import { CodebuffClient } from '@codebuff/sdk'
-import { masterOrchestratorAgent } from '@/agents/masterOrchestrator'
-import { characterDepartmentHead } from '@/agents/departments/characterHead'
-import {
-  routeToDepartmentTool,
-  queryBrainTool,
-  getProjectContextTool,
-  saveCharacterTool,
-  gradeOutputTool,
-} from '@/agents/tools'
-import type { DepartmentReport, OrchestratorResult } from '@/agents/types'
+import { AladdinAgentRunner, type AgentExecutionContext } from './AladdinAgentRunner'
+import type { Payload } from 'payload'
+import { getPayload } from 'payload'
+import config from '@/payload.config'
 
-export interface OrchestratorConfig {
-  projectSlug: string
-  userPrompt: string
+/**
+ * Orchestration request
+ */
+export interface OrchestrationRequest {
+  prompt: string
+  projectId: string
   conversationId?: string
+  userId?: string
+  metadata?: Record<string, unknown>
 }
 
 /**
- * Main orchestration entry point
- * Handles user request through Master Orchestrator → Department Heads → Specialists
+ * Orchestration result
  */
-export async function handleUserRequest(config: OrchestratorConfig): Promise<OrchestratorResult> {
-  const { projectSlug, userPrompt, conversationId } = config
+export interface OrchestrationResult {
+  masterOutput: string
+  departmentResults: DepartmentResult[]
+  totalExecutionTime: number
+  totalTokens: number
+  estimatedCost: number
+  success: boolean
+  error?: string
+}
 
-  // Initialize Codebuff client with OpenRouter support
-  const useOpenRouter = !!process.env.OPENROUTER_BASE_URL
-  const apiKey = useOpenRouter
-    ? process.env.OPENROUTER_API_KEY
-    : process.env.CODEBUFF_API_KEY
+/**
+ * Department execution result
+ */
+export interface DepartmentResult {
+  departmentId: string
+  departmentName: string
+  departmentHeadOutput: string
+  specialistResults: SpecialistResult[]
+  executionTime: number
+  qualityScore?: number
+}
 
-  const codebuff = new CodebuffClient({
-    apiKey: apiKey || '',
-    baseURL: useOpenRouter ? process.env.OPENROUTER_BASE_URL : undefined,
-  })
+/**
+ * Specialist execution result
+ */
+export interface SpecialistResult {
+  agentId: string
+  agentName: string
+  output: string
+  executionTime: number
+  qualityScore?: number
+}
 
-  console.log(
-    useOpenRouter
-      ? `🌐 Orchestrator using OpenRouter at ${process.env.OPENROUTER_BASE_URL}`
-      : '🤖 Orchestrator using direct Anthropic API'
-  )
+/**
+ * Orchestrator class
+ * Manages hierarchical agent execution: Master → Department Heads → Specialists
+ */
+export class Orchestrator {
+  private runner: AladdinAgentRunner
+  private payload: Payload
 
-  try {
-    // 1. Master Orchestrator analyzes request
-    console.log('🎬 Master Orchestrator analyzing request...')
+  constructor(payload: Payload) {
+    this.runner = new AladdinAgentRunner(payload)
+    this.payload = payload
+  }
 
-    const orchestratorRun = await codebuff.run({
-      agent: masterOrchestratorAgent.id,
-      prompt: userPrompt,
-      customToolDefinitions: [routeToDepartmentTool, queryBrainTool, getProjectContextTool],
-    })
+  /**
+   * Execute orchestrated workflow
+   * 
+   * Flow:
+   * 1. Master Orchestrator analyzes request
+   * 2. Routes to relevant department heads
+   * 3. Department heads delegate to specialists
+   * 4. Results aggregated and returned
+   */
+  async orchestrate(request: OrchestrationRequest): Promise<OrchestrationResult> {
+    const startTime = Date.now()
+    console.log('[Orchestrator] Starting orchestration...')
 
-    // Extract departments needed from orchestrator output
-    const departmentsNeeded = extractDepartments(orchestratorRun.output)
-    console.log(`📋 Departments needed: ${departmentsNeeded.join(', ')}`)
+    try {
+      // 1. Execute Master Orchestrator
+      const masterResult = await this.executeMasterOrchestrator(request)
 
-    // 2. Route to department heads in parallel
-    const departmentReports = await Promise.all(
-      departmentsNeeded.map((dept) =>
-        runDepartmentHead(
-          codebuff,
-          dept,
-          orchestratorRun.output.instructions?.[dept] || userPrompt,
-          projectSlug,
-        ),
-      ),
+      // 2. Parse department routing from master output
+      const departmentRouting = this.parseDepartmentRouting(masterResult.output)
+
+      // 3. Execute department heads in parallel
+      const departmentResults = await this.executeDepartments(departmentRouting, request)
+
+      // 4. Calculate totals
+      const totalExecutionTime = Date.now() - startTime
+      const totalTokens = this.calculateTotalTokens([masterResult, ...departmentResults.flatMap(d => d.specialistResults)])
+      const estimatedCost = this.calculateTotalCost([masterResult, ...departmentResults.flatMap(d => d.specialistResults)])
+
+      return {
+        masterOutput: masterResult.output,
+        departmentResults,
+        totalExecutionTime,
+        totalTokens,
+        estimatedCost,
+        success: true,
+      }
+    } catch (error) {
+      console.error('[Orchestrator] Orchestration failed:', error)
+
+      return {
+        masterOutput: '',
+        departmentResults: [],
+        totalExecutionTime: Date.now() - startTime,
+        totalTokens: 0,
+        estimatedCost: 0,
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    }
+  }
+
+  /**
+   * Execute Master Orchestrator agent
+   */
+  private async executeMasterOrchestrator(request: OrchestrationRequest) {
+    console.log('[Orchestrator] Executing Master Orchestrator...')
+
+    const context: AgentExecutionContext = {
+      projectId: request.projectId,
+      conversationId: request.conversationId || `orchestration-${Date.now()}`,
+      metadata: {
+        userId: request.userId,
+        ...request.metadata,
+      },
+    }
+
+    // Find master orchestrator agent
+    const masterAgent = await this.findMasterOrchestrator()
+
+    return await this.runner.executeAgent(
+      masterAgent.agentId,
+      request.prompt,
+      context,
+    )
+  }
+
+  /**
+   * Execute department heads based on routing
+   */
+  private async executeDepartments(
+    routing: Array<{ departmentSlug: string; instructions: string }>,
+    request: OrchestrationRequest,
+  ): Promise<DepartmentResult[]> {
+    console.log(`[Orchestrator] Executing ${routing.length} departments...`)
+
+    const results = await Promise.all(
+      routing.map(async (route) => {
+        try {
+          // Find department head agent
+          const deptHead = await this.findDepartmentHead(route.departmentSlug)
+
+          const context: AgentExecutionContext = {
+            projectId: request.projectId,
+            conversationId: request.conversationId || `dept-${Date.now()}`,
+            metadata: {
+              userId: request.userId,
+              department: route.departmentSlug,
+              ...request.metadata,
+            },
+          }
+
+          // Execute department head
+          const deptResult = await this.runner.executeAgent(
+            deptHead.agentId,
+            route.instructions,
+            context,
+          )
+
+          // Parse specialist routing from department head output
+          const specialistRouting = this.parseSpecialistRouting(deptResult.output)
+
+          // Execute specialists if any
+          const specialistResults = await this.executeSpecialists(
+            specialistRouting,
+            route.departmentSlug,
+            request,
+          )
+
+          return {
+            departmentId: deptHead.id,
+            departmentName: deptHead.name,
+            departmentHeadOutput: deptResult.output,
+            specialistResults,
+            executionTime: deptResult.executionTime,
+            qualityScore: deptResult.qualityScore,
+          }
+        } catch (error) {
+          console.error(`[Orchestrator] Department execution failed (${route.departmentSlug}):`, error)
+
+          return {
+            departmentId: route.departmentSlug,
+            departmentName: route.departmentSlug,
+            departmentHeadOutput: `Error: ${error instanceof Error ? error.message : String(error)}`,
+            specialistResults: [],
+            executionTime: 0,
+          }
+        }
+      }),
     )
 
-    // 3. Orchestrator aggregates results
-    console.log('🔄 Aggregating department reports...')
+    return results
+  }
 
-    const aggregated = await codebuff.run({
-      agent: masterOrchestratorAgent.id,
-      prompt: `Aggregate these department reports: ${JSON.stringify(departmentReports)}`,
-      previousRun: orchestratorRun,
-      customToolDefinitions: [queryBrainTool],
+  /**
+   * Execute specialist agents
+   */
+  private async executeSpecialists(
+    routing: Array<{ agentId: string; instructions: string }>,
+    departmentSlug: string,
+    request: OrchestrationRequest,
+  ): Promise<SpecialistResult[]> {
+    if (routing.length === 0) return []
+
+    console.log(`[Orchestrator] Executing ${routing.length} specialists for ${departmentSlug}...`)
+
+    const results = await Promise.all(
+      routing.map(async (route) => {
+        try {
+          const context: AgentExecutionContext = {
+            projectId: request.projectId,
+            conversationId: request.conversationId || `specialist-${Date.now()}`,
+            metadata: {
+              userId: request.userId,
+              department: departmentSlug,
+              ...request.metadata,
+            },
+          }
+
+          const result = await this.runner.executeAgent(
+            route.agentId,
+            route.instructions,
+            context,
+          )
+
+          return {
+            agentId: route.agentId,
+            agentName: route.agentId,
+            output: result.output,
+            executionTime: result.executionTime,
+            qualityScore: result.qualityScore,
+          }
+        } catch (error) {
+          console.error(`[Orchestrator] Specialist execution failed (${route.agentId}):`, error)
+
+          return {
+            agentId: route.agentId,
+            agentName: route.agentId,
+            output: `Error: ${error instanceof Error ? error.message : String(error)}`,
+            executionTime: 0,
+          }
+        }
+      }),
+    )
+
+    return results
+  }
+
+  /**
+   * Find master orchestrator agent
+   */
+  private async findMasterOrchestrator() {
+    const result = await this.payload.find({
+      collection: 'agents',
+      where: {
+        agentLevel: { equals: 'master' },
+        isActive: { equals: true },
+      },
+      limit: 1,
     })
 
-    // 4. Calculate final quality scores
-    const overallQuality = calculateOverallQuality(departmentReports)
-    const consistency = calculateConsistency(departmentReports)
-
-    // 5. Brain validation (TODO: implement real brain service validation)
-    const brainValidation = {
-      validated: false, // Default to false until real validation is implemented
-      score: 0,
+    if (!result.docs.length) {
+      throw new Error('Master orchestrator agent not found')
     }
 
-    const result: OrchestratorResult = {
-      departmentReports,
-      consistency,
-      completeness: calculateCompleteness(departmentReports),
-      brainValidated: brainValidation.validated,
-      brainQualityScore: brainValidation.score,
-      overallQuality,
-      recommendation:
-        overallQuality >= 0.75 ? 'ingest' : overallQuality >= 0.5 ? 'modify' : 'discard',
+    return result.docs[0]
+  }
+
+  /**
+   * Find department head agent by department slug
+   */
+  private async findDepartmentHead(departmentSlug: string) {
+    // First find the department
+    const deptResult = await this.payload.find({
+      collection: 'departments',
+      where: {
+        slug: { equals: departmentSlug },
+      },
+      limit: 1,
+    })
+
+    if (!deptResult.docs.length) {
+      throw new Error(`Department not found: ${departmentSlug}`)
     }
 
-    console.log(`✅ Orchestration complete. Quality: ${overallQuality.toFixed(2)}`)
-    return result
-  } catch (error) {
-    console.error('❌ Orchestration error:', error)
-    throw error
+    const department = deptResult.docs[0]
+
+    // Find department head agent
+    const agentResult = await this.payload.find({
+      collection: 'agents',
+      where: {
+        department: { equals: department.id },
+        isDepartmentHead: { equals: true },
+        isActive: { equals: true },
+      },
+      limit: 1,
+    })
+
+    if (!agentResult.docs.length) {
+      throw new Error(`Department head not found for: ${departmentSlug}`)
+    }
+
+    return agentResult.docs[0]
+  }
+
+  /**
+   * Parse department routing from master orchestrator output
+   * Expected format: JSON array of {departmentSlug, instructions}
+   */
+  private parseDepartmentRouting(output: string): Array<{ departmentSlug: string; instructions: string }> {
+    // Simple parsing - can be enhanced with structured outputs
+    // For now, return empty array (will be enhanced in next iteration)
+    return []
+  }
+
+  /**
+   * Parse specialist routing from department head output
+   */
+  private parseSpecialistRouting(output: string): Array<{ agentId: string; instructions: string }> {
+    // Simple parsing - can be enhanced with structured outputs
+    return []
+  }
+
+  /**
+   * Calculate total tokens used
+   */
+  private calculateTotalTokens(results: Array<{ tokenUsage?: { totalTokens: number } }>): number {
+    return results.reduce((sum, r) => sum + (r.tokenUsage?.totalTokens || 0), 0)
+  }
+
+  /**
+   * Calculate total estimated cost
+   */
+  private calculateTotalCost(results: Array<{ tokenUsage?: { estimatedCost?: number } }>): number {
+    return results.reduce((sum, r) => sum + (r.tokenUsage?.estimatedCost || 0), 0)
   }
 }
 
 /**
- * Run a department head with its specialists
+ * Get or create global orchestrator instance
  */
-async function runDepartmentHead(
-  codebuff: CodebuffClient,
-  departmentName: string,
-  instructions: string,
-  projectSlug: string,
-): Promise<DepartmentReport> {
-  console.log(`🏢 Running ${departmentName} department head...`)
+let orchestratorInstance: Orchestrator | null = null
 
-  try {
-    // Get department head configuration
-    const deptHeadConfig = getDepartmentHeadConfig(departmentName)
-
-    if (!deptHeadConfig) {
-      return {
-        department: departmentName,
-        relevance: 0,
-        status: 'not_relevant',
-        outputs: [],
-        departmentQuality: 0,
-        issues: [`Department ${departmentName} not configured`],
-        suggestions: [],
-      }
-    }
-
-    // 1. Department head assesses relevance
-    const deptHeadRun = await codebuff.run({
-      agent: deptHeadConfig.id,
-      prompt: instructions,
-      customToolDefinitions: [gradeOutputTool, saveCharacterTool, getProjectContextTool],
-    })
-
-    // Extract relevance from output
-    const relevance = extractRelevance(deptHeadRun.output)
-
-    if (relevance < 0.3) {
-      return {
-        department: departmentName,
-        relevance,
-        status: 'not_relevant',
-        outputs: [],
-        departmentQuality: 0,
-        issues: [],
-        suggestions: [],
-      }
-    }
-
-    // 2. Extract specialists needed
-    const specialistsNeeded = extractSpecialists(deptHeadRun.output)
-    console.log(`  👥 Spawning ${specialistsNeeded.length} specialists...`)
-
-    // 3. Spawn specialists (TODO: implement real specialist agents)
-    const specialistOutputs = specialistsNeeded.map((specialist) => ({
-      specialistAgentId: specialist.id,
-      output: {}, // Empty output until real specialists are implemented
-      qualityScore: 0,
-      relevanceScore: 0,
-      consistencyScore: 0,
-      overallScore: 0,
-      issues: [],
-      suggestions: [],
-      decision: 'pending' as const,
-      reasoning: 'Awaiting specialist implementation',
-    }))
-
-    // 4. Calculate department quality
-    const departmentQuality =
-      specialistOutputs.length > 0
-        ? specialistOutputs.reduce((sum, o) => sum + o.overallScore, 0) / specialistOutputs.length
-        : 0
-
-    return {
-      department: departmentName,
-      relevance,
-      status: 'complete',
-      outputs: specialistOutputs,
-      departmentQuality,
-      issues: [],
-      suggestions: [],
-    }
-  } catch (error) {
-    console.error(`❌ Error in ${departmentName} department:`, error)
-    return {
-      department: departmentName,
-      relevance: 0,
-      status: 'pending',
-      outputs: [],
-      departmentQuality: 0,
-      issues: [error instanceof Error ? error.message : 'Unknown error'],
-      suggestions: [],
-    }
+export async function getOrchestrator(): Promise<Orchestrator> {
+  if (!orchestratorInstance) {
+    const payload = await getPayload({ config })
+    orchestratorInstance = new Orchestrator(payload)
   }
+  return orchestratorInstance
 }
 
-// Helper functions
-function extractDepartments(output: any): string[] {
-  // Parse orchestrator output for departments
-  if (output.departments && Array.isArray(output.departments)) {
-    return output.departments
-  }
-  // Default to character department for Phase 2
-  return ['character']
+/**
+ * Execute orchestrated workflow (convenience function)
+ */
+export async function orchestrate(request: OrchestrationRequest): Promise<OrchestrationResult> {
+  const orchestrator = await getOrchestrator()
+  return await orchestrator.orchestrate(request)
 }
 
-function extractRelevance(output: any): number {
-  if (output.relevance && typeof output.relevance === 'number') {
-    return output.relevance
-  }
-  return 0.8 // Default relevance
-}
-
-function extractSpecialists(output: any): Array<{ id: string; instructions: string }> {
-  if (output.specialists && Array.isArray(output.specialists)) {
-    return output.specialists
-  }
-  // Default specialists for character department
-  return [
-    { id: 'character-creator', instructions: 'Create character profile' },
-    { id: 'hair-stylist', instructions: 'Design hairstyle' },
-  ]
-}
-
-function getDepartmentHeadConfig(department: string) {
-  const configs: Record<string, any> = {
-    character: characterDepartmentHead,
-    // Add other departments as they're implemented
-  }
-  return configs[department]
-}
-
-function calculateOverallQuality(reports: DepartmentReport[]): number {
-  if (reports.length === 0) return 0
-  const sum = reports.reduce((acc, r) => acc + r.departmentQuality, 0)
-  return sum / reports.length
-}
-
-function calculateConsistency(reports: DepartmentReport[]): number {
-  // TODO: implement real cross-department consistency checking
-  // For now, return 0 until real implementation
-  return 0
-}
-
-function calculateCompleteness(reports: DepartmentReport[]): number {
-  const relevantReports = reports.filter((r) => r.relevance >= 0.3)
-  if (relevantReports.length === 0) return 0
-
-  const completedReports = relevantReports.filter((r) => r.status === 'complete')
-  return completedReports.length / relevantReports.length
-}

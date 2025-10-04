@@ -42,11 +42,9 @@
 
 **Example Usage**:
 ```typescript
-import { CodebuffClient } from '@codebuff/sdk'
+import { AIAgentExecutor } from '@/lib/ai/agent-executor'
 
-const codebuff = new CodebuffClient({ 
-  apiKey: process.env.CODEBUFF_API_KEY 
-})
+const executor = new AIAgentExecutor(payload)
 
 const result = await codebuff.run({
   agent: 'master-orchestrator',

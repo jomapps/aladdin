@@ -745,25 +745,25 @@ const voice = await client.voices.add({ name, description })
 const audio = await client.generate({ voice: voiceId, text })
 ```
 
-### 8.3 @codebuff/sdk (Agent Framework)
+### 8.3 Vercel AI SDK (Agent Framework)
 
 **Core Features:**
-- Agent orchestration
-- Multi-agent workflows
-- Streaming responses
-- Cost tracking
+- Agent orchestration via PayloadCMS
+- Structured outputs with Zod
+- Tool calling support
+- OpenRouter integration
 
 **Usage:**
 ```typescript
-import { CodebuffClient } from '@codebuff/sdk'
+import { AIAgentExecutor } from '@/lib/ai/agent-executor'
 
-const client = new CodebuffClient({ apiKey })
+const executor = new AIAgentExecutor(payload)
 
-const result = await client.run({
-    agent: agentType,
+const result = await executor.execute({
+    agentId: 'content-enhancer',
     prompt,
-    projectFiles: context,
-    stream: true
+    context: { projectId },
+    structuredOutput: { schema }
 })
 ```
 
@@ -1092,7 +1092,8 @@ ws.send(JSON.stringify({ type: 'auth', token }))
     "mongodb": "7+",
     "neo4j-driver": "5+",
     "ioredis": "latest",
-    "@codebuff/sdk": "latest",
+    "ai": "latest",
+    "@ai-sdk/openai": "latest",
     "@fal-ai/serverless-client": "latest",
     "elevenlabs": "latest",
     "react": "18+",

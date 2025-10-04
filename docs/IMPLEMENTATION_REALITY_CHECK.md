@@ -121,7 +121,7 @@
 
 | Component | Status | Percentage |
 |-----------|--------|------------|
-| Agent Framework | ✅ @codebuff/sdk | 100% |
+| Agent Framework | ✅ Vercel AI SDK | 100% |
 | Agent Configs | ⚠️ 3 of 50+ | 6% |
 | Brain Service | ✅ Neo4j + Jina | 100% |
 | MCP Services | ⚠️ 1 of 6 | 17% |
@@ -134,9 +134,9 @@
 
 ## 🔍 HOW TO VERIFY
 
-### Check for @codebuff/sdk:
+### Check for Vercel AI SDK:
 ```bash
-grep -r "CodebuffClient" src/
+grep -r "AIAgentExecutor" src/
 # Result: Multiple files found ✅
 ```
 
@@ -148,8 +148,8 @@ grep -r "langgraph\|LangGraph" src/ services/
 
 ### Check package.json:
 ```bash
-cat package.json | grep codebuff
-# Result: "@codebuff/sdk": "^0.3.12" ✅
+cat package.json | grep "\"ai\""
+# Result: "ai": "^5.0.60", "@ai-sdk/openai": "^2.0.42" ✅
 
 cat package.json | grep langgraph
 # Result: (nothing) ❌

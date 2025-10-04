@@ -85,11 +85,7 @@ export class StoryDepartment {
   private async initializeRunner(): Promise<AladdinAgentRunner> {
     if (!this.runner) {
       this.payload = await getPayload({ config })
-      const apiKey = process.env.OPENROUTER_API_KEY || process.env.ANTHROPIC_API_KEY
-      if (!apiKey) {
-        throw new Error('Missing API key: Set OPENROUTER_API_KEY or ANTHROPIC_API_KEY')
-      }
-      this.runner = new AladdinAgentRunner(apiKey, this.payload)
+      this.runner = new AladdinAgentRunner(this.payload)
     }
     return this.runner
   }
@@ -97,7 +93,11 @@ export class StoryDepartment {
   /**
    * Process story bible and generate screenplay with scenes
    */
-  async processStory(projectId: string, projectSlug: string, userId: string): Promise<{
+  async processStory(
+    projectId: string,
+    projectSlug: string,
+    userId: string,
+  ): Promise<{
     screenplay: Screenplay
     scenes: Scene[]
   }> {
@@ -112,10 +112,17 @@ export class StoryDepartment {
 
     // Step 2: Generate full screenplay using agent runner
     const screenplay = await this.generateScreenplay(storyBible, characters, projectId, projectSlug)
-    console.log(`[StoryDept] Generated screenplay: ${screenplay.sceneCount} scenes, ${screenplay.estimatedDuration}s`)
+    console.log(
+      `[StoryDept] Generated screenplay: ${screenplay.sceneCount} scenes, ${screenplay.estimatedDuration}s`,
+    )
 
     // Step 3: Break screenplay into 3-7s scenes using agent runner
-    const scenes = await this.breakScreenplayIntoScenes(screenplay, storyBible, projectId, projectSlug)
+    const scenes = await this.breakScreenplayIntoScenes(
+      screenplay,
+      storyBible,
+      projectId,
+      projectSlug,
+    )
     console.log(`[StoryDept] Broke screenplay into ${scenes.length} scenes`)
 
     // Step 4: Create scene documents in PayloadCMS
@@ -137,11 +144,10 @@ export class StoryDepartment {
     characters: Character[]
   }> {
     // Get story bible
-    const storyBibleItems = await qualifiedDB.getQualifiedItems(
-      projectSlug,
-      'story_bible',
-      { limit: 1, sort: 'latest' }
-    )
+    const storyBibleItems = await qualifiedDB.getQualifiedItems(projectSlug, 'story_bible', {
+      limit: 1,
+      sort: 'latest',
+    })
 
     if (storyBibleItems.items.length === 0) {
       throw new Error('Story bible not found. Run world department first.')
@@ -150,13 +156,11 @@ export class StoryDepartment {
     const storyBible = storyBibleItems.items[0].content as StoryBible
 
     // Get characters
-    const characterItems = await qualifiedDB.getQualifiedItems(
-      projectSlug,
-      'characters',
-      { limit: 100 }
-    )
+    const characterItems = await qualifiedDB.getQualifiedItems(projectSlug, 'characters', {
+      limit: 100,
+    })
 
-    const characters = characterItems.items.map(item => item.content as Character)
+    const characters = characterItems.items.map((item) => item.content as Character)
 
     return { storyBible, characters }
   }
@@ -168,7 +172,7 @@ export class StoryDepartment {
     storyBible: StoryBible,
     characters: Character[],
     projectId: string,
-    projectSlug: string
+    projectSlug: string,
   ): Promise<Screenplay> {
     const runner = await this.initializeRunner()
 
@@ -178,15 +182,17 @@ export class StoryDepartment {
       where: {
         or: [
           { slug: { equals: 'story-screenplay-agent' } },
-          { slug: { equals: 'story-department-agent' } }
+          { slug: { equals: 'story-department-agent' } },
         ],
-        isActive: { equals: true }
+        isActive: { equals: true },
       },
-      limit: 1
+      limit: 1,
     })
 
     if (!agents.docs.length) {
-      throw new Error('Story screenplay agent not found. Please create a story-screenplay-agent in PayloadCMS.')
+      throw new Error(
+        'Story screenplay agent not found. Please create a story-screenplay-agent in PayloadCMS.',
+      )
     }
 
     const storyAgent = agents.docs[0]
@@ -239,24 +245,18 @@ Return a JSON object:
 
 IMPORTANT: Return ONLY the JSON object, no markdown, no explanations.`
 
-    const result = await runner.executeAgent(
-      storyAgent.agentId,
-      prompt,
-      {
-        projectId,
-        conversationId: `story-screenplay-${projectSlug}`,
-        metadata: {
-          department: 'story',
-          phase: 'screenplay',
-          storyBibleTitle: storyBible.title
-        }
-      }
-    )
+    const result = await runner.executeAgent(storyAgent.agentId, prompt, {
+      projectId,
+      conversationId: `story-screenplay-${projectSlug}`,
+      metadata: {
+        department: 'story',
+        phase: 'screenplay',
+        storyBibleTitle: storyBible.title,
+      },
+    })
 
     // Parse the screenplay output
-    const screenplay = typeof result.output === 'string'
-      ? JSON.parse(result.output)
-      : result.output
+    const screenplay = typeof result.output === 'string' ? JSON.parse(result.output) : result.output
 
     return screenplay as Screenplay
   }
@@ -268,7 +268,7 @@ IMPORTANT: Return ONLY the JSON object, no markdown, no explanations.`
     screenplay: Screenplay,
     storyBible: StoryBible,
     projectId: string,
-    projectSlug: string
+    projectSlug: string,
   ): Promise<Scene[]> {
     const runner = await this.initializeRunner()
 
@@ -278,15 +278,17 @@ IMPORTANT: Return ONLY the JSON object, no markdown, no explanations.`
       where: {
         or: [
           { slug: { equals: 'scene-breakdown-agent' } },
-          { slug: { equals: 'story-department-agent' } }
+          { slug: { equals: 'story-department-agent' } },
         ],
-        isActive: { equals: true }
+        isActive: { equals: true },
       },
-      limit: 1
+      limit: 1,
     })
 
     if (!agents.docs.length) {
-      throw new Error('Scene breakdown agent not found. Please create a scene-breakdown-agent in PayloadCMS.')
+      throw new Error(
+        'Scene breakdown agent not found. Please create a scene-breakdown-agent in PayloadCMS.',
+      )
     }
 
     const sceneAgent = agents.docs[0]
@@ -337,24 +339,18 @@ Return a JSON array of Scene objects.
 
 IMPORTANT: Return ONLY the JSON array, no markdown, no explanations.`
 
-    const result = await runner.executeAgent(
-      sceneAgent.agentId,
-      prompt,
-      {
-        projectId,
-        conversationId: `story-scenes-${projectSlug}`,
-        metadata: {
-          department: 'story',
-          phase: 'scene-breakdown',
-          screenplayTitle: screenplay.title
-        }
-      }
-    )
+    const result = await runner.executeAgent(sceneAgent.agentId, prompt, {
+      projectId,
+      conversationId: `story-scenes-${projectSlug}`,
+      metadata: {
+        department: 'story',
+        phase: 'scene-breakdown',
+        screenplayTitle: screenplay.title,
+      },
+    })
 
     // Parse the scenes output
-    const scenes = typeof result.output === 'string'
-      ? JSON.parse(result.output)
-      : result.output
+    const scenes = typeof result.output === 'string' ? JSON.parse(result.output) : result.output
 
     return scenes as Scene[]
   }
@@ -382,20 +378,24 @@ IMPORTANT: Return ONLY the JSON array, no markdown, no explanations.`
           visualDescription: scene.screenplayText,
           targetDuration: scene.expectedDuration,
           dramaticIntensity: scene.dramaticEffect.intensity,
-          cameraDirection: scene.cameraDirection ? {
-            shotType: scene.cameraDirection.shotType,
-            movement: scene.cameraDirection.movement,
-            angle: scene.cameraDirection.angle,
-            notes: `Focus: ${scene.cameraDirection.focus}`
-          } : undefined,
-          lightingDirection: scene.lightingDirection ? {
-            style: scene.lightingDirection.style,
-            mood: scene.lightingDirection.mood,
-            notes: `Key: ${scene.lightingDirection.keyLighting}, Temp: ${scene.lightingDirection.colorTemperature}`
-          } : undefined,
-          charactersPresent: scene.characters?.map(name => ({ name })),
+          cameraDirection: scene.cameraDirection
+            ? {
+                shotType: scene.cameraDirection.shotType,
+                movement: scene.cameraDirection.movement,
+                angle: scene.cameraDirection.angle,
+                notes: `Focus: ${scene.cameraDirection.focus}`,
+              }
+            : undefined,
+          lightingDirection: scene.lightingDirection
+            ? {
+                style: scene.lightingDirection.style,
+                mood: scene.lightingDirection.mood,
+                notes: `Key: ${scene.lightingDirection.keyLighting}, Temp: ${scene.lightingDirection.colorTemperature}`,
+              }
+            : undefined,
+          charactersPresent: scene.characters?.map((name) => ({ name })),
           visualImpact: scene.dramaticEffect.visualImpact,
-        }
+        },
       })
     }
   }
@@ -407,7 +407,7 @@ IMPORTANT: Return ONLY the JSON array, no markdown, no explanations.`
     projectSlug: string,
     screenplay: Screenplay,
     projectId: string,
-    userId: string
+    userId: string,
   ): Promise<void> {
     await qualifiedDB.createQualifiedItem(projectSlug, 'screenplays', {
       projectId,
@@ -419,7 +419,7 @@ IMPORTANT: Return ONLY the JSON array, no markdown, no explanations.`
       qualityRating: 1.0,
       brainValidated: false,
       userApproved: false,
-      content: screenplay
+      content: screenplay,
     })
   }
 }
@@ -435,7 +435,7 @@ export async function breakScreenplayIntoScenes(
   screenplay: Screenplay,
   storyBible: StoryBible,
   projectId: string,
-  projectSlug: string
+  projectSlug: string,
 ): Promise<Scene[]> {
   const dept = new StoryDepartment()
   return await dept.breakScreenplayIntoScenes(screenplay, storyBible, projectId, projectSlug)

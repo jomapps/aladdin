@@ -734,8 +734,8 @@ if total_iterations >= max_iterations:
 ```bash
 # requirements.txt additions
 
-# @codebuff/sdk (OpenRouter integration)
-codebuff>=1.0.0
+# Vercel AI SDK (OpenRouter integration)
+# Note: Use Node.js SDK, not Python
 
 # MongoDB
 pymongo>=4.0.0

@@ -120,7 +120,7 @@ The **Celery task implementation** needs to be added to **tasks.ft.tc**:
        model = dept.get('defaultModel', 'anthropic/claude-sonnet-4.5')
        threshold = dept.get('minQualityThreshold', 80)
 
-       # Generate content using @codebuff/sdk
+       # Generate content using Vercel AI SDK
        new_items = generate_content(dept, model)
 
        # Check duplicates via brain.ft.tc
